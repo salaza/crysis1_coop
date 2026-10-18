@@ -156,6 +156,36 @@ static void CmdCoopClearMap(IConsoleCmdArgs* pArgs)
 		CryLogAlways("[Co-op] Strategic map drawings cleared.");
 	}
 }
+
+static void EnforceCoopPhysicsSettings()
+{
+	if (gEnv->pPhysicalWorld)
+	{
+		if (PhysicsVars *pPV = gEnv->pPhysicalWorld->GetPhysVars())
+		{
+			pPV->bMultiplayer = 0;
+			pPV->bPlayersCanBreak = 1;
+			pPV->breakImpulseScale = 1.0f;
+		}
+	}
+
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("p_players_can_break")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_procedural_breaking")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_joint_breaking")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_tree_cut_reuse_dist")) pCVar->Set(0.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_breakImpulseScale")) pCVar->Set(1.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_deformable_objects")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_joint_strength_scale")) pCVar->Set(1.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_terrain_deformations")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_cull_veg_activation")) pCVar->Set(50);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_phys_foliage")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_vegetation_bending")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDist")) pCVar->Set(200.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDistInvisible")) pCVar->Set(25.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_foliage_wind_activation_dist")) pCVar->Set(25.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_breakage_particles_limit")) pCVar->Set(250);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("ca_aimIKFadeout")) pCVar->Set(1);
+}
 //~Crysis Co-op
 
 CCoopSystem::CCoopSystem() :
@@ -205,16 +235,7 @@ bool CCoopSystem::Initialize()
 		pObjQuality->ForceSet("4");
 
 	// Enable full SinglePlayer physics simulation, destruction, tree cutting and foliage bending in Co-op
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_joint_breaking")) pCVar->Set(1);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_tree_cut_reuse_dist")) pCVar->Set(0.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_cull_veg_activation")) pCVar->Set(50);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_phys_foliage")) pCVar->Set(2);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_vegetation_bending")) pCVar->Set(2);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDist")) pCVar->Set(200.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDistInvisible")) pCVar->Set(25.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_foliage_wind_activation_dist")) pCVar->Set(25.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_breakage_particles_limit")) pCVar->Set(250);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("ca_aimIKFadeout")) pCVar->Set(1);
+	EnforceCoopPhysicsSettings();
 
 	// Crysis Co-op: GameSpy is offline - use direct connections only
 	if (ICVar* pLan = gEnv->pConsole->GetCVar("sv_lanonly"))
@@ -323,14 +344,7 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 		pObjQuality->ForceSet("4");
 
 	// Ensure physics destruction is fully enabled on both Host and Client
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_joint_breaking")) pCVar->Set(1);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_tree_cut_reuse_dist")) pCVar->Set(0.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_cull_veg_activation")) pCVar->Set(50);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_phys_foliage")) pCVar->Set(2);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_vegetation_bending")) pCVar->Set(2);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDist")) pCVar->Set(200.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDistInvisible")) pCVar->Set(25.0f);
-	if (ICVar* pCVar = gEnv->pConsole->GetCVar("ca_aimIKFadeout")) pCVar->Set(1);
+	EnforceCoopPhysicsSettings();
 
 	if (!gEnv->bServer) return;
 
@@ -435,4 +449,6 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 	
 	gEnv->pAISystem->Reset(IAISystem::RESET_ENTER_GAME);
 	gEnv->bMultiplayer = true;
+
+	EnforceCoopPhysicsSettings();
 }

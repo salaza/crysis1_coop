@@ -140,9 +140,7 @@ bool CHUDTagNames::ProjectOnSphere(Vec3 &rvWorldPos,const AABB &rBBox)
 bool CHUDTagNames::IsCoopGame()
 {
 	CGameRules *pGameRules = g_pGame->GetGameRules();
-	if(!pGameRules || !pGameRules->GetEntity() || !pGameRules->GetEntity()->GetClass())
-		return false;
-	return stricmp(pGameRules->GetEntity()->GetClass()->GetName(), "Coop") == 0;
+	return pGameRules && pGameRules->IsCoop();
 }
 
 //-----------------------------------------------------------------------------------------------------

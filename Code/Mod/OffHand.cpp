@@ -629,7 +629,7 @@ void COffHand::UpdateFPView(float frameTime)
 
 	if(m_currentState==eOHS_INIT_STATE)
 	{
-		bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+		bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
 		if(!gEnv->bMultiplayer || isCoop)
 			UpdateCrosshairUsabilitySP();
 		else
@@ -1822,7 +1822,7 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 	SMovementState info;
 	pMC->GetMovementState(info);
 
-	bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+	bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
 	if(gEnv->bMultiplayer && !isCoop)
 		return CheckItemsInProximity(info.eyePosition,info.eyeDirection,getEntityInfo);
 
@@ -1840,9 +1840,10 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 		}
 	}
 
+	const ray_hit *pRay = NULL;
 	if (!pPhysicalEntity)
 	{
-		const ray_hit *pRay = pActor->GetGameObject()->GetWorldQuery()->GetLookAtPoint(m_range);
+		pRay = pActor->GetGameObject()->GetWorldQuery()->GetLookAtPoint(m_range);
 		if (pRay)
 			pPhysicalEntity = pRay->pCollider;
 		else
@@ -1860,21 +1861,15 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 		pe_params_part pPart;
 
 		//Check if entity is in range
-		if (pEntity)
+		if (pRay)
 		{
-			lenSqr=(pos-pEntity->GetWorldPos()).len2();
-			if(pPhysicalEntity->GetType()==PE_RIGID && (!strcmp(pEntity->GetClass()->GetName(), "Default")))
-			{
-				//Procedurally breakable object (most likely...)
-				//I need to adjust the distance, since the pivot of the entity could be anywhere
-				pPart.ipart = 0;
-				if(pPhysicalEntity->GetParams(&pPart) && pPart.pPhysGeom)
-				{
-					lenSqr-=pPart.pPhysGeom->origin.len2();
-					breakable = true;
-				}
-			}
-
+			lenSqr = pRay->dist * pRay->dist;
+		}
+		else if (pEntity)
+		{
+			AABB aabb;
+			pEntity->GetWorldBounds(aabb);
+			lenSqr = aabb.GetDistanceSqr(pos);
 		}
 
 		if (lenSqr<m_range*m_range)
@@ -1999,20 +1994,29 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 					return OH_GRAB_OBJECT;
 				}
 
-				//7.- Legacy system...
-				SmartScriptTable props;
-				IScriptTable *pEntityScript=pEntity->GetScriptTable();
-				if (pPhysicalEntity->GetType()==PE_RIGID && pEntityScript && pEntityScript->GetValue("Properties", props))
+				//7.- Physical props and legacy system
+				if (pPhysicalEntity->GetType() == PE_RIGID || pPhysicalEntity->GetType() == PE_ARTICULATED)
 				{
-					int pickable=0;
-					int usable = 0;
-					if (props->GetValue("bPickable", pickable) && !pickable)
-						return false;
-					else if (pickable)
-						if(props->GetValue("bUsable", usable) && !usable)
+					SmartScriptTable props;
+					IScriptTable *pEntityScript = pEntity->GetScriptTable();
+					if (pEntityScript && pEntityScript->GetValue("Properties", props))
+					{
+						int pickable = 0;
+						if (props->GetValue("bPickable", pickable))
+						{
+							if (!pickable)
+								return OH_NO_GRAB;
 							return OH_GRAB_OBJECT;
+						}
+					}
 
-					return false;
+					// Physical mass and volume check via player capability (SinglePlayer style)
+					float heavyness = 0.0f, volume = 0.0f;
+					if (pActor->CanPickUpObject(pEntity, heavyness, volume))
+					{
+						m_grabType = (heavyness > 0.5f || volume > 0.08f) ? GRAB_TYPE_TWO_HANDED : GRAB_TYPE_ONE_HANDED;
+						return OH_GRAB_OBJECT;
+					}
 				}
 
 				if(getEntityInfo)
@@ -2384,14 +2388,14 @@ void COffHand::SelectGrabType(IEntity* pEntity)
 
 		// when we come here, we haven't matched any of the predefined helpers ... so try to make a 
 		// smart decision based on how large the object is
-		//float volume(0),heavyness(0);
-		//pActor->CanPickUpObject(pEntity, heavyness, volume);
+		float volume(0), heavyness(0);
+		if (pActor->CanPickUpObject(pEntity, heavyness, volume))
+			m_grabType = (volume > 0.08f || heavyness > 0.5f) ? GRAB_TYPE_TWO_HANDED : GRAB_TYPE_ONE_HANDED;
+		else
+			m_grabType = GRAB_TYPE_TWO_HANDED;
 
-		// grabtype 0 is onehanded and 1 is twohanded
-		//m_grabType = (volume>0.08f) ? 1 : 0;
 		m_holdOffset.SetIdentity();
 		m_hasHelper = false;
-		m_grabType = GRAB_TYPE_TWO_HANDED;
 	}
 }
 
@@ -2455,7 +2459,7 @@ void COffHand::StartPickUpItem()
 	}
 
 	//No animation in MP
-	bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+	bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
 	if(gEnv->bMultiplayer && !isCoop)
 	{
 		m_currentState = eOHS_PICKING_ITEM2;

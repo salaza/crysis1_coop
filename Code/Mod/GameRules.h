@@ -224,6 +224,12 @@ public:
 	virtual bool OnCollision(const SGameCollision& event);
 	//~IGameRules
 
+	bool IsCoop() const
+	{
+		const char* cls = GetEntity() && GetEntity()->GetClass() ? GetEntity()->GetClass()->GetName() : "";
+		return stricmp(cls, "Coop") == 0 || stricmp(cls, "coop") == 0;
+	}
+
 	virtual void RegisterConsoleCommands(IConsole *pConsole);
 	virtual void UnregisterConsoleCommands(IConsole *pConsole);
 	virtual void RegisterConsoleVars(IConsole *pConsole);

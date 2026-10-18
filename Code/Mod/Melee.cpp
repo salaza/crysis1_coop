@@ -572,7 +572,7 @@ void CMelee::Impulse(const Vec3 &pt, const Vec3 &dir, const Vec3 &normal, IPhysi
 		// if no pEntity - do it old way
 		IEntity * pEntity = (IEntity*) pCollider->GetForeignData(PHYS_FOREIGN_ID_ENTITY);
 
-		bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+		bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
 		if(gEnv->bMultiplayer && !isCoop && pEntity)
 		{
 			if(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pEntity->GetId()) == NULL)

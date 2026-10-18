@@ -314,7 +314,7 @@ void CGameRules::ProcessServerHit(HitInfo &hitInfo)
 			m_pGameplayRecorder->Event(pShooter->GetEntity(), GameplayEvent(eGE_Damage, 0, hitInfo.damage,
 				reinterpret_cast<void*>(static_cast<uintptr_t>(hitInfo.weaponId))));
 
-		if (hitInfo.targetId == 0 && gEnv->bServer && gEnv->pPhysicalWorld)
+		if (hitInfo.targetId == 0 && gEnv->pPhysicalWorld)
 		{
 			// Check if static geometry (tree, foliage, breakable brush) or rigid prop was hit
 			ray_hit rh;
@@ -475,11 +475,13 @@ void CGameRules::CullEntitiesInExplosion(const ExplosionInfo &explosionInfo)
 //------------------------------------------------------------------------
 void CGameRules::ClientExplosion(const ExplosionInfo &explosionInfo)
 {
-	// let 3D engine know about explosion (will create holes and remove vegetation)
-	//if (explosionInfo.hole_size > 0.0f)
-	//{
-		//gEnv->p3DEngine->OnExplosion(explosionInfo.pos, explosionInfo.hole_size, true);
-	//}
+	// let 3D engine know about explosion (will create craters and remove vegetation/trees)
+	if (gEnv->p3DEngine)
+	{
+		float holeSize = explosionInfo.hole_size > 0.0f ? explosionInfo.hole_size : (explosionInfo.radius * 0.5f);
+		if (holeSize > 0.0f)
+			gEnv->p3DEngine->OnExplosion(explosionInfo.pos, holeSize, true);
+	}
 
 	TExplosionAffectedEntities affectedEntities;
 
@@ -589,6 +591,26 @@ void CGameRules::ClientExplosion(const ExplosionInfo &explosionInfo)
 		if (!gEnv->bServer)
 		{
 			CreateScriptExplosionInfo(m_scriptExplosionInfo, explosionInfo);
+
+			// On clients, simulate physical explosion locally for rigid bodies, static objects and breakable structures/huts
+			if (gEnv->pPhysicalWorld)
+			{
+				pe_explosion explosion;
+				explosion.epicenter = explosionInfo.pos;
+				explosion.rmin = explosionInfo.minPhysRadius;
+				explosion.rmax = explosionInfo.physRadius;
+				if (explosion.rmax == 0)
+					explosion.rmax = 0.0001f;
+				explosion.r = explosion.rmin;
+				explosion.impulsivePressureAtR = explosionInfo.pressure;
+				explosion.epicenterImp = explosionInfo.pos;
+				explosion.explDir = explosionInfo.dir;
+				explosion.nGrow = 2;
+				explosion.rminOcc = 0.07f;
+				explosion.holeSize = explosionInfo.hole_size;
+				explosion.nOccRes = explosion.rmax > 50.0f ? 0 : 32;
+				gEnv->pPhysicalWorld->SimulateExplosion(&explosion, 0, 0, ent_rigid | ent_sleeping_rigid | ent_independent | ent_static);
+			}
 		}
 		else
 		{
@@ -613,7 +635,7 @@ void CGameRules::ClientExplosion(const ExplosionInfo &explosionInfo)
 	ProcessExplosionMaterialFX(explosionInfo);
 
 	IEntity *pShooter =	m_pEntitySystem->GetEntity(explosionInfo.shooterId);
-	if (gEnv->pAISystem && !gEnv->bMultiplayer)
+	if (gEnv->pAISystem && (!gEnv->bMultiplayer || IsCoop()))
 	{
 		IAIObject	*pShooterAI(pShooter!=NULL ? pShooter->GetAI() : NULL);
 		gEnv->pAISystem->ExplosionEvent(explosionInfo.pos,explosionInfo.radius, pShooterAI);
