@@ -71,8 +71,8 @@ void CHUDMissionObjectiveSystem::LoadLevelObjectives(bool forceReloading)
 		CryFixedStringT<32> filename;
 
 		filename = "Libs/UI/Objectives_new.xml";
-		if(gEnv->bMultiplayer)
-			filename = "Libs/UI/MP_Objectives.xml";
+		LoadLevelObjectives(filename.c_str());
+		filename = "Libs/UI/Objectives_Coop.xml";
 		LoadLevelObjectives(filename.c_str());
 
 		//additional objectives

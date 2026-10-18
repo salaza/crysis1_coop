@@ -210,22 +210,41 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
     var->Set(m_battleDust?1:0);
 
   if(ICVar* var = pConsole->GetCVar("sv_lanonly"))
-		var->Set(m_lan?1:0);
+		var->Set(1); // Crysis Co-op: GameSpy is dead, internet players join via direct IP
 
   if(m_anticheat)
 		pConsole->ExecuteString("net_pb_sv_enable true");
   else
     pConsole->ExecuteString("net_pb_sv_enable false");
 
+  rotation->First();
+  string nextRules = rotation->GetNextGameRules();
+  string nextLevel = rotation->GetNextLevel();
+  ILevelInfo *pNextInfo = pLevelSystem->GetLevelInfo(nextLevel.c_str());
+  bool isCoopLevel = (nextRules.compareNoCase("Coop") == 0) || (pNextInfo && (pNextInfo->GetGameTypeCount() == 0 || pNextInfo->SupportsGameType("Coop") || !pNextInfo->SupportsGameType(nextRules.c_str())));
+  if (isCoopLevel)
+    nextRules = "Coop";
+
   string command("sv_gamerules ");
-  command.append(rotation->GetNextGameRules());
+  command.append(nextRules);
   gEnv->pConsole->ExecuteString(command.c_str()); 
 
-  command = "g_nextlevel"; //"map ";
-  //command.append(rotation->GetNextLevel());
-  command.append(" s");
-  if(m_dx10)
-    command.append(" x");
+  if (isCoopLevel && !nextLevel.empty())
+  {
+    command = "map ";
+    command.append(nextLevel);
+    command.append(" s");
+    if(m_dx10)
+      command.append(" x");
+  }
+  else
+  {
+    command = "g_nextlevel"; //"map ";
+    //command.append(rotation->GetNextLevel());
+    command.append(" s");
+    if(m_dx10)
+      command.append(" x");
+  }
 
   ICVar* rot = gEnv->pConsole->GetCVar("sv_levelrotation");
   if(rot)
@@ -290,7 +309,15 @@ void CMultiPlayerMenu::SCreateGame::GetLevelRotation()
 		SFlashVarValue gameMode("");
 		m_player->GetVariable("m_backServerGameMode",&gameMode);
 
-		int levelidx = rotation->AddLevel(levelName.GetConstStrPtr(), gameMode.GetConstStrPtr());
+		const char* szLevelName = levelName.GetConstStrPtr();
+		const char* szGameMode = gameMode.GetConstStrPtr();
+		ILevelInfo* pLevelInfo = pLevelSystem->GetLevelInfo(szLevelName);
+		if (pLevelInfo && (pLevelInfo->GetGameTypeCount() == 0 || pLevelInfo->SupportsGameType("Coop") || !pLevelInfo->SupportsGameType(szGameMode)))
+		{
+			szGameMode = "Coop";
+		}
+
+		int levelidx = rotation->AddLevel(szLevelName, szGameMode);
 
 		int size = m_player->GetVariableArraySize("m_backKeys");
 		std::vector<const char*> keyArray;
@@ -673,16 +700,55 @@ void CMultiPlayerMenu::SCreateGame::UpdateLevels(const char* gamemode)
   ILevelSystem *pLevelSystem = gEnv->pGame->GetIGameFramework()->GetILevelSystem();
   if(pLevelSystem)
   {
+    struct SCampaignMap { const char* name; const char* label; };
+    static const SCampaignMap s_campaignMaps[] = {
+      { "island",    "Co-op 01: Contact (island)" },
+      { "village",   "Co-op 02: Recovery (village)" },
+      { "rescue",    "Co-op 03: Relic (rescue)" },
+      { "harbor",    "Co-op 04: Assault (harbor)" },
+      { "tank",      "Co-op 05: Onslaught (tank)" },
+      { "mine",      "Co-op 06: Awakening (mine)" },
+      { "core",      "Co-op 07: Core (core)" },
+      { "ice",       "Co-op 08: Paradise Lost (ice)" },
+      { "sphere",    "Co-op 09: Exodus (sphere)" },
+      { "ascension", "Co-op 10: Ascension (ascension)" },
+      { "fleet",     "Co-op 11: Reckoning (fleet)" }
+    };
+
+    for (size_t i = 0; i < sizeof(s_campaignMaps) / sizeof(s_campaignMaps[0]); ++i)
+    {
+      if (pLevelSystem->GetLevelInfo(s_campaignMaps[i].name))
+      {
+        SFlashVarValue args[2] = { s_campaignMaps[i].name, s_campaignMaps[i].label };
+        m_player->Invoke("addMultiplayerLevel", args, 2);
+      }
+    }
+
     for(int l = 0; l < pLevelSystem->GetLevelCount(); ++l)
     {
       ILevelInfo *pLevelInfo = pLevelSystem->GetLevelInfo(l);
-      if(pLevelInfo && pLevelInfo->SupportsGameType(gamemode))
+      if(!pLevelInfo)
+        continue;
+
+      const char* lvlName = pLevelInfo->GetName();
+      bool isListedCampaign = false;
+      for (size_t i = 0; i < sizeof(s_campaignMaps) / sizeof(s_campaignMaps[0]); ++i)
+      {
+        if (stricmp(lvlName, s_campaignMaps[i].name) == 0)
+        {
+          isListedCampaign = true;
+          break;
+        }
+      }
+      if (isListedCampaign)
+        continue;
+
+      if(pLevelInfo->SupportsGameType("Coop") || pLevelInfo->SupportsGameType(gamemode) || pLevelInfo->GetGameTypeCount() == 0)
 			{
         string disp(pLevelInfo->GetDisplayName());
-        SFlashVarValue args[2] = {pLevelInfo->GetName(),disp.empty()?pLevelInfo->GetName():disp.c_str()};
+        SFlashVarValue args[2] = {lvlName, disp.empty() ? lvlName : disp.c_str()};
 				m_player->Invoke("addMultiplayerLevel", args, 2);
 			}
-
     }
   }
 }

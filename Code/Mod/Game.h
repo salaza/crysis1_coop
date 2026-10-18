@@ -189,6 +189,8 @@ public:
   ILINE SCVars *GetCVars() {return m_pCVars;}
 	static void DumpMemInfo(const char* format, ...) PRINTF_PARAMS(1, 2);
 
+	static void CmdNextLevel(IConsoleCmdArgs* pArgs);
+
 protected:
 	virtual void LoadActionMaps(const char* filename = "libs/config/defaultProfile.xml");
 
@@ -224,7 +226,7 @@ protected:
 	static void CmdReloadItems(IConsoleCmdArgs *pArgs);
 	static void CmdLoadActionmap(IConsoleCmdArgs *pArgs);
   static void CmdReloadGameRules(IConsoleCmdArgs *pArgs);
-  static void CmdNextLevel(IConsoleCmdArgs* pArgs);
+  //static void CmdNextLevel(IConsoleCmdArgs* pArgs);
   static void CmdStartKickVoting(IConsoleCmdArgs* pArgs);
   static void CmdStartNextMapVoting(IConsoleCmdArgs* pArgs);
   static void CmdVote(IConsoleCmdArgs* pArgs);

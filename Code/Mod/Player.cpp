@@ -491,7 +491,7 @@ void CPlayer::Draw(bool draw)
 
 	if (draw)
 		slotFlags |= ENTITY_SLOT_RENDER;
-	else
+	else if (IsPlayer())
 		slotFlags &= ~ENTITY_SLOT_RENDER;
 
 	GetEntity()->SetSlotFlags(0,slotFlags);
@@ -599,6 +599,17 @@ void CPlayer::UpdateFirstPersonEffects(float frameTime)
 	{
 		if(pItem->GetIWeapon() && !CanFire())
 			pItem->GetIWeapon()->StopFire();
+
+		if (!IsClient())
+		{
+			CItem* pCItem = static_cast<CItem*>(pItem);
+			if (pCItem && (pCItem->GetStats().viewmode != CItem::eIVM_ThirdPerson || pCItem->GetEntity()->IsHidden()))
+			{
+				pCItem->Hide(false);
+				pCItem->AttachToHand(true);
+				pCItem->SetViewMode(CItem::eIVM_ThirdPerson);
+			}
+		}
 	}
 
 	//========================================================================================
@@ -2479,6 +2490,7 @@ void CPlayer::UpdateStats(float frameTime)
 		ChangeParachuteState(0);
 
 		m_stats.velocity = m_stats.velocityUnconstrained.Set(0,0,0);
+		m_stats.velocityUnconstrainedLast.Set(0, 0, 0);
 		m_stats.speed = m_stats.speedFlat = 0.0f;
 		m_stats.fallSpeed = 0.0f;
 		m_stats.inFiring = 0;
@@ -2828,6 +2840,7 @@ void CPlayer::UpdateStats(float frameTime)
 	Vec3 prevVelocityU = m_stats.velocityUnconstrained;
 	m_stats.velocity = livStat.vel-livStat.velGround;//dynStat.v;
 	m_stats.velocityUnconstrained = livStat.velUnconstrained;
+	m_stats.velocityUnconstrainedLast = m_stats.velocityUnconstrained;
 
 	// On dedicated server the player can still be flying this frame as well, 
 	// since synced pos from client is interpolated/smoothed and will not land immediately,
@@ -4069,7 +4082,7 @@ bool CPlayer::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 profile
 			ser.FlagPartialRead();
 	}
 
-	if(m_pNanoSuit)													// nanosuit needs to be serialized before input
+	if(m_pNanoSuit && IsPlayer())													// nanosuit needs to be serialized before input
 		m_pNanoSuit->Serialize(ser, aspect);	// because jumping/punching/sprinting energy consumption will vary with suit settings
 
 	if (aspect == IPlayerInput::INPUT_ASPECT)

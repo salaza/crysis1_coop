@@ -93,6 +93,7 @@ enum EHUDGAMERULES
 	EHUD_INSTANTACTION,
 	EHUD_POWERSTRUGGLE,
 	EHUD_TEAMACTION,
+	EHUD_COOP
 };
 
 //radar objects on mini map and radar

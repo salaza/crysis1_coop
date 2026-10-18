@@ -100,7 +100,7 @@ struct CMPLobbyUI::SServerFilter
   {
 		if( !m_on )
 			return true;
-    if( !m_gamemode.empty() && i.m_gameType != m_gamemode)
+    if( !m_gamemode.empty() && i.m_gameType != m_gamemode && i.m_gameType.compareNoCase("Coop") != 0 )
       return false;
     if( !m_mapname.empty())
     {

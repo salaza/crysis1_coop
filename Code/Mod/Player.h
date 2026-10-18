@@ -277,6 +277,7 @@ class CPlayerView;
 class CPlayer :
 	public CActor, public ISoundSystemEventListener
 {
+	friend class CCoopPlayer;
 	friend class CPlayerMovement;
 	friend class CPlayerRotation;
 	friend class CPlayerInput;

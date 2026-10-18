@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.15)
 
 ################################################################################
 
-project(MyMod
+project(CrysisCoop
 	VERSION 1.0.0.0
-	DESCRIPTION "Crysis Mod SDK"
+	DESCRIPTION "Crysis Singleplayer Co-op Mod with Full AI NPC Support"
 	HOMEPAGE_URL "https://github.com/ccomrade/c1-mod-sdk"
 	LANGUAGES CXX RC
 )
@@ -24,8 +24,8 @@ endif()
 
 ################################################################################
 
-# prepare files in Crysis/Mods/MyMod/
-# PROJECT_BINARY_DIR is expected to be either Bin32/ or Bin64/ inside Crysis/Mods/MyMod/
+# prepare files in Crysis/Mods/CrysisCoop/
+# PROJECT_BINARY_DIR is expected to be either Bin32/ or Bin64/ inside Crysis/Mods/CrysisCoop/
 configure_file(info.xml.in ${PROJECT_BINARY_DIR}/../info.xml)
 configure_file(logo.jpg ${PROJECT_BINARY_DIR}/../logo.jpg COPYONLY)
 
@@ -52,6 +52,29 @@ add_library(${CMAKE_PROJECT_NAME} MODULE
 	Code/Mod/Claymore.cpp
 	Code/Mod/ClientSynchedStorage.cpp
 	Code/Mod/CompatibilityAlienMovementController.cpp
+	Code/Mod/Coop/Actors/CoopGrunt.cpp
+	Code/Mod/Coop/Actors/CoopPlayer.cpp
+	Code/Mod/Coop/Actors/CoopScout.cpp
+	Code/Mod/Coop/Actors/CoopTrooper.cpp
+	Code/Mod/Coop/CoopCutsceneSystem.cpp
+	Code/Mod/Coop/CoopNetPlatform.cpp
+	Code/Mod/Coop/CoopReadability.cpp
+	Code/Mod/Coop/CoopSystem.cpp
+	Code/Mod/Coop/DialogSystem/DialogActorContext.cpp
+	Code/Mod/Coop/DialogSystem/DialogLoader.cpp
+	Code/Mod/Coop/DialogSystem/DialogLoaderMK2.cpp
+	Code/Mod/Coop/DialogSystem/DialogScript.cpp
+	Code/Mod/Coop/DialogSystem/DialogSession.cpp
+	Code/Mod/Coop/DialogSystem/DialogSystem.cpp
+	Code/Mod/Coop/Entities/DialogSynchronizer.cpp
+	Code/Mod/Coop/Entities/EventSynchronizer.cpp
+	Code/Mod/Coop/Entities/HUDSynchronizer.cpp
+	Code/Mod/Coop/Entities/SequenceSynchronizer.cpp
+	Code/Mod/Coop/Nodes/CoopDialogNode.cpp
+	Code/Mod/Coop/Nodes/CoopGetPlayersInVehicle.cpp
+	Code/Mod/Coop/Nodes/CoopHudNodes.cpp
+	Code/Mod/Coop/Nodes/CoopSequenceNodes.cpp
+	Code/Mod/Coop/Nodes/CoopSpawnArchetype.cpp
 	Code/Mod/DebugGun.cpp
 	Code/Mod/Detonate.cpp
 	Code/Mod/DllMain.cpp
@@ -244,5 +267,6 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 		Code/CryEngine/CryAction
 		Code/CryEngine/CryCommon
 		Code/Mod
+		Code/Mod/Coop
 		${PROJECT_BINARY_DIR}
 )

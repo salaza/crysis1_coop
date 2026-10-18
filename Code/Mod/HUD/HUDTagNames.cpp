@@ -137,6 +137,16 @@ bool CHUDTagNames::ProjectOnSphere(Vec3 &rvWorldPos,const AABB &rBBox)
 
 //-----------------------------------------------------------------------------------------------------
 
+bool CHUDTagNames::IsCoopGame()
+{
+	CGameRules *pGameRules = g_pGame->GetGameRules();
+	if(!pGameRules || !pGameRules->GetEntity() || !pGameRules->GetEntity()->GetClass())
+		return false;
+	return stricmp(pGameRules->GetEntity()->GetClass()->GetName(), "Coop") == 0;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
 bool CHUDTagNames::IsFriendlyToClient(EntityId uiEntityId)
 {
 	IActor *client = g_pGame->GetIGameFramework()->GetClientActor();
@@ -147,6 +157,13 @@ bool CHUDTagNames::IsFriendlyToClient(EntityId uiEntityId)
 	// local player is always friendly to himself :)
 	if(client->GetEntityId() == uiEntityId)
 		return true;
+
+	// Crysis Co-op: all human players are on the same side
+	if(IsCoopGame())
+	{
+		IActor *pOther = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(uiEntityId);
+		return pOther && pOther->IsPlayer();
+	}
 
 	int playerTeam = pGameRules->GetTeam(client->GetEntityId());
 
@@ -433,6 +450,15 @@ void CHUDTagNames::Update()
 		// Never display the local player
 		if(pActor == pClientActor)
 			continue;
+
+		// Crysis Co-op: always show the names of the other human players
+		if(IsCoopGame())
+		{
+			if(pActor->IsPlayer() && static_cast<CActor*>(pActor)->GetSpectatorMode() == CActor::eASM_None)
+				DrawTagName(pActor);
+			continue;
+		}
+		//~Crysis Co-op
 
 		// Skip enemies, they need to be added only when shot
 		// (except in spectator mode when we display everyone)

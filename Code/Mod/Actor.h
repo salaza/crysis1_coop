@@ -212,6 +212,7 @@ struct SActorStats
 
 	Vec3 velocity;
 	Vec3 velocityUnconstrained;
+	Vec3 velocityUnconstrainedLast;
 
 	Vec3 gravity;
 
@@ -614,6 +615,21 @@ public:
 			ser.Value("impulse", impulse, 'kImp');
 		};
 	};
+	struct PlayReadabilitySoundParams
+	{
+		PlayReadabilitySoundParams() : sSoundEventName("") {};
+		PlayReadabilitySoundParams(string sSound) : sSoundEventName(sSound) {};
+
+		string sSoundEventName;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("name", sSoundEventName);
+		}
+	};
+
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayReadabilitySound, PlayReadabilitySoundParams, eNRT_ReliableOrdered);
+
 	struct MoveParams
 	{
 		MoveParams() {};

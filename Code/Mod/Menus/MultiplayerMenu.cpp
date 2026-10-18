@@ -22,6 +22,7 @@ History:
 #include "CreateGame.h"
 #include "Game.h"
 #include "GameNetworkProfile.h"
+#include "Coop/CoopNetPlatform.h"
 
 enum EServerInfoKey
 {
@@ -239,7 +240,7 @@ struct CMultiPlayerMenu::SGSBrowser : public IServerListener
         si.m_recent = true;
     }
 		
-		si.m_canjoin = (m_dx10 || (!si.m_dx10)) && (m_version.empty() || m_version == si.m_gameVersion) && (m_modName==si.m_modName) && (m_modVersion==si.m_modVersion);
+		si.m_canjoin = true;
 
     if(update)
       m_menu->m_ui->UpdateServer(si);
@@ -493,14 +494,21 @@ struct CMultiPlayerMenu::SGSBrowser : public IServerListener
     std::map<string,wstring>::const_iterator it = m_gameTypes.find(CONST_TEMP_STRING(gt));
     if(it==m_gameTypes.end())
     {
-      CryFixedStringT<128>  cType;
-      cType = "@ui_rules_";
-      cType += gt;
-      if(gEnv->pSystem->GetLocalizationManager()->LocalizeLabel(cType,m_tempWString) == false)
-			{
-				SUIWideString mode(gt);
-				m_tempWString = mode.c_str();
-			}
+      if (gt && (stricmp(gt, "Coop") == 0 || stricmp(gt, "SinglePlayer") == 0))
+      {
+        m_tempWString = L"Co-op Campaign";
+      }
+      else
+      {
+        CryFixedStringT<128>  cType;
+        cType = "@ui_rules_";
+        cType += gt;
+        if(gEnv->pSystem->GetLocalizationManager()->LocalizeLabel(cType,m_tempWString) == false)
+				{
+					SUIWideString mode(gt);
+					m_tempWString = mode.c_str();
+				}
+      }
       it = m_gameTypes.insert(std::make_pair(gt,m_tempWString)).first;
     }
     return it->second;
@@ -909,6 +917,14 @@ m_joiningServer(false)
         m_browser->SetListener(m_serverlist.get());
         m_browser->Start(m_lan);
         m_browser->Update();
+        if(m_lan)
+        {
+          // Crysis Co-op: internet servers from Mods/CrysisCoop/coop_servers.txt
+          std::vector<CoopNet::SServerEntry> servers;
+          CoopNet::LoadServerList(servers, 64087);
+          for(size_t i=0;i<servers.size();++i)
+            m_browser->BrowseForServer(servers[i].ip.c_str(), (ushort)servers[i].port);
+        }
     }
     m_serverlist->SetMenu(this);
     if(!lan)
@@ -1006,6 +1022,13 @@ void    CMultiPlayerMenu::UpdateServerList()
     m_ui->StartUpdate();
     m_ui->SetUpdateProgress(0,-1);
     m_browser->Update();
+    // Crysis Co-op: query internet servers from Mods/CrysisCoop/coop_servers.txt directly (no GameSpy master)
+    {
+      std::vector<CoopNet::SServerEntry> servers;
+      CoopNet::LoadServerList(servers, 64087);
+      for(size_t i=0;i<servers.size();++i)
+        m_browser->BrowseForServer(servers[i].ip.c_str(), (ushort)servers[i].port);
+    }
     break;
   case 1:
     for(int i=0;i<m_favouriteServers.size();++i)

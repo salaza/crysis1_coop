@@ -28,6 +28,7 @@
 #include <ISerialize.h>
 #include <IGameTokens.h>
 #include <IMaterialEffects.h>
+#include "Coop/Actors/CoopGrunt.h"
 
 CNanoSuit::SNanoMaterial g_USNanoMats[NANOMODE_LAST];
 CNanoSuit::SNanoMaterial g_AsianNanoMats[NANOMODE_LAST];
@@ -419,19 +420,14 @@ void CNanoSuit::Update(float frameTime)
 		rechargeTime=g_pGameCVars->g_AiSuitEnergyRechargeTime;
 	else
 	{
-		if (gEnv->bMultiplayer)
-			rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTimeMultiplayer;
+		if(m_currentMode != NANOMODE_DEFENSE)
+			rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTime;
 		else
 		{
-			if(m_currentMode != NANOMODE_DEFENSE)
-				rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTime;
+			if(stats.speedFlat > 0.1f) //moving
+				rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTimeArmorMoving;
 			else
-			{
-				if(stats.speedFlat > 0.1f) //moving
-					rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTimeArmorMoving;
-				else
-					rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTimeArmor;
-			}
+				rechargeTime=g_pGameCVars->g_playerSuitEnergyRechargeTimeArmor;
 		}
 	}
 
@@ -616,12 +612,9 @@ void CNanoSuit::SetSuitEnergy(float value, bool playerInitiated /* = false */)
 	if (m_pOwner && value!=m_energy && gEnv->bServer)
 		m_pOwner->GetGameObject()->ChangedNetworkState(CPlayer::ASPECT_NANO_SUIT_ENERGY);
 
-	if (!gEnv->bMultiplayer)
+	if (value < m_energy)
 	{
-		if (value < m_energy)
-		{
-			m_energyRechargeDelay = g_pGameCVars->g_playerSuitEnergyRechargeDelay;
-		}
+		m_energyRechargeDelay = g_pGameCVars->g_playerSuitEnergyRechargeDelay;
 	}
 
 
@@ -656,8 +649,6 @@ void CNanoSuit::SetSuitEnergy(float value, bool playerInitiated /* = false */)
 					pMaterialEffects->ExecuteEffect(id, params);
 				}
 			}*/
-			if (gEnv->bMultiplayer && ((value/NANOSUIT_ENERGY)<=0.2f) && (m_energy>value) && g_pGameCVars->g_mpSpeedRechargeDelay) // if we cross the 20% boundary we don't regenerate for 3secs
-				m_energyRechargeDelay=3.0f;
 		}
 
 		// spending energy cancels invulnerability
@@ -671,11 +662,7 @@ void CNanoSuit::SetSuitEnergy(float value, bool playerInitiated /* = false */)
 void CNanoSuit::Hit(int damage)
 {
 	//server only
-
-	if (gEnv->bMultiplayer)
-		m_energyRechargeDelay = MAX(m_energyRechargeDelay, 3.0f);
-	else
-		m_healthRegenDelay = fabsf(g_pGameCVars->g_playerSuitHealthRegenDelay);
+	m_healthRegenDelay = fabsf(g_pGameCVars->g_playerSuitHealthRegenDelay);
 
 	if(m_pOwner && m_pOwner->IsClient())
 	{
@@ -830,7 +817,12 @@ bool CNanoSuit::SetMode(ENanoMode mode, bool forceUpdate, bool keepInvul)
 		m_defenseHitTimer = 0.0f;
 
 	if (m_pOwner)
-		m_pOwner->GetGameObject()->ChangedNetworkState(CPlayer::ASPECT_NANO_SUIT_SETTING);
+	{
+		if (m_pOwner->IsPlayer())
+			m_pOwner->GetGameObject()->ChangedNetworkState(CPlayer::ASPECT_NANO_SUIT_SETTING);
+		else if (gEnv->bServer)
+			m_pOwner->GetGameObject()->InvokeRMI(CCoopGrunt::ClChangeSuitMode(), CCoopGrunt::SSuitParams((int)m_currentMode), eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
 
 	// player's squadmates mimicking nanosuit modifications
 	if (gEnv->pAISystem)
@@ -1517,35 +1509,20 @@ void CNanoSuit::SetModeDefect(ENanoMode mode, bool defect)
 
 float CNanoSuit::GetSprintMultiplier(bool strafing)
 {
+	//Crysis Co-op :: SP speed for MP
 	if(m_pOwner && !m_pOwner->GetActorStats()->inZeroG && m_currentMode == NANOMODE_SPEED && m_startedSprinting)
 	{
-		if (gEnv->bMultiplayer)
+		if(m_energy > NANOSUIT_ENERGY * 0.2f)
 		{
-			if(m_energy >= 1.0f)
-			{
-				float time = m_now - m_startedSprinting;
-				float speedMult = g_pGameCVars->g_suitSpeedMultMultiplayer;
-				float result = 1.0f + max(0.0f, speedMult*min(1.3f, time*0.001f));
-
-				if (strafing)
-					result=MAX(1.0f, result*0.35f);
-
-				return result;
-			}
+			float time = m_now - m_startedSprinting;
+			return 1.0f + max(0.3f, g_pGameCVars->g_suitSpeedMult*min(1.0f, time*0.001f));
 		}
+		else if(m_energy > 0.0f)
+			return 1.4f;
 		else
-		{
-			if(m_energy > NANOSUIT_ENERGY * 0.2f)
-			{
-				float time = m_now - m_startedSprinting;
-				return 1.0f + max(0.3f, g_pGameCVars->g_suitSpeedMult*min(1.0f, time*0.001f));
-			}
-			else if(m_energy > 0.0f)
-				return 1.4f;
-			else
-				return 1.3f;
-		}
+			return 1.3f;
 	}
+	// ~Crysis Co-op
 	return 1.0f;
 }
 
@@ -1589,7 +1566,7 @@ void CNanoSuit::UpdateSprinting(float &recharge, const SPlayerStats &stats, floa
 				}
 
 				//recharge -= std::max(1.0f, g_pGameCVars->g_suitSpeedEnergyConsumption*frametime);
-				float consumption=gEnv->bMultiplayer?g_pGameCVars->g_suitSpeedEnergyConsumptionMultiplayer:g_pGameCVars->g_suitSpeedEnergyConsumption;
+				float consumption = g_pGameCVars->g_suitSpeedEnergyConsumption;
 				recharge -= m_pOwner->ShouldSwim()?consumption*1.25f:consumption;
 			}
 			else

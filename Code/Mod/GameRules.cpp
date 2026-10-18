@@ -118,8 +118,10 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	s_invulnID = m_pMaterialManager->GetSurfaceTypeManager()->GetSurfaceTypeByName("mat_invulnerable")->GetId();
 	s_barbWireID = m_pMaterialManager->GetSurfaceTypeManager()->GetSurfaceTypeByName("mat_metal_barbwire")->GetId();
 	
-	if (gEnv->bServer && gEnv->bMultiplayer)
-		m_pShotValidator = new CShotValidator(this, m_pGameFramework->GetIItemSystem(), m_pGameFramework);
+	// Crysis Co-op
+	//if (gEnv->bServer && gEnv->bMultiplayer)
+	//	m_pShotValidator = new CShotValidator(this, m_pGameFramework->GetIItemSystem(), m_pGameFramework);
+	//~Crysis Co-op
 
 	//Register as ViewSystem listener (for cut-scenes, ...)
 	if(m_pGameFramework->GetIViewSystem())
@@ -179,7 +181,7 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	m_pRadio=new CRadio(this);
 
 	// create battledust object in SP, and on dx10 MP servers.
-	if(!gEnv->bMultiplayer || (gEnv->bServer && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled()))
+	if(!gEnv->bMultiplayer || (gEnv->bServer))
 		m_pBattleDust = new CBattleDust;
 
 	if(isMultiplayer && gEnv->bClient && !gEnv->pSystem->IsDedicated() && !strcmp(GetEntity()->GetClass()->GetName(), "PowerStruggle"))
@@ -838,7 +840,10 @@ void CGameRules::OnKillMessage(EntityId targetId, EntityId shooterId, const char
 		{
 			m_pGameplayRecorder->Event(gEnv->pGame->GetIGameFramework()->GetClientActor()->GetEntity(), GameplayEvent(eGE_Kill, weaponClassName)); 
 		}
-		SAFE_HUD_FUNC(ObituaryMessage(targetId, shooterId, weaponClassName, material, hit_type));
+		// Crysis Co-op: no kill feed entries for NPC deaths
+		CActor *pTargetActor = GetActorByEntityId(targetId);
+		if(pTargetActor && pTargetActor->IsPlayer())
+			SAFE_HUD_FUNC(ObituaryMessage(targetId, shooterId, weaponClassName, material, hit_type));
 	}	
 }
 

@@ -1172,10 +1172,19 @@ void CItem::Select(bool select)
 		SetBusy(true);
 		GetScheduler()->TimerAction(selectBusyTimer, CSchedulerAction<SelectAction>::Create(), false);
 
+		if (owner)
+			m_stats.fp = !owner->IsThirdPerson();
+
 		if (m_stats.fp)
+		{
 			AttachArms(true, true);
+			SetViewMode(eIVM_FirstPerson);
+		}
 		else
+		{
 			AttachToHand(true);
+			SetViewMode(eIVM_ThirdPerson);
+		}
 
 		AttachToBack(false);
 
@@ -2298,6 +2307,11 @@ bool CItem::AttachToHand(bool attach, bool checkAttachment)
 
 		pAttachment->AddBinding(pEntityAttachment);
 		pAttachment->HideAttachment(0);
+
+		if (!m_stats.fp && (m_stats.viewmode & eIVM_ThirdPerson) == 0)
+		{
+			SetViewMode(eIVM_ThirdPerson);
+		}
 	}
 
 	return true;

@@ -46,6 +46,8 @@ public:
 	ILINE void StrengthJump(bool strengthJump) { m_strengthJump=strengthJump; };
 	ILINE bool ShouldStrengthJump() const { return m_strengthJump; };
 	ILINE void ClearStrengthJump() { m_strengthJump=false; };
+	ILINE CMovementRequest GetMovementRequest() { return m_state; }
+	CMovementRequest GetMovementReqState() { return m_state; };
 
 protected:
 	bool UpdateNormal( float frameTime, SActorFrameMovementParams& params );

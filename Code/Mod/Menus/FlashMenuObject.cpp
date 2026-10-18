@@ -155,7 +155,7 @@ CFlashMenuObject::CFlashMenuObject()
 	m_bDestroyInGameMenuPending = false;
 	m_bIgnorePendingEvents = false;
 
-	m_stateEntryMovies = eEMS_Start;
+	m_stateEntryMovies = eEMS_Stop;
 	m_eSaveGameCompareMode = eSAVE_COMPARE_DATE;
 	m_bSaveGameSortUp = true;
 	m_bInLoading = false;
@@ -2676,10 +2676,7 @@ bool CFlashMenuObject::Load()
 
 	m_apFlashMenuScreens[MENUSCREEN_FRONTENDLOADING] = new CFlashMenuScreen;
 
-	if(g_pGameCVars->g_skipIntro==1)
-	{
-		m_stateEntryMovies = eEMS_Stop;
-	}
+	m_stateEntryMovies = eEMS_Stop;
 	InitStartMenu();
 	if(g_pGameCVars->g_resetActionmapOnStart==1)
 		RestoreDefaults();

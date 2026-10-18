@@ -27,6 +27,11 @@ public:
 	{
 		state = m_currentMovementState;
 	};
+	ILINE CMovementRequest GetMovementRequest()
+	{
+		return m_currentMovementRequest;
+	};
+	SMovementState GetMovementReqState() { return m_currentMovementState; };
 
 	virtual bool GetStanceState( EStance stance, float lean, bool defaultPose, SStanceState& state );
 

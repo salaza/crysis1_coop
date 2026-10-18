@@ -2456,6 +2456,26 @@ bool CActor::CheckVirtualInventoryRestrictions(const std::vector<string> &invent
 }
 
 
+IMPLEMENT_RMI(CActor, ClPlayReadabilitySound)
+{
+	IEntitySoundProxy* pSoundProxy = (IEntitySoundProxy*)GetEntity()->GetProxy(ENTITY_PROXY_SOUND);
+	if (!pSoundProxy)
+		if (GetEntity()->CreateProxy(ENTITY_PROXY_SOUND))
+			pSoundProxy = (IEntitySoundProxy*)GetEntity()->GetProxy(ENTITY_PROXY_SOUND);
+
+	if (pSoundProxy)
+	{
+		_smart_ptr<ISound> pSound = gEnv->pSoundSystem->CreateSound(params.sSoundEventName.c_str(), FLAG_SOUND_DEFAULT_3D | FLAG_SOUND_VOICE);
+		if (pSound)
+		{
+			pSound->SetSemantic(eSoundSemantic_AI_Readability);
+			pSoundProxy->PlaySound(pSound, Vec3(0, 0, 0), FORWARD_DIRECTION, 1.0f);
+		}
+	}
+
+	return true;
+}
+
 //grabbing and such
 bool CActor::CanPickUpObject(IEntity *obj, float& heavyness, float& volume)
 {
@@ -2735,13 +2755,13 @@ void CActor::SelectItem(EntityId itemId, bool keepHistory)
 		if (!pInventory)
 			return;
 
-		if (pInventory->GetCount() < 1)
-			return;
-
 		if (pInventory->FindItem(itemId) < 0)
 		{
-			//GameWarning("Trying to select an item which is not in %s's inventory!", GetEntity()->GetName());
-			return;
+			pInventory->AddItem(itemId);
+		}
+		if (pItem->GetOwnerId() != GetEntityId())
+		{
+			pItem->SetOwnerId(GetEntityId());
 		}
 
 		if(pItem->GetEntityId() == pInventory->GetHolsteredItem()) //unholster selected weapon

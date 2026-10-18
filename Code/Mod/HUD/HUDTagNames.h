@@ -37,6 +37,8 @@ private:
 
 	bool IsFriendlyToClient(EntityId uiEntityId);
 
+	bool IsCoopGame();
+
 	IUIDraw *m_pUIDraw;
 	IFFont *m_pMPNamesFont;
 
