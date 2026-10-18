@@ -217,34 +217,61 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
   else
     pConsole->ExecuteString("net_pb_sv_enable false");
 
-  rotation->First();
-  string nextRules = rotation->GetNextGameRules();
-  string nextLevel = rotation->GetNextLevel();
+  string nextRules = "Coop";
+  string nextLevel;
+
+  // 1. If user has levels in rotation, pick the first
+  if (rotation && rotation->GetLength() > 0)
+  {
+    rotation->First();
+    nextRules = rotation->GetNextGameRules();
+    nextLevel = rotation->GetNextLevel();
+  }
+
+  // 2. If rotation was empty (user didn't click '>>'), inspect selected level in Flash UI
+  if (nextLevel.empty() && m_player)
+  {
+    SFlashVarValue selMap("");
+    m_player->GetVariable("m_selection.fileName", &selMap);
+    if (!selMap.GetConstStrPtr() || !selMap.GetConstStrPtr()[0])
+      m_player->GetVariable("m_curLevel", &selMap);
+    if (!selMap.GetConstStrPtr() || !selMap.GetConstStrPtr()[0])
+      m_player->GetVariable("m_backServerName", &selMap);
+    if (!selMap.GetConstStrPtr() || !selMap.GetConstStrPtr()[0])
+      m_player->GetVariable("m_selectedLevel", &selMap);
+    if (!selMap.GetConstStrPtr() || !selMap.GetConstStrPtr()[0])
+      m_player->GetVariable("m_gamesArray.0.fileName", &selMap);
+
+    if (selMap.GetConstStrPtr() && selMap.GetConstStrPtr()[0])
+      nextLevel = selMap.GetConstStrPtr();
+  }
+
+  // 3. Fallback to island if still empty
+  if (nextLevel.empty())
+  {
+    nextLevel = "island";
+  }
+
+  // Ensure level rotation contains this level
+  if (rotation && rotation->GetLength() == 0)
+  {
+    rotation->AddLevel(nextLevel.c_str(), "Coop");
+  }
+
   ILevelInfo *pNextInfo = pLevelSystem->GetLevelInfo(nextLevel.c_str());
   bool isCoopLevel = (nextRules.compareNoCase("Coop") == 0) || (pNextInfo && (pNextInfo->GetGameTypeCount() == 0 || pNextInfo->SupportsGameType("Coop") || !pNextInfo->SupportsGameType(nextRules.c_str())));
-  if (isCoopLevel)
+  if (isCoopLevel || nextRules.empty())
     nextRules = "Coop";
 
   string command("sv_gamerules ");
   command.append(nextRules);
   gEnv->pConsole->ExecuteString(command.c_str()); 
 
-  if (isCoopLevel && !nextLevel.empty())
-  {
-    command = "map ";
-    command.append(nextLevel);
-    command.append(" s");
-    if(m_dx10)
-      command.append(" x");
-  }
-  else
-  {
-    command = "g_nextlevel"; //"map ";
-    //command.append(rotation->GetNextLevel());
-    command.append(" s");
-    if(m_dx10)
-      command.append(" x");
-  }
+  command = "map ";
+  command.append(nextLevel);
+  command.append(" s");
+  if (m_dx10)
+    command.append(" x");
 
   ICVar* rot = gEnv->pConsole->GetCVar("sv_levelrotation");
   if(rot)
@@ -276,8 +303,10 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
   } 
   else
   {
-    pConsole->ExecuteString("disconnect");
-    //pConsole->ExecuteString("g_nextlevel");
+    if(m_hub && m_hub->IsIngame())
+      pConsole->ExecuteString("disconnect");
+    if(m_hub)
+      m_hub->ShowLoadingDlg("@ui_connecting_to", nextLevel.c_str());
     gEnv->pGame->GetIGameFramework()->ExecuteCommandNextFrame(command.c_str());
   }
 }
@@ -610,6 +639,10 @@ void CMultiPlayerMenu::SCreateGame::SetGlobalSettings()
 	if(pLevelSystem)
 	{
 		ILevelRotation* rot = pLevelSystem->GetLevelRotation();
+		if(rot && rot->GetLength() == 0)
+		{
+			rot->AddLevel("island", "Coop");
+		}
 		if(rot && rot->GetLength()>0)
 		{
 			if(m_randomize)
