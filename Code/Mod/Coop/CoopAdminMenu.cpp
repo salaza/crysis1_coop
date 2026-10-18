@@ -4,6 +4,7 @@
 #include <IRenderer.h>
 #include <I3DEngine.h>
 #include <IGameFramework.h>
+#include <ILevelSystem.h>
 #include "Game.h"
 #include "GameRules.h"
 
@@ -205,8 +206,16 @@ void CCoopAdminMenu::ExecuteSelected()
 		case 0: // Restart Current Map
 			{
 				SetStatus("Restarting current map...");
-				if (gEnv->pConsole)
+				ILevelSystem* pLevelSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetILevelSystem() : NULL;
+				ILevel* pCurLevel = pLevelSystem ? pLevelSystem->GetCurrentLevel() : NULL;
+				if (pCurLevel && pCurLevel->GetLevelInfo())
+				{
+					ChangeMap(pCurLevel->GetLevelInfo()->GetName());
+				}
+				else if (gEnv->pConsole)
+				{
 					gEnv->pConsole->ExecuteString("restart");
+				}
 			}
 			break;
 		case 1: // Toggle Fly / Noclip
@@ -354,6 +363,21 @@ void CCoopAdminMenu::ChangeMap(const char* mapName)
 	status.Format("Switching server map to: %s...", mapName);
 	SetStatus(status.c_str());
 
+	ILevelSystem* pLevelSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetILevelSystem() : NULL;
+	if (pLevelSystem)
+	{
+		ILevelRotation* pRotation = pLevelSystem->GetLevelRotation();
+		if (pRotation)
+		{
+			pRotation->Reset();
+			pRotation->AddLevel(mapName, "Coop");
+			pRotation->First();
+			pRotation->ChangeLevel();
+			return;
+		}
+	}
+
+	// Fallback only if level rotation fails
 	if (gEnv->pConsole)
 	{
 		string cmd;

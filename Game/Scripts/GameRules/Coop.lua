@@ -329,6 +329,31 @@ function Coop:CaptureSinglePlayerStart()
 	if (not self.isServer or self.spStartPos) then
 		return;
 	end
+
+	-- 1. Check for known SP intro beach / start markers
+	local startEnt = System.GetEntityByName("cine_1_Player_endPoint_beach")
+		or System.GetEntityByName("cine_1_endPoint")
+		or System.GetEntityByName("Player_Start")
+		or System.GetEntityByName("SpawnPoint_SP")
+		or System.GetEntityByName("Mission_Start");
+	if (startEnt) then
+		self.spStartPos = { x = 0, y = 0, z = 0 };
+		self.spStartAngles = { x = 0, y = 0, z = 0 };
+		startEnt:GetWorldPos(self.spStartPos);
+		startEnt:GetWorldAngles(self.spStartAngles);
+		System.LogAlways(string.format("[Coop] Captured SP start position from entity '%s': (%.1f, %.1f, %.1f)", startEnt:GetName(), self.spStartPos.x, self.spStartPos.y, self.spStartPos.z));
+		return;
+	end
+
+	-- 2. Fallback for island mission: Nomad beach landing position
+	local level = string.lower(self.game:GetLevelName() or "");
+	if (string.find(level, "island")) then
+		self.spStartPos = { x = 1275.288, y = 1839.266, z = 95.288 };
+		self.spStartAngles = { x = 0, y = 0, z = 0 };
+		System.LogAlways(string.format("[Coop] Assigned default island SP start position: (%.1f, %.1f, %.1f)", self.spStartPos.x, self.spStartPos.y, self.spStartPos.z));
+		return;
+	end
+
 	local players = System.GetEntitiesByClass("Player");
 	if (players) then
 		for i, ent in pairs(players) do
@@ -880,49 +905,55 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 		local players = self.game:GetPlayers(true);
 		if (players) then
 			for i, mate in pairs(players) do
-				if (mate and mate.id ~= player.id and (not mate:IsDead()) and mate.actor and mate.actor:GetSpectatorMode() == 0) then
-					-- Check if teammate is in a vehicle
-					local vehicleId = mate.actor:GetLinkedVehicleId();
-					if (vehicleId and vehicleId ~= NULL_ENTITY) then
-						local vehicle = System.GetEntity(vehicleId);
-						if (vehicle and vehicle.vehicle) then
-							local seatFound = false;
-							if (vehicle.Seats) then
-								for sIdx, seat in pairs(vehicle.Seats) do
-									if ((not seat.seat:IsDriver()) and (not seat.seat:IsGunner()) and (not seat.seat:IsLocked()) and seat.seat:IsFree()) then
-										self.game:RevivePlayerInVehicle(player.id, vehicle.id, sIdx, teamId, not keepEquip);
-										result = true;
-										seatFound = true;
-										System.LogAlways(string.format("[Coop] Spawning player '%s' into vehicle '%s' seat %d with mate '%s'", player:GetName(), vehicle:GetName(), sIdx, mate:GetName()));
-										break;
+				if (mate and mate.id ~= player.id and (not mate:IsDead()) and mate.actor) then
+					local specMode = mate.actor:GetSpectatorMode();
+					-- Allow normal players (0) and players in cutscenes (4 = eASM_Cutscene)
+					if (specMode == 0 or specMode == 4) then
+						-- Check if teammate is in a vehicle
+						local vehicleId = mate.actor:GetLinkedVehicleId();
+						if (vehicleId and vehicleId ~= NULL_ENTITY) then
+							local vehicle = System.GetEntity(vehicleId);
+							if (vehicle and vehicle.vehicle) then
+								local seatFound = false;
+								if (vehicle.Seats) then
+									for sIdx, seat in pairs(vehicle.Seats) do
+										if ((not seat.seat:IsDriver()) and (not seat.seat:IsGunner()) and (not seat.seat:IsLocked()) and seat.seat:IsFree()) then
+											self.game:RevivePlayerInVehicle(player.id, vehicle.id, sIdx, teamId, not keepEquip);
+											result = true;
+											seatFound = true;
+											System.LogAlways(string.format("[Coop] Spawning player '%s' into vehicle '%s' seat %d with mate '%s'", player:GetName(), vehicle:GetName(), sIdx, mate:GetName()));
+											break;
+										end
 									end
 								end
+								if (not seatFound) then
+									local vpos = vehicle:GetWorldPos(g_Vectors.temp_v1);
+									local vangles = vehicle:GetWorldAngles(g_Vectors.temp_v2);
+									vpos.x = vpos.x + 2.5;
+									vpos.y = vpos.y + 2.5;
+									vpos.z = vpos.z + 0.5;
+									self.game:RevivePlayer(player.id, vpos, vangles, teamId, not keepEquip);
+									result = true;
+									System.LogAlways(string.format("[Coop] Spawning player '%s' beside vehicle of mate '%s'", player:GetName(), mate:GetName()));
+								end
+								break;
 							end
-							if (not seatFound) then
-								local vpos = vehicle:GetWorldPos(g_Vectors.temp_v1);
-								local vangles = vehicle:GetWorldAngles(g_Vectors.temp_v2);
-								vpos.x = vpos.x + 2.5;
-								vpos.y = vpos.y + 2.5;
-								vpos.z = vpos.z + 0.5;
-								self.game:RevivePlayer(player.id, vpos, vangles, teamId, not keepEquip);
-								result = true;
-								System.LogAlways(string.format("[Coop] Spawning player '%s' beside vehicle of mate '%s'", player:GetName(), mate:GetName()));
-							end
+						end
+
+						-- On foot: spawn 1.5m behind or next to teammate
+						local mpos = mate:GetWorldPos(g_Vectors.temp_v1);
+						local mangles = mate:GetWorldAngles(g_Vectors.temp_v2);
+						if (mpos.x > 10.0 or mpos.y > 10.0) then
+							local rad = (mangles.z or 0) * 3.14159265 / 180.0;
+							mpos.x = mpos.x - math.sin(rad) * 1.5;
+							mpos.y = mpos.y - math.cos(rad) * 1.5;
+							mpos.z = mpos.z + 0.15;
+							self.game:RevivePlayer(player.id, mpos, mangles, teamId, not keepEquip);
+							result = true;
+							System.LogAlways(string.format("[Coop] Spawning player '%s' next to mate '%s' at (%.1f, %.1f, %.1f)", player:GetName(), mate:GetName(), mpos.x, mpos.y, mpos.z));
 							break;
 						end
 					end
-
-					-- On foot: spawn 1.5m behind or next to teammate
-					local mpos = mate:GetWorldPos(g_Vectors.temp_v1);
-					local mangles = mate:GetWorldAngles(g_Vectors.temp_v2);
-					local rad = (mangles.z or 0) * 3.14159265 / 180.0;
-					mpos.x = mpos.x - math.sin(rad) * 1.5;
-					mpos.y = mpos.y - math.cos(rad) * 1.5;
-					mpos.z = mpos.z + 0.15;
-					self.game:RevivePlayer(player.id, mpos, mangles, teamId, not keepEquip);
-					result = true;
-					System.LogAlways(string.format("[Coop] Spawning player '%s' next to mate '%s' at (%.1f, %.1f, %.1f)", player:GetName(), mate:GetName(), mpos.x, mpos.y, mpos.z));
-					break;
 				end
 			end
 		end
@@ -996,7 +1027,7 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 	player:UpdateAreas();
 
 	if (result) then
-		if(player.actor:GetSpectatorMode() ~= 0) then
+		if(player.actor:GetSpectatorMode() ~= 0 and player.actor:GetSpectatorMode() ~= 4) then
 			player.actor:SetSpectatorMode(0, NULL_ENTITY);
 		end
 	

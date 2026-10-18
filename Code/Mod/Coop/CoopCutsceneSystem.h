@@ -28,7 +28,12 @@ public:
     // Summary:
     //  Updates the camera view.
     void Update(float fFrameTime);
- 
+
+    bool IsPlayingCutscene() const { return m_bPlayingCutscene; }
+    IEntity* GetCameraEntity() const { return m_pCameraEntity; }
+    float GetCameraFOV() const { return m_fCameraFOV; }
+    void SetCameraEntity(IEntity* pEnt, float fov) { m_pCameraEntity = pEnt; m_fCameraFOV = fov; }
+
 private:
     bool            m_bPlayingCutscene;
     bool            m_bPlayingCutsceneLastFrame;
@@ -36,6 +41,7 @@ private:
     IEntity*        m_pCameraEntity;
     float           m_fCameraFOV;
     float           m_seqPollTimer;
+    IAnimSequence*  m_pActiveSequence;
     std::set<string> m_serverPlayingSequences;
 
 public:

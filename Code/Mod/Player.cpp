@@ -23,6 +23,7 @@ History:
 #include "OffHand.h"
 #include "Fists.h"
 #include "GameRules.h"
+#include "Coop/CoopCutsceneSystem.h"
 
 #include <IViewSystem.h>
 #include <IItemSystem.h>
@@ -1686,6 +1687,28 @@ void CPlayer::UpdateView(SViewParams &viewParams)
 
 void CPlayer::PostUpdateView(SViewParams &viewParams)
 {
+	if (IsClient() && CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+	{
+		IEntity* pCam = CCoopCutsceneSystem::GetInstance()->GetCameraEntity();
+		if (!pCam && gEnv->pMovieSystem)
+		{
+			EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
+			if (camId)
+				pCam = gEnv->pEntitySystem->GetEntity(camId);
+		}
+
+		if (pCam)
+		{
+			viewParams.position = pCam->GetWorldPos();
+			viewParams.rotation = pCam->GetWorldRotation();
+			float fov = CCoopCutsceneSystem::GetInstance()->GetCameraFOV();
+			if (fov <= 0.0f && gEnv->pMovieSystem)
+				fov = gEnv->pMovieSystem->GetCameraParams().fFOV;
+			if (fov > 0.0f)
+				viewParams.fov = fov;
+			viewParams.blend = false;
+		}
+	}
 
 	Vec3 shakeVec(viewParams.currentShakeShift*0.85f);
 	m_stats.FPWeaponPos = viewParams.position + m_stats.FPWeaponPosOffset + shakeVec;;

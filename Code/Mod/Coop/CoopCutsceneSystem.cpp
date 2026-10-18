@@ -2,13 +2,18 @@
 #include "CoopCutsceneSystem.h"
 #include <IGameFramework.h>
 #include <IEntitySystem.h>
+#include <IActorSystem.h>
+#include "Game.h"
+#include "GameRules.h"
+#include "HUD/HUD.h"
  
 CCoopCutsceneSystem CCoopCutsceneSystem::s_instance = CCoopCutsceneSystem();
  
 CCoopCutsceneSystem::CCoopCutsceneSystem() : m_bPlayingCutscene(0),
     m_pCameraEntity(0),
     m_fCameraFOV(0),
-    m_seqPollTimer(0.0f)
+    m_seqPollTimer(0.0f),
+    m_pActiveSequence(NULL)
 {
  
 }
@@ -34,36 +39,82 @@ void CCoopCutsceneSystem::Unregister()
 
 void CCoopCutsceneSystem::Update(float fFrameTime)
 {
-    if (m_bPlayingCutscene && m_pCameraEntity && !gEnv->bEditor)
+    if (m_bPlayingCutscene)
     {
-        IView* pView = gEnv->pGame->GetIGameFramework()->GetIViewSystem()->GetActiveView();
-        if (pView)
+        if (!m_pCameraEntity && gEnv->pMovieSystem)
         {
-            const SViewParams* currParams = pView->GetCurrentParams();
-            if (currParams)
+            EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
+            if (camId)
             {
-                SViewParams newParams = *currParams;
-                newParams.position = m_pCameraEntity->GetWorldPos();
-                newParams.rotation = m_pCameraEntity->GetWorldRotation();
-                if (m_fCameraFOV > 0.0f)
-                    newParams.fov = m_fCameraFOV;
+                m_pCameraEntity = gEnv->pEntitySystem->GetEntity(camId);
+                m_fCameraFOV = gEnv->pMovieSystem->GetCameraParams().fFOV;
+            }
+        }
 
-                if (!m_bPlayingCutsceneLastFrame)
+        if (m_pCameraEntity && !gEnv->bEditor && gEnv->pGame)
+        {
+            IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+            if (pVS)
+            {
+                IView* pView = pVS->GetActiveView();
+                if (pView)
                 {
-                    m_bCutsceneBlending = currParams->blend;
-                    newParams.blend = false;
-                }
-                else
-                {
-                    newParams.blend = m_bCutsceneBlending;
-                }
+                    const SViewParams* currParams = pView->GetCurrentParams();
+                    if (currParams)
+                    {
+                        SViewParams newParams = *currParams;
+                        newParams.position = m_pCameraEntity->GetWorldPos();
+                        newParams.rotation = m_pCameraEntity->GetWorldRotation();
+                        if (m_fCameraFOV > 0.0f)
+                            newParams.fov = m_fCameraFOV;
 
-                pView->SetCurrentParams(newParams);
+                        if (!m_bPlayingCutsceneLastFrame)
+                        {
+                            m_bCutsceneBlending = currParams->blend;
+                            newParams.blend = false;
+                        }
+                        else
+                        {
+                            newParams.blend = m_bCutsceneBlending;
+                        }
+
+                        pView->SetCurrentParams(newParams);
+                    }
+                }
             }
         }
     }
 
     m_bPlayingCutsceneLastFrame = m_bPlayingCutscene;
+
+    // Client: auto-detect when a cutscene ends in movie system if abort sequence was not received
+    if (!gEnv->bServer && m_bPlayingCutscene && gEnv->pMovieSystem && !gEnv->bEditor)
+    {
+        bool anyCutscenePlaying = false;
+        ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+        if (pIt)
+        {
+            for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
+            {
+                if (gEnv->pMovieSystem->IsPlaying(pSeq) && (pSeq->GetFlags() & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER)))
+                {
+                    anyCutscenePlaying = true;
+                    break;
+                }
+            }
+            pIt->Release();
+        }
+
+        if (!anyCutscenePlaying)
+        {
+            IAnimSequence* pEnded = m_pActiveSequence;
+            OnEndCutScene(pEnded);
+            if (g_pGame && g_pGame->GetHUD() && pEnded)
+            {
+                g_pGame->GetHUD()->OnEndCutScene(pEnded);
+            }
+        }
+    }
 
     // Server: Poll playing sequences to broadcast non-camera dialogues and animations (e.g. Prophet talking on beach)
     if (gEnv->bServer && gEnv->bMultiplayer && gEnv->pMovieSystem && !gEnv->bEditor)
@@ -114,6 +165,50 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
 bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 {
     m_bPlayingCutscene = true;
+    m_pActiveSequence = pSeq;
+
+    // Search for camera node in sequence if not yet set
+    if (!m_pCameraEntity && pSeq)
+    {
+        int nodeCount = pSeq->GetNodeCount();
+        for (int i = 0; i < nodeCount; ++i)
+        {
+            IAnimNode* pNode = pSeq->GetNode(i);
+            if (pNode)
+            {
+                if (pNode->GetType() == ANODE_CAMERA || (pNode->GetName() && (strstr(pNode->GetName(), "cam") || strstr(pNode->GetName(), "Cam") || strstr(pNode->GetName(), "cine"))))
+                {
+                    IEntity* pEnt = pNode->GetEntity();
+                    if (pEnt)
+                    {
+                        m_pCameraEntity = pEnt;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!m_pCameraEntity && gEnv->pMovieSystem)
+    {
+        EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
+        if (camId)
+        {
+            m_pCameraEntity = gEnv->pEntitySystem->GetEntity(camId);
+            m_fCameraFOV = gEnv->pMovieSystem->GetCameraParams().fFOV;
+        }
+    }
+
+    if (!gEnv->bEditor && m_pCameraEntity && gEnv->pGame)
+    {
+        IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+        if (pVS)
+        {
+            IView* pCamView = pVS->GetViewByEntityId(m_pCameraEntity->GetId(), true);
+            if (pCamView)
+                pVS->SetActiveView(pCamView);
+        }
+    }
 
     if (gEnv->bServer && gEnv->bMultiplayer && pSeq)
     {
@@ -131,22 +226,75 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
 {
     m_bPlayingCutscene = false;
     m_pCameraEntity = NULL;
+    m_fCameraFOV = 0.0f;
+    IAnimSequence* pEnded = pSeq ? pSeq : m_pActiveSequence;
+    m_pActiveSequence = NULL;
 
-    if (gEnv->bServer && gEnv->bMultiplayer && pSeq)
+    if (!gEnv->bEditor && gEnv->pGame)
     {
-        CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
-        if (pSync)
+        IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+        IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+        if (pVS && pClientActor)
         {
-            pSync->StopSeqeunce(pSeq->GetName(), 0.0f, false);
+            IView* pView = pVS->GetViewByEntityId(pClientActor->GetEntityId(), true);
+            if (pView)
+                pVS->SetActiveView(pView);
+        }
+    }
+
+    if (gEnv->bServer && gEnv->bMultiplayer)
+    {
+        if (pEnded)
+        {
+            CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
+            if (pSync)
+            {
+                pSync->StopSeqeunce(pEnded->GetName(), 0.0f, false);
+            }
+        }
+
+        // Align any distant clients to host after cutscene finishes
+        IActor* pHostActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+        if (pHostActor)
+        {
+            Vec3 hostPos = pHostActor->GetEntity()->GetWorldPos();
+            Ang3 hostAngles = pHostActor->GetEntity()->GetWorldAngles();
+
+            IActorIteratorPtr pIt = gEnv->pGame->GetIGameFramework()->GetIActorSystem()->CreateActorIterator();
+            while (IActor* pActor = pIt->Next())
+            {
+                if (pActor != pHostActor && pActor->IsPlayer())
+                {
+                    Vec3 pPos = pActor->GetEntity()->GetWorldPos();
+                    if ((pPos - hostPos).GetLengthSquared() > 30.0f * 30.0f)
+                    {
+                        CryLogAlways("[CCoopCutsceneSystem] Syncing client '%s' position to host at (%.1f, %.1f, %.1f) after cutscene '%s'",
+                            pActor->GetEntity()->GetName(), hostPos.x, hostPos.y, hostPos.z, pEnded ? pEnded->GetName() : "cutscene");
+
+                        Vec3 targetPos = hostPos + Vec3(1.5f, 1.5f, 0.2f);
+                        if (g_pGame && g_pGame->GetGameRules())
+                        {
+                            g_pGame->GetGameRules()->RevivePlayer(static_cast<CActor*>(pActor), targetPos, hostAngles, 0, false);
+                        }
+                        else
+                        {
+                            pActor->GetEntity()->SetPos(targetPos);
+                            pActor->GetEntity()->SetRotation(Quat(hostAngles));
+                        }
+                    }
+                }
+            }
         }
     }
 
     return true;
 }
+
 void CCoopCutsceneSystem::OnPlayCutSceneSound(IAnimSequence* pSeq, ISound* pSound)
 {
  
 }
+
 bool CCoopCutsceneSystem::OnCameraChange(const SCameraParams& cameraParams)
 {
     m_pCameraEntity = gEnv->pEntitySystem->GetEntity(cameraParams.cameraEntityId);

@@ -4,6 +4,9 @@
 #include <ICryAnimation.h>
 #include <IViewSystem.h>
 #include <IMovieSystem.h>
+#include "Coop/CoopCutsceneSystem.h"
+#include "Game.h"
+#include "HUD/HUD.h"
 
 CSequenceSynchronizer* CSequenceSynchronizer::s_pInstance = NULL;
 
@@ -125,6 +128,16 @@ IMPLEMENT_RMI(CSequenceSynchronizer, ClTrackviewSequence)
 				fStartTime = pSeq->GetTimeRange().end;
 
 			pMovieSystem->SetPlayingTime(pSeq, fStartTime);
+
+			int flags = pSeq->GetFlags();
+			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			{
+				CCoopCutsceneSystem::GetInstance()->OnBeginCutScene(pSeq, true);
+				if (g_pGame && g_pGame->GetHUD())
+				{
+					g_pGame->GetHUD()->OnBeginCutScene(pSeq, true);
+				}
+			}
 		}
 		else
 		{
@@ -141,6 +154,16 @@ IMPLEMENT_RMI(CSequenceSynchronizer, ClTrackviewSequence)
 			{
 				CryLogAlways("[CSequenceSynchronizer] Client Stopped Sequence: '%s'", sSequence.c_str());
 				pMovieSystem->AbortSequence(pSeq, bLeaveTime);
+			}
+
+			int flags = pSeq->GetFlags();
+			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			{
+				CCoopCutsceneSystem::GetInstance()->OnEndCutScene(pSeq);
+				if (g_pGame && g_pGame->GetHUD())
+				{
+					g_pGame->GetHUD()->OnEndCutScene(pSeq);
+				}
 			}
 		}
 	}
