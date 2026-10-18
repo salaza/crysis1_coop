@@ -138,10 +138,21 @@ Write-Host "[Updater] Downloading $($asset.name) ($([math]::Round($asset.size / 
 $tempZip = Join-Path ([System.IO.Path]::GetTempPath()) "CrysisCoop_$remoteTag.zip"
 if (Test-Path $tempZip) { Remove-Item -Force $tempZip }
 
-# Download asset (handling private repo 302 redirect to S3)
+# Download asset (try public browser_download_url first, fallback to private API if needed)
 $downloadSuccess = $false
 
-if ($token) {
+if ($asset.browser_download_url) {
+    try {
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempZip -UserAgent "CrysisCoop-Updater"
+        if ((Test-Path $tempZip) -and (Get-Item $tempZip).Length -gt 0) {
+            $downloadSuccess = $true
+        }
+    } catch {
+        # Fallback to private API download
+    }
+}
+
+if (-not $downloadSuccess -and $token) {
     try {
         $req = [System.Net.HttpWebRequest]::Create($asset.url)
         $req.Headers.Add("Authorization", "Bearer $token")
@@ -172,15 +183,6 @@ if ($token) {
         }
     } catch {
         Write-Warning "Direct API download failed: $_"
-    }
-}
-
-if (-not $downloadSuccess -and $asset.browser_download_url) {
-    try {
-        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempZip -UserAgent "CrysisCoop-Updater"
-        $downloadSuccess = $true
-    } catch {
-        Write-Warning "Browser download failed: $_"
     }
 }
 
