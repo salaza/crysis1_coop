@@ -150,14 +150,15 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	// setup animation time scaling (until we have assets that cover the speeds we need timescaling).
 	GetISystem()->GetIAnimationSystem()->SetScalingLimits( Vec2(0.5f, 3.0f) );
 
-	bool isMultiplayer=gEnv->bMultiplayer;
+	bool isCoop = IsCoop();
+	bool isMultiplayer = gEnv->bMultiplayer && !isCoop;
 
 	if(gEnv->bClient)
 	{
 		IActionMapManager *pActionMapMan = g_pGame->GetIGameFramework()->GetIActionMapManager();
 		IActionMap *am = NULL;
-		pActionMapMan->EnableActionMap("multiplayer",isMultiplayer);
-		pActionMapMan->EnableActionMap("singleplayer",!isMultiplayer);
+		pActionMapMan->EnableActionMap("multiplayer", isMultiplayer);
+		pActionMapMan->EnableActionMap("singleplayer", !isMultiplayer || isCoop);
 		if(isMultiplayer)
 		{
 			am=pActionMapMan->GetActionMap("multiplayer");
@@ -3563,7 +3564,8 @@ void CGameRules::ResetEntities()
 //------------------------------------------------------------------------
 void CGameRules::OnEndGame()
 {
-	bool isMultiplayer=gEnv->bMultiplayer ;
+	bool isCoop = IsCoop();
+	bool isMultiplayer = gEnv->bMultiplayer && !isCoop;
 
 	if (isMultiplayer && gEnv->bServer)
 		m_teamVoiceGroups.clear();

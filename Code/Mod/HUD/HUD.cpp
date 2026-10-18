@@ -773,14 +773,17 @@ void CHUD::GameRulesSet(const char* name)
 
   if(gEnv->bMultiplayer)
   {
-    if(!stricmp(name, "Coop"))
+    CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL;
+    if((pGR && pGR->IsCoop()) || !stricmp(name, "Coop") || !stricmp(name, "coop") || !stricmp(name, "GameRules"))
       gameRules = EHUD_COOP;
     else if(!stricmp(name, "InstantAction"))
       gameRules = EHUD_INSTANTACTION;
     else if(!stricmp(name, "PowerStruggle"))
       gameRules = EHUD_POWERSTRUGGLE;
-		else if(!stricmp(name, "TeamAction"))
-			gameRules = EHUD_TEAMACTION;
+    else if(!stricmp(name, "TeamAction"))
+      gameRules = EHUD_TEAMACTION;
+    else
+      gameRules = EHUD_COOP;
   }
 
   if(m_currentGameRules != gameRules)//unload stuff
@@ -2307,7 +2310,9 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 	}
 	else if(action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Pressed)
 	{
-		if(gEnv->bMultiplayer)
+		CGameRules *pGR = g_pGame->GetGameRules();
+		bool isCoop = (pGR && pGR->IsCoop()) || (m_currentGameRules == EHUD_COOP);
+		if(gEnv->bMultiplayer && !isCoop)
 		{
 			if(m_animScoreBoard.IsLoaded() && m_pHUDScore && !m_pHUDScore->m_bShow && GetModalHUD() != &m_animWarningMessages)
 			{
@@ -2343,7 +2348,9 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 						((action == rGameActions.hud_show_multiplayer_scoreboard && activationMode == eIS_Released)||
 						action == rGameActions.hud_hide_multiplayer_scoreboard))
 	{
-		if(gEnv->bMultiplayer)
+		CGameRules *pGR = g_pGame->GetGameRules();
+		bool isCoop = (pGR && pGR->IsCoop()) || (m_currentGameRules == EHUD_COOP);
+		if(gEnv->bMultiplayer && !isCoop)
 		{
 			if(m_animScoreBoard.IsLoaded() && m_pHUDScore && m_pHUDScore->m_bShow)
 			{

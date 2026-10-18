@@ -50,86 +50,86 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
         
 		IEntity *pTarget = pCollision->iForeignData[1]==PHYS_FOREIGN_ID_ENTITY ? (IEntity*)pCollision->pForeignData[1]:0;
 
-		//Only process hits that have a target
-		if(pTarget)
+		Vec3 dir(0, 0, 0);
+		if (pCollision->vloc[0].GetLengthSquared() > 1e-6f)
+			dir = pCollision->vloc[0].GetNormalized();
+
+		// Physical collision registration for cutting/breaking trees, vegetation and pushing props
+		if (pCollision->pEntity[1])
 		{
-			Vec3 dir(0, 0, 0);
-			if (pCollision->vloc[0].GetLengthSquared() > 1e-6f)
-				dir = pCollision->vloc[0].GetNormalized();
+			pe_action_register_coll_event collision;
+			collision.collMass = 0.005f;
+			collision.partid[1] = pCollision->partid[1];
+			collision.partid[0] = -2;
+			ISurfaceTypeManager *pSTM = gEnv->p3DEngine->GetMaterialManager()->GetSurfaceTypeManager();
+			int invId = pSTM ? pSTM->GetSurfaceTypeByName("mat_invulnerable")->GetId() : 0;
+			collision.idmat[1] = pCollision->idmat[1];
+			collision.idmat[0] = invId;
+			collision.n = pCollision->n;
+			collision.pt = pCollision->pt;
+			float speed = cry_sqrtf(4000.0f / (80.0f * 0.5f));
+			collision.vSelf = dir * speed;
+			collision.v = Vec3(0, 0, 0);
+			collision.pCollider = NULL;
+			pCollision->pEntity[1]->Action(&collision);
 
-			CGameRules *pGameRules = g_pGame->GetGameRules();
-
-			IActor* pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(m_ownerId);
-
-			bool ok = true;
-
-			if(!gEnv->bMultiplayer && pActor && pActor->IsPlayer())
+			if (pCollision->pEntity[1]->GetType() == PE_RIGID)
 			{
-				IActor* pAITarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pTarget->GetId());
-				if(pAITarget && pTarget->GetAI() && !pTarget->GetAI()->IsHostile(pActor->GetEntity()->GetAI(),false))
-				{
-					pGameRules->SetEntityToIgnore(pTarget->GetId());
-					ok = false;
-				}
-			}
-
-			if(ok)
-			{
-				HitInfo hitInfo(m_ownerId, pTarget->GetId(), m_weaponId,
-					m_fmId, 0.0f, pGameRules->GetHitMaterialIdFromSurfaceId(pCollision->idmat[1]), pCollision->partid[1],
-					m_hitTypeId, pCollision->pt, dir, pCollision->n);
-
-				hitInfo.remote = IsRemote();
-				hitInfo.projectileId = GetEntityId();
-				hitInfo.bulletType = m_pAmmoParams->bulletType;
-				if (!hitInfo.remote)
-					hitInfo.seq=m_seq;
-				hitInfo.damage = m_damage;
-
-				if (m_weaponId)
-				{
-					CWeapon *pWeapon=GetWeapon();
-					if (pWeapon && pWeapon->GetForcedHitMaterial() != -1)
-						hitInfo.material=pGameRules->GetHitMaterialIdFromSurfaceId(pWeapon->GetForcedHitMaterial());
-				}
-
-				pGameRules->ClientHit(hitInfo);
-
-				// Notify AI
-				if (gEnv->pAISystem && !gEnv->bMultiplayer)
-				{
-					IEntity* pShooter = gEnv->pEntitySystem->GetEntity(m_ownerId);
-					if (pShooter)
-					{
-						static int htMelee = pGameRules->GetHitTypeId("melee");
-						if (pShooter && m_hitTypeId != htMelee)
-						{
-							ISurfaceType *pSurfaceType = pGameRules->GetHitMaterial(hitInfo.material);
-							const ISurfaceType::SSurfaceTypeAIParams* pParams = pSurfaceType ? pSurfaceType->GetAIParams() : 0;
-							const float radius = pParams ? pParams->fImpactRadius : 2.5f;
-							const float soundRadius = pParams ? pParams->fImpactSoundRadius : 20.0f;
-							gEnv->pAISystem->BulletHitEvent(pCollision->pt, radius, soundRadius, pShooter->GetAI());
-						}
-					}
-				}
-
+				pe_action_impulse ai;
+				ai.partid = pCollision->partid[1];
+				ai.point = pCollision->pt;
+				ai.impulse = dir * (m_damage > 0.0f ? m_damage * 10.0f : 250.0f);
+				pCollision->pEntity[1]->Action(&ai);
 			}
 		}
-		else
+
+		CGameRules *pGameRules = g_pGame->GetGameRules();
+		IActor* pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(m_ownerId);
+
+		bool ok = true;
+		if(pTarget && !gEnv->bMultiplayer && pActor && pActor->IsPlayer())
 		{
+			IActor* pAITarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pTarget->GetId());
+			if(pAITarget && pTarget->GetAI() && !pTarget->GetAI()->IsHostile(pActor->GetEntity()->GetAI(),false))
+			{
+				if (pGameRules)
+					pGameRules->SetEntityToIgnore(pTarget->GetId());
+				ok = false;
+			}
+		}
+
+		if(ok && pGameRules)
+		{
+			HitInfo hitInfo(m_ownerId, pTarget ? pTarget->GetId() : 0, m_weaponId,
+				m_fmId, 0.0f, pGameRules->GetHitMaterialIdFromSurfaceId(pCollision->idmat[1]), pCollision->partid[1],
+				m_hitTypeId, pCollision->pt, dir, pCollision->n);
+
+			hitInfo.remote = IsRemote();
+			hitInfo.projectileId = GetEntityId();
+			hitInfo.bulletType = m_pAmmoParams->bulletType;
+			if (!hitInfo.remote)
+				hitInfo.seq=m_seq;
+			hitInfo.damage = m_damage;
+
+			if (m_weaponId)
+			{
+				CWeapon *pWeapon=GetWeapon();
+				if (pWeapon && pWeapon->GetForcedHitMaterial() != -1)
+					hitInfo.material=pGameRules->GetHitMaterialIdFromSurfaceId(pWeapon->GetForcedHitMaterial());
+			}
+
+			pGameRules->ClientHit(hitInfo);
+
 			// Notify AI
-			// The above case only catches entity vs. entity hits, the AI is interested in all hits.
 			if (gEnv->pAISystem && !gEnv->bMultiplayer)
 			{
 				IEntity* pShooter = gEnv->pEntitySystem->GetEntity(m_ownerId);
 				if (pShooter)
 				{
-					CGameRules *pGameRules = g_pGame->GetGameRules();
 					static int htMelee = pGameRules->GetHitTypeId("melee");
 					if (pShooter && m_hitTypeId != htMelee)
 					{
-						int material = pGameRules->GetHitMaterialIdFromSurfaceId(pCollision->idmat[1]);
-						ISurfaceType *pSurfaceType = pGameRules->GetHitMaterial(material);
+						ISurfaceType *pSurfaceType = pGameRules->GetHitMaterial(hitInfo.material);
 						const ISurfaceType::SSurfaceTypeAIParams* pParams = pSurfaceType ? pSurfaceType->GetAIParams() : 0;
 						const float radius = pParams ? pParams->fImpactRadius : 2.5f;
 						const float soundRadius = pParams ? pParams->fImpactSoundRadius : 20.0f;

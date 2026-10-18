@@ -2505,8 +2505,10 @@ bool CActor::CanPickUpObject(IEntity *obj, float& heavyness, float& volume)
 	bool canPickUp = false;
 	float strength(GetActorStrength());
 	SActorParams *pParams(GetActorParams());
+	float maxMass = (pParams && pParams->maxGrabMass > 0.0f) ? pParams->maxGrabMass : 70.0f;
+	float maxVol = (pParams && pParams->maxGrabVolume > 0.0f) ? pParams->maxGrabVolume : 2.0f;
 
-	if (pParams && mass <= pParams->maxGrabMass*strength && volume <= pParams->maxGrabVolume)
+	if (mass <= maxMass*strength && volume <= maxVol)
 	{
 		canPickUp = true;
 		heavyness = 0.3f;
@@ -2519,7 +2521,7 @@ bool CActor::CanPickUpObject(IEntity *obj, float& heavyness, float& volume)
 			CNanoSuit *pSuit = ((CPlayer*)this)->GetNanoSuit();
 			if(pSuit)
 			{
-				if(strength > 1.5f && !(mass <= pParams->maxGrabMass && volume <= pParams->maxGrabVolume) && pSuit->GetSuitEnergy() > 25.0f)
+				if(strength > 1.5f && !(mass <= maxMass && volume <= maxVol) && pSuit->GetSuitEnergy() > 25.0f)
 					heavyness = 1.0f;
 			}
 		}
@@ -2532,7 +2534,9 @@ bool CActor::CanPickUpObject(float mass, float volume)
 {
 	float strength(GetActorStrength());
 	SActorParams *pParams(GetActorParams());
-	if (pParams && mass <= pParams->maxGrabMass*strength && volume <= pParams->maxGrabVolume*strength)
+	float maxMass = (pParams && pParams->maxGrabMass > 0.0f) ? pParams->maxGrabMass : 70.0f;
+	float maxVol = (pParams && pParams->maxGrabVolume > 0.0f) ? pParams->maxGrabVolume : 2.0f;
+	if (mass <= maxMass*strength && volume <= maxVol*strength)
 		return true;
 
 	return false;
@@ -2725,7 +2729,17 @@ void CActor::SelectLastItem(bool keepHistory, bool forceNext /* = false */)
 	else if(forceNext)
 		SelectNextItem(1,keepHistory,NULL); //Prevent binoculars to get stuck under certain circumstances
 	else
+	{
+		bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+		bool savedMP = gEnv->bMultiplayer;
+		if (isCoop && IsClient())
+			gEnv->bMultiplayer = false;
+
 		m_pItemSystem->SetActorItem(this, (EntityId)0, keepHistory);
+
+		if (isCoop && IsClient())
+			gEnv->bMultiplayer = savedMP;
+	}
 }
 
 //------------------------------------------------------------------------
@@ -2767,7 +2781,15 @@ void CActor::SelectItem(EntityId itemId, bool keepHistory)
 		if(pItem->GetEntityId() == pInventory->GetHolsteredItem()) //unholster selected weapon
 			pInventory->HolsterItem(false);
 
-		m_pItemSystem->SetActorItem(this, pItem->GetEntityId());
+		bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+		bool savedMP = gEnv->bMultiplayer;
+		if (isCoop && IsClient())
+			gEnv->bMultiplayer = false;
+
+		m_pItemSystem->SetActorItem(this, pItem->GetEntityId(), keepHistory);
+
+		if (isCoop && IsClient())
+			gEnv->bMultiplayer = savedMP;
 	}
 }
 

@@ -170,6 +170,10 @@ struct SActorParams
 
 	SActorParams()
 	{
+		maxGrabMass = 70.0f;
+		maxGrabVolume = 2.0f;
+		nanoSuitActive = true;
+
 		viewPivot.Set(0,0,0);
 		viewDistance = 0;
 		viewHeightOffset = 0;

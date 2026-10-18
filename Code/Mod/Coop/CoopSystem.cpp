@@ -296,6 +296,8 @@ bool bReinited = false;
 //	Updates the CCoopSystem instance.
 void CCoopSystem::Update(float fFrameTime)
 {
+	EnforceCoopPhysicsSettings();
+
 	if (m_pDialogSystem)
 		m_pDialogSystem->Update(fFrameTime);
 

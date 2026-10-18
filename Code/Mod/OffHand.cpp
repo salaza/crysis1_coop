@@ -1841,12 +1841,25 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 	}
 
 	const ray_hit *pRay = NULL;
+	ray_hit directHit;
 	if (!pPhysicalEntity)
 	{
 		pRay = pActor->GetGameObject()->GetWorldQuery()->GetLookAtPoint(m_range);
-		if (pRay)
+		if (pRay && pRay->pCollider)
 			pPhysicalEntity = pRay->pCollider;
-		else
+		else if (gEnv->pPhysicalWorld)
+		{
+			IPhysicalEntity *skipEnt = pActor->GetEntity()->GetPhysics();
+			if (gEnv->pPhysicalWorld->RayWorldIntersection(info.eyePosition, info.eyeDirection * m_range,
+				ent_rigid | ent_sleeping_rigid | ent_living | ent_static,
+				rwi_stop_at_pierceable | rwi_ignore_back_faces, &directHit, 1, skipEnt ? &skipEnt : NULL, skipEnt ? 1 : 0))
+			{
+				pRay = &directHit;
+				pPhysicalEntity = directHit.pCollider;
+			}
+		}
+
+		if (!pPhysicalEntity)
 			return CheckItemsInProximity(info.eyePosition,info.eyeDirection,getEntityInfo);
 	}
 
