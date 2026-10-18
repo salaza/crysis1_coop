@@ -64,9 +64,21 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
     m_bPlayingCutsceneLastFrame = m_bPlayingCutscene;
 }
 
+#include "Entities/SequenceSynchronizer.h"
+
 bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 {
     m_bPlayingCutscene = true;
+
+    if (gEnv->bServer && gEnv->bMultiplayer && pSeq)
+    {
+        CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
+        if (pSync)
+        {
+            pSync->PlaySequence(pSeq->GetName(), 0.0f, false);
+        }
+    }
+
     return true;
 }
 
@@ -74,6 +86,16 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
 {
     m_bPlayingCutscene = false;
     m_pCameraEntity = NULL;
+
+    if (gEnv->bServer && gEnv->bMultiplayer && pSeq)
+    {
+        CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
+        if (pSync)
+        {
+            pSync->StopSeqeunce(pSeq->GetName(), 0.0f, false);
+        }
+    }
+
     return true;
 }
 void CCoopCutsceneSystem::OnPlayCutSceneSound(IAnimSequence* pSeq, ISound* pSound)

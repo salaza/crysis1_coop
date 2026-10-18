@@ -8,7 +8,8 @@
 CSequenceSynchronizer* CSequenceSynchronizer::s_pInstance = NULL;
 
 CSequenceSynchronizer::CSequenceSynchronizer() :
-	m_bInitialized(false)
+	m_bInitialized(false),
+	m_lastSequenceTime(0.0f)
 {
 	s_pInstance = this;
 }
@@ -36,6 +37,33 @@ void CSequenceSynchronizer::PostInit(IGameObject *pGameObject)
 	s_pInstance = this;
 }
 
+void CSequenceSynchronizer::PostInitClient(int channelId)
+{
+	if (!gEnv->bServer || !gEnv->pMovieSystem)
+		return;
+
+	ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+	if (pIt)
+	{
+		IAnimSequence* pSeq = pIt->first();
+		while (pSeq)
+		{
+			if (gEnv->pMovieSystem->IsPlaying(pSeq))
+			{
+				float playTime = gEnv->pMovieSystem->GetPlayingTime(pSeq);
+				CryLogAlways("[CSequenceSynchronizer] Syncing active cutscene '%s' at %.2fs to client channel %d", 
+					pSeq->GetName(), playTime, channelId);
+
+				GetGameObject()->InvokeRMI(ClTrackviewSequence(), 
+					STrackviewSeqParams(true, pSeq->GetName(), playTime, false), 
+					eRMI_ToClientChannel, channelId);
+			}
+			pSeq = pIt->next();
+		}
+		pIt->Release();
+	}
+}
+
 void CSequenceSynchronizer::Release()
 {
 	if (s_pInstance == this)
@@ -47,7 +75,14 @@ void CSequenceSynchronizer::PlaySequence(string sSequence, float fStartTime, boo
 {
 	if (!m_bInitialized || !gEnv->bServer) return;
 
-	CryLogAlways("[CSequenceSynchronizer::PlaySequence] %s", sSequence);
+	float curTime = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
+	if (m_lastSequence == sSequence && (curTime - m_lastSequenceTime) < 1.0f)
+		return;
+
+	m_lastSequence = sSequence;
+	m_lastSequenceTime = curTime;
+
+	CryLogAlways("[CSequenceSynchronizer::PlaySequence] %s at %.2fs", sSequence.c_str(), fStartTime);
 
 	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(true, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
 }
@@ -56,7 +91,10 @@ void CSequenceSynchronizer::StopSeqeunce(string sSequence, float fStartTime, boo
 {
 	if (!m_bInitialized || !gEnv->bServer) return;
 
-	CryLogAlways("[CSequenceSynchronizer::StopSequence] %s", sSequence);
+	if (m_lastSequence == sSequence)
+		m_lastSequence.clear();
+
+	CryLogAlways("[CSequenceSynchronizer::StopSequence] %s", sSequence.c_str());
 
 	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(false, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
 }

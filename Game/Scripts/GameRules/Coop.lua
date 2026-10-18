@@ -876,78 +876,107 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 	end
 	
 	if (not result) then
-		local ignoreTeam=(groupId~=nil) or (not self.TEAM_SPAWN_LOCATIONS);
-		
-		local includeNeutral=true;
-		if (self.TEAM_SPAWN_LOCATIONS) then
-			includeNeutral=self.NEUTRAL_SPAWN_LOCATIONS or false;
-		end
-	
-		local spawnId,zoffset;
-		
-		if (self.TIA_SPAWN_LOCATIONS) then
-			spawnId,zoffset = self.game:GetSpawnLocationTeam(player.id, player.death_pos);
-		else			
-			if(player.spawn_time==nil or _time-player.spawn_time>100) then
-				player.skipSpawnId=0;
-			end
-			if (self.USE_SPAWN_GROUPS or (not player.death_time) or (not player.death_pos)) then
-				spawnId,zoffset = self.game:GetSpawnLocation(player.id, ignoreTeam, includeNeutral, groupId or NULL_ENTITY, 0, g_Vectors.v000, player.skipSpawnId);
-			else
-				spawnId,zoffset = self.game:GetSpawnLocation(player.id, ignoreTeam, includeNeutral, groupId or NULL_ENTITY, 50, player.death_pos, player.skipSpawnId);
-			end
-			
-			player.spawn_time=_time;
-			player.skipSpawnId=spawnId;
-		end
+		-- 1. In Co-op, ALWAYS prioritize spawning beside active alive teammates / host!
+		local players = self.game:GetPlayers(true);
+		if (players) then
+			for i, mate in pairs(players) do
+				if (mate and mate.id ~= player.id and (not mate:IsDead()) and mate.actor and mate.actor:GetSpectatorMode() == 0) then
+					-- Check if teammate is in a vehicle
+					local vehicleId = mate.actor:GetLinkedVehicleId();
+					if (vehicleId and vehicleId ~= NULL_ENTITY) then
+						local vehicle = System.GetEntity(vehicleId);
+						if (vehicle and vehicle.vehicle) then
+							local seatFound = false;
+							if (vehicle.Seats) then
+								for sIdx, seat in pairs(vehicle.Seats) do
+									if ((not seat.seat:IsDriver()) and (not seat.seat:IsGunner()) and (not seat.seat:IsLocked()) and seat.seat:IsFree()) then
+										self.game:RevivePlayerInVehicle(player.id, vehicle.id, sIdx, teamId, not keepEquip);
+										result = true;
+										seatFound = true;
+										System.LogAlways(string.format("[Coop] Spawning player '%s' into vehicle '%s' seat %d with mate '%s'", player:GetName(), vehicle:GetName(), sIdx, mate:GetName()));
+										break;
+									end
+								end
+							end
+							if (not seatFound) then
+								local vpos = vehicle:GetWorldPos(g_Vectors.temp_v1);
+								local vangles = vehicle:GetWorldAngles(g_Vectors.temp_v2);
+								vpos.x = vpos.x + 2.5;
+								vpos.y = vpos.y + 2.5;
+								vpos.z = vpos.z + 0.5;
+								self.game:RevivePlayer(player.id, vpos, vangles, teamId, not keepEquip);
+								result = true;
+								System.LogAlways(string.format("[Coop] Spawning player '%s' beside vehicle of mate '%s'", player:GetName(), mate:GetName()));
+							end
+							break;
+						end
+					end
 
-		local pos,angles;
-
-		if (spawnId) then
-			local spawn=System.GetEntity(spawnId)
-			if (spawn) then
-				spawn:Spawned(player);
-				pos=spawn:GetWorldPos(g_Vectors.temp_v1);
-				angles=spawn:GetWorldAngles(g_Vectors.temp_v2);
-				pos.z=pos.z+zoffset;
-				
-				if (zoffset>0) then
-					Log("Spawning player '%s' with ZOffset: %g!", player:GetName(), zoffset);
+					-- On foot: spawn 1.5m behind or next to teammate
+					local mpos = mate:GetWorldPos(g_Vectors.temp_v1);
+					local mangles = mate:GetWorldAngles(g_Vectors.temp_v2);
+					local rad = (mangles.z or 0) * 3.14159265 / 180.0;
+					mpos.x = mpos.x - math.sin(rad) * 1.5;
+					mpos.y = mpos.y - math.cos(rad) * 1.5;
+					mpos.z = mpos.z + 0.15;
+					self.game:RevivePlayer(player.id, mpos, mangles, teamId, not keepEquip);
+					result = true;
+					System.LogAlways(string.format("[Coop] Spawning player '%s' next to mate '%s' at (%.1f, %.1f, %.1f)", player:GetName(), mate:GetName(), mpos.x, mpos.y, mpos.z));
+					break;
 				end
-
-				self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);		
-
-				result=true;
 			end
 		end
 
+		-- 2. Fallback: singleplayer start position
 		if (not result) then
 			self:CaptureSinglePlayerStart();
-			local players = self.game:GetPlayers(true);
-			if (players) then
-				for i, mate in pairs(players) do
-					if (mate and mate.id ~= player.id and (not mate:IsDead()) and mate.actor and mate.actor:GetSpectatorMode() == 0) then
-						pos = mate:GetWorldPos(g_Vectors.temp_v1);
-						angles = mate:GetWorldAngles(g_Vectors.temp_v2);
-						pos.x = pos.x + 1.2;
-						pos.y = pos.y + 1.2;
-						pos.z = pos.z + 0.2;
-						self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);
-						result = true;
-						break;
-					end
-				end
+			if (self.spStartPos) then
+				local spos = g_Vectors.temp_v1;
+				local sangles = g_Vectors.temp_v2;
+				CopyVector(spos, self.spStartPos);
+				CopyVector(sangles, self.spStartAngles);
+				spos.z = spos.z + 0.15;
+				self.game:RevivePlayer(player.id, spos, sangles, teamId, not keepEquip);
+				result = true;
+				System.LogAlways(string.format("[Coop] Spawning player '%s' at captured SP start position (%.1f, %.1f, %.1f)", player:GetName(), spos.x, spos.y, spos.z));
 			end
 		end
 
-		if (not result and self.spStartPos) then
-			pos = g_Vectors.temp_v1;
-			angles = g_Vectors.temp_v2;
-			CopyVector(pos, self.spStartPos);
-			CopyVector(angles, self.spStartAngles);
-			pos.z = pos.z + 0.15;
-			self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);
-			result = true;
+		-- 3. Fallback: map spawn points
+		if (not result) then
+			local ignoreTeam=(groupId~=nil) or (not self.TEAM_SPAWN_LOCATIONS);
+			local includeNeutral=true;
+			if (self.TEAM_SPAWN_LOCATIONS) then
+				includeNeutral=self.NEUTRAL_SPAWN_LOCATIONS or false;
+			end
+		
+			local spawnId,zoffset;
+			if (self.TIA_SPAWN_LOCATIONS) then
+				spawnId,zoffset = self.game:GetSpawnLocationTeam(player.id, player.death_pos);
+			else			
+				if(player.spawn_time==nil or _time-player.spawn_time>100) then
+					player.skipSpawnId=0;
+				end
+				if (self.USE_SPAWN_GROUPS or (not player.death_time) or (not player.death_pos)) then
+					spawnId,zoffset = self.game:GetSpawnLocation(player.id, ignoreTeam, includeNeutral, groupId or NULL_ENTITY, 0, g_Vectors.v000, player.skipSpawnId);
+				else
+					spawnId,zoffset = self.game:GetSpawnLocation(player.id, ignoreTeam, includeNeutral, groupId or NULL_ENTITY, 50, player.death_pos, player.skipSpawnId);
+				end
+				player.spawn_time=_time;
+				player.skipSpawnId=spawnId;
+			end
+
+			if (spawnId) then
+				local spawn=System.GetEntity(spawnId)
+				if (spawn) then
+					spawn:Spawned(player);
+					local pos=spawn:GetWorldPos(g_Vectors.temp_v1);
+					local angles=spawn:GetWorldAngles(g_Vectors.temp_v2);
+					pos.z=pos.z+zoffset;
+					self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);		
+					result=true;
+				end
+			end
 		end
 
 		if (not result) then

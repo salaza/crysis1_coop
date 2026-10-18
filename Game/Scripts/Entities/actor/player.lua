@@ -1235,15 +1235,27 @@ end
 function Player:UpdateDraw()	
 	local stats = self.actorStats;
 
-	--AI or thirperson, show all
+	-- Remote teammates in co-op: ALWAYS ensure their 3D character and attachments are drawn
+	if (self ~= g_localActor) then
+		local specMode = self.actor:GetSpectatorMode();
+		if (self:IsDead() or specMode == 1 or specMode == 2) then
+			self:DrawSlot(0, 0);
+		else
+			self:DrawSlot(0, 1);
+			self:HideAllAttachments(0, false, false);
+		end
+		return;
+	end
+
+	-- Local player logic below:
 	if (stats.isHidden or self.actor:GetSpectatorMode()~=0) then
 		self:DrawSlot(0,0);
-	elseif (self ~= g_localActor or stats.thirdPerson or stats.isOnLadder) then
+	elseif (stats.thirdPerson or stats.isOnLadder) then
 		self:DrawSlot(0,1);	
 		--show all
 		self:HideAllAttachments(0, false, false);
 		-- hide head if we are on a ladder and thirdperson is not set
-		if (self == g_localActor and stats.isOnLadder and not stats.thirdPerson) then
+		if (stats.isOnLadder and not stats.thirdPerson) then
 			for i,attachment in pairs(self.modelSetup.deadAttachments) do
 				self:HideAttachment(0,attachment,true,false);
 			end

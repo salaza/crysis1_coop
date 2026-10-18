@@ -279,8 +279,8 @@ void CPlayer::PostInit( IGameObject * pGameObject )
 
 	if (gEnv->bMultiplayer && !gEnv->bServer)
 	{
-		GetGameObject()->SetUpdateSlotEnableCondition( this, 0, eUEC_VisibleOrInRange );
-		//GetGameObject()->ForceUpdateExtension(this, 0);
+		GetGameObject()->SetUpdateSlotEnableCondition( this, 0, eUEC_Always );
+		GetGameObject()->ForceUpdateExtension(this, 0);
 	}
 }
 
@@ -729,6 +729,16 @@ void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 	IEntity* pEnt = GetEntity();
 	if (pEnt->IsHidden() && !(GetEntity()->GetFlags() & ENTITY_FLAG_UPDATE_HIDDEN))
 		return;
+
+	// In multiplayer/co-op, ensure remote player characters always render when alive
+	if (!IsClient() && GetHealth() > 0 && m_stats.spectatorMode == 0)
+	{
+		uint32 slotFlags = pEnt->GetSlotFlags(0);
+		if (!(slotFlags & ENTITY_SLOT_RENDER))
+		{
+			pEnt->SetSlotFlags(0, slotFlags | ENTITY_SLOT_RENDER);
+		}
+	}
 
 	if (gEnv->bServer && !IsClient() && IsPlayer())
 	{
@@ -5144,6 +5154,11 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 
 		if(mode == CActor::eASM_Follow)
 			MoveToSpectatorTargetPosition();
+	}
+
+	if (!mode)
+	{
+		Draw(true);
 	}
 	/*
 	// switch on/off spectator HUD

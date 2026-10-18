@@ -47,7 +47,7 @@ public:
 	virtual bool Init(IGameObject *pGameObject);
 	virtual void InitClient(int channelId) {};
 	virtual void PostInit(IGameObject *pGameObject);
-	virtual void PostInitClient(int channelId) {};
+	virtual void PostInitClient(int channelId);
 	virtual void Release();
 	virtual void FullSerialize(TSerialize ser) { };
 	virtual bool NetSerialize(TSerialize ser, EEntityAspects aspect, uint8 profile, int flags) { return true; };
@@ -66,6 +66,8 @@ public:
 
 protected:
 	bool m_bInitialized;
+	string m_lastSequence;
+	float m_lastSequenceTime;
 };
 
 CSequenceSynchronizer* GetSequenceSynchronizer();
