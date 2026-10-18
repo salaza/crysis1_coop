@@ -1,19 +1,23 @@
 @echo off
 setlocal EnableDelayedExpansion
+title Crysis Co-op - Host Server
 
 set "CRYSIS_DIR="
 
-:: 1. Check relative paths (Crysis\Mods\CrysisCoop or Crysis\CrysisCoop)
+:: ----------------------------------------------------
+:: 1. Find Crysis Installation Folder
+:: ----------------------------------------------------
 for %%I in ("%~dp0..\..") do set "REL2=%%~fI"
 for %%I in ("%~dp0..") do set "REL1=%%~fI"
 
-if exist "%REL2%\Game\GameData.pak" (
-    set "CRYSIS_DIR=%REL2%"
+if exist "%~dp0Game\GameData.pak" (
+    set "CRYSIS_DIR=%~dp0"
 ) else if exist "%REL1%\Game\GameData.pak" (
     set "CRYSIS_DIR=%REL1%"
+) else if exist "%REL2%\Game\GameData.pak" (
+    set "CRYSIS_DIR=%REL2%"
 )
 
-:: 2. Search common Steam / GOG paths across drives C..G
 if "%CRYSIS_DIR%"=="" (
     for %%D in (C D E F G) do (
         if exist "%%D:\SteamLibrary\steamapps\common\Crysis\Game\GameData.pak" set "CRYSIS_DIR=%%D:\SteamLibrary\steamapps\common\Crysis"
@@ -34,39 +38,51 @@ if not exist "%CRYSIS_DIR%\Game\GameData.pak" (
     exit /b 1
 )
 
-echo Found Crysis at: "%CRYSIS_DIR%"
+echo [OK] Crysis directory: "%CRYSIS_DIR%"
+set "TARGET_MOD_DIR=%CRYSIS_DIR%\Mods\CrysisCoop"
+if not exist "%TARGET_MOD_DIR%" mkdir "%TARGET_MOD_DIR%"
 
-:: 3. Ensure mod files are installed/updated in <Crysis>\Mods\CrysisCoop
-for %%I in ("%~dp0.") do set "SCRIPT_DIR=%%~fI"
-for %%I in ("%CRYSIS_DIR%\Mods\CrysisCoop") do set "TARGET_MOD_DIR=%%~fI"
-if /I not "%SCRIPT_DIR%"=="%TARGET_MOD_DIR%" (
-    if exist "%~dp0Bin32\CrysisCoop.dll" (
-        echo Updating CrysisCoop in "%TARGET_MOD_DIR%"...
-        xcopy /E /I /Y "%~dp0*" "%TARGET_MOD_DIR%\" >nul
-    )
+:: ----------------------------------------------------
+:: 2. Check for Updates from GitHub Releases
+:: ----------------------------------------------------
+set "UPDATER_SCRIPT="
+if exist "%~dp0Update_CrysisCoop.ps1" (
+    set "UPDATER_SCRIPT=%~dp0Update_CrysisCoop.ps1"
+) else if exist "%TARGET_MOD_DIR%\Update_CrysisCoop.ps1" (
+    set "UPDATER_SCRIPT=%TARGET_MOD_DIR%\Update_CrysisCoop.ps1"
 )
 
-:: 4. Ensure C1-Launcher is installed
-if exist "%CRYSIS_DIR%\Mods\CrysisCoop\Launcher\Bin32\Crysis.exe" (
+if not "!UPDATER_SCRIPT!"=="" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!UPDATER_SCRIPT!" -TargetModDir "%TARGET_MOD_DIR%" -CrysisDir "%CRYSIS_DIR%"
+) else (
+    echo [Updater] Running release update check...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "& { param(`$m, `$c) try { `$u = 'https://raw.githubusercontent.com/salaza/crysis1_coop/main/Update_CrysisCoop.ps1'; `$dst = Join-Path `$m 'Update_CrysisCoop.ps1'; `$token = ''; try { `$cr = ('protocol=https`nhost=github.com`n`n' | git credential fill 2>`$null); `$token = (`$cr | Where-Object { `$_ -match '^password=' }) -replace '^password=', ''; } catch {}; `$h = @{ 'User-Agent' = 'CrysisCoop-Updater' }; if (`$token) { `$h['Authorization'] = 'Bearer ' + `$token }; Invoke-RestMethod -Uri `$u -Headers `$h -OutFile `$dst; if (Test-Path `$dst) { & `$dst -TargetModDir `$m -CrysisDir `$c } } catch { Write-Warning ('Could not run updater: ' + `$_) } }" -args "%TARGET_MOD_DIR%","%CRYSIS_DIR%"
+)
+echo.
+
+:: ----------------------------------------------------
+:: 3. Verify C1-Launcher is installed
+:: ----------------------------------------------------
+if exist "%TARGET_MOD_DIR%\Launcher\Bin32\Crysis.exe" (
     if exist "%CRYSIS_DIR%\Bin32\Crysis.exe" (
         for %%F in ("%CRYSIS_DIR%\Bin32\Crysis.exe") do set "EXE32_SIZE=%%~zF"
         if !EXE32_SIZE! GTR 500000 (
-            echo Installing C1-Launcher into Bin32 ^(backing up original to Crysis_backup.exe^)...
+            echo Installing C1-Launcher into Bin32...
             copy /Y "%CRYSIS_DIR%\Bin32\Crysis.exe" "%CRYSIS_DIR%\Bin32\Crysis_backup.exe" >nul
-            copy /Y "%CRYSIS_DIR%\Mods\CrysisCoop\Launcher\Bin32\Crysis.exe" "%CRYSIS_DIR%\Bin32\Crysis.exe" >nul
+            copy /Y "%TARGET_MOD_DIR%\Launcher\Bin32\Crysis.exe" "%CRYSIS_DIR%\Bin32\Crysis.exe" >nul
         )
     )
 )
-if exist "%CRYSIS_DIR%\Mods\CrysisCoop\Launcher\Bin64\Crysis.exe" (
+if exist "%TARGET_MOD_DIR%\Launcher\Bin64\Crysis.exe" (
     if exist "%CRYSIS_DIR%\Bin64\CrySystem.dll" (
         if not exist "%CRYSIS_DIR%\Bin64\Crysis.exe" (
-            copy /Y "%CRYSIS_DIR%\Mods\CrysisCoop\Launcher\Bin64\Crysis.exe" "%CRYSIS_DIR%\Bin64\Crysis.exe" >nul
+            copy /Y "%TARGET_MOD_DIR%\Launcher\Bin64\Crysis.exe" "%CRYSIS_DIR%\Bin64\Crysis.exe" >nul
         ) else (
             for %%F in ("%CRYSIS_DIR%\Bin64\Crysis.exe") do set "EXE64_SIZE=%%~zF"
             if !EXE64_SIZE! GTR 500000 (
-                echo Installing C1-Launcher into Bin64 ^(backing up original to Crysis_backup.exe^)...
+                echo Installing C1-Launcher into Bin64...
                 copy /Y "%CRYSIS_DIR%\Bin64\Crysis.exe" "%CRYSIS_DIR%\Bin64\Crysis_backup.exe" >nul
-                copy /Y "%CRYSIS_DIR%\Mods\CrysisCoop\Launcher\Bin64\Crysis.exe" "%CRYSIS_DIR%\Bin64\Crysis.exe" >nul
+                copy /Y "%TARGET_MOD_DIR%\Launcher\Bin64\Crysis.exe" "%CRYSIS_DIR%\Bin64\Crysis.exe" >nul
             )
         )
     )
@@ -94,4 +110,3 @@ if not "%MAP%"=="" (
 
 echo Launching Crysis Co-op directly into the In-Game Menu ^(Intro movies skipped^)...
 start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_gamerules coop +sv_lanonly 1
-
