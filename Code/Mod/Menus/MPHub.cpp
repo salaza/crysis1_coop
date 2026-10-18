@@ -374,11 +374,6 @@ bool CMPHub::HandleFSCommand(const char* pCmd, const char* pArgs)
 		SAFE_MENU_FUNC(PlayTutorialVideo());
     break;
   case eGUC_enterLANlobby:
-    {
-      INetworkService *serv = gEnv->pNetwork->GetService("GameSpy");
-      if(!serv || serv->GetState()!= eNSS_Ok)
-        break;
-    }
 		if(!IsIngame())
 			m_lastMenu = 3;
 
@@ -446,6 +441,14 @@ bool CMPHub::HandleFSCommand(const char* pCmd, const char* pArgs)
     break;
   default:
     handled = false;
+  }
+
+  // Ensure m_menu exists if any CreateGame commands are received
+  if(!m_menu && m_currentScreen && 
+     (cmd == eGUC_createServerStart || cmd == eGUC_createServerOpened || 
+      cmd == eGUC_createServerUpdateLevels || cmd == eGUC_createServerParams))
+  {
+    m_menu = std::make_unique<CMultiPlayerMenu>(true, m_currentScreen, this);
   }
 
   if(m_menu && !handled)

@@ -975,12 +975,10 @@ CMultiPlayerMenu::~CMultiPlayerMenu()
 
 bool CMultiPlayerMenu::HandleFSCommand(EGsUiCommand cmd, const char* pArgs)
 {
-	if(!m_browser)
-		return false;
-
   bool handled = false;
 
-  handled = m_ui->HandleFSCommand(cmd,pArgs) || handled;
+  if (m_ui)
+    handled = m_ui->HandleFSCommand(cmd,pArgs) || handled;
 
   if(m_creategame)
     handled = m_creategame->HandleFSCommand(cmd,pArgs) || handled;

@@ -920,6 +920,7 @@ void CGame::RegisterConsoleCommands()
   m_pConsole->AddCommand("g_quickGameStop", CmdQuickGameStop, 0, "Cancel quick game search.");
 
   m_pConsole->AddCommand("g_nextlevel", CmdNextLevel,0,"Switch to next level in rotation or restart current one.");
+  m_pConsole->AddCommand("coop_map", CmdCoopMap, VF_RESTRICTEDMODE, "Host and load a co-op mission in retail or devmode.");
   m_pConsole->AddCommand("vote", CmdVote, VF_RESTRICTEDMODE, "Vote on current topic.");
   m_pConsole->AddCommand("startKickVoting",CmdStartKickVoting, VF_RESTRICTEDMODE, "Initiate voting.");
 	m_pConsole->AddCommand("listplayers",CmdListPlayers, VF_RESTRICTEDMODE, "Initiate voting.");
@@ -960,6 +961,7 @@ void CGame::UnregisterConsoleCommands()
   m_pConsole->RemoveCommand("g_quickGameStop");
 
   m_pConsole->RemoveCommand("g_nextlevel");
+  m_pConsole->RemoveCommand("coop_map");
   m_pConsole->RemoveCommand("vote");
   m_pConsole->RemoveCommand("startKickVoting");
   m_pConsole->RemoveCommand("startNextMapVoting");
@@ -1201,6 +1203,29 @@ void CGame::CmdNextLevel(IConsoleCmdArgs* pArgs)
   ILevelRotation *pLevelRotation = g_pGame->GetIGameFramework()->GetILevelSystem()->GetLevelRotation();
   if (pLevelRotation->GetLength())
     pLevelRotation->ChangeLevel(pArgs);
+}
+
+void CGame::CmdCoopMap(IConsoleCmdArgs* pArgs)
+{
+  if (pArgs->GetArgCount() < 2)
+  {
+    CryLogAlways("Usage: coop_map <level_name>");
+    return;
+  }
+  const char* level = pArgs->GetArg(1);
+  CryLogAlways("[Coop] Hosting mission '%s' via coop_map...", level);
+
+  SGameStartParams params;
+  params.flags = eGSF_Server | eGSF_Client;
+  params.port = 64087;
+  params.maxPlayers = 32;
+
+  SGameContextParams ctx;
+  ctx.levelName = level;
+  ctx.gameRules = "Coop";
+  params.pContextParams = &ctx;
+
+  g_pGame->GetIGameFramework()->StartGameContext(&params);
 }
 
 void CGame::CmdStartKickVoting(IConsoleCmdArgs* pArgs)

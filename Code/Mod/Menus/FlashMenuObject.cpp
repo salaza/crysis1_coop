@@ -2661,7 +2661,36 @@ void CFlashMenuObject::HandleFSCommand(const char *szCommand,const char *szArgs)
   {
     //handled by Multiplayer menu
   }
-  else 
+	else if(!strncmp(szCommand, "map ", 4))
+	{
+		const char* mapName = szCommand + 4;
+		while (*mapName == ' ') mapName++;
+		string lvl(mapName);
+		bool isServer = (lvl.find(" s") != string::npos);
+		int sp = lvl.find(' ');
+		if (sp != string::npos)
+			lvl = lvl.substr(0, sp);
+
+		SGameStartParams params;
+		params.flags = eGSF_Server | eGSF_Client;
+		if (!isServer)
+			params.flags |= eGSF_LocalOnly;
+		params.port = 64087;
+		params.maxPlayers = 32;
+
+		SGameContextParams ctx;
+		ctx.levelName = lvl.c_str();
+		ctx.gameRules = isServer ? "Coop" : "SinglePlayer";
+		params.pContextParams = &ctx;
+
+		gEnv->pGame->GetIGameFramework()->StartGameContext(&params);
+	}
+	else if(!strcmp(szCommand, "StartServer"))
+	{
+		if(m_multiplayerMenu)
+			m_multiplayerMenu->HandleFSCommand("StartServer", szArgs);
+	}
+	else 
 	{
 		// Dev mode: we clicked on a button which should execute something like "map MapName"
 		gEnv->pConsole->ExecuteString(szCommand);

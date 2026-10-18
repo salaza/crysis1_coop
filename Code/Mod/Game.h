@@ -190,6 +190,7 @@ public:
 	static void DumpMemInfo(const char* format, ...) PRINTF_PARAMS(1, 2);
 
 	static void CmdNextLevel(IConsoleCmdArgs* pArgs);
+	static void CmdCoopMap(IConsoleCmdArgs* pArgs);
 
 protected:
 	virtual void LoadActionMaps(const char* filename = "libs/config/defaultProfile.xml");
