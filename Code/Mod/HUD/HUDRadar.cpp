@@ -1611,8 +1611,11 @@ void CHUDRadar::ReloadMiniMap()
 
 void CHUDRadar::LoadMiniMap(const char* mapPath)
 {
+	CGameRules *pGameRules = g_pGame->GetGameRules();
+	bool isCoop = (pGameRules && pGameRules->IsCoop()) || (g_pGame->GetHUD() && g_pGame->GetHUD()->GetCurrentGameRules() == EHUD_COOP);
+
 	//get the factories (and other buildings)
-	if(gEnv->bMultiplayer)
+	if(gEnv->bMultiplayer && !isCoop)
 	{
 		IEntityClass *factoryClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass( "Factory" );
 		IEntityClass *hqClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass( "HQ" );

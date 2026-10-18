@@ -56,6 +56,7 @@ add_library(${CMAKE_PROJECT_NAME} MODULE
 	Code/Mod/Coop/Actors/CoopPlayer.cpp
 	Code/Mod/Coop/Actors/CoopScout.cpp
 	Code/Mod/Coop/Actors/CoopTrooper.cpp
+	Code/Mod/Coop/CoopAdminMenu.cpp
 	Code/Mod/Coop/CoopCutsceneSystem.cpp
 	Code/Mod/Coop/CoopNetPlatform.cpp
 	Code/Mod/Coop/CoopReadability.cpp

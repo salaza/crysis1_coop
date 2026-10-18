@@ -12,6 +12,7 @@ History:
 *************************************************************************/
 #include "StdAfx.h"
 #include "Game.h"
+#include "GameRules.h"
 #include <IEntitySystem.h>
 #include <ICryPak.h>
 #include <IScriptSystem.h>
@@ -198,7 +199,11 @@ void CWeaponSystem::Reload()
 //------------------------------------------------------------------------
 void CWeaponSystem::OnLoadingStart(ILevelInfo *pLevel)
 {
-	if (gEnv->bMultiplayer)
+	ICVar* pRulesCVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("sv_gamerules") : NULL;
+	bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop()) ||
+	              (pRulesCVar && pRulesCVar->GetString() && !stricmp(pRulesCVar->GetString(), "coop"));
+
+	if (gEnv->bMultiplayer && !isCoop)
 		SetConfiguration("mp");
 	else
 		SetConfiguration("");

@@ -35,7 +35,9 @@ private:
     bool            m_bCutsceneBlending;
     IEntity*        m_pCameraEntity;
     float           m_fCameraFOV;
- 
+    float           m_seqPollTimer;
+    std::set<string> m_serverPlayingSequences;
+
 public:
     // IViewSystemListener
     virtual bool OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX);
@@ -43,7 +45,7 @@ public:
     virtual void OnPlayCutSceneSound(IAnimSequence* pSeq, ISound* pSound);
     virtual bool OnCameraChange(const SCameraParams& cameraParams);
     // ~IViewSystemListener
- 
+
 };
  
 #endif // _CoopCutsceneSystem_H_

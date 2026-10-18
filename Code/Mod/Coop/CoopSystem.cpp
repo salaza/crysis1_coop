@@ -17,6 +17,7 @@
 #include "GameRules.h"
 #include "HUD/HUD.h"
 #include "CoopNetPlatform.h"
+#include "CoopAdminMenu.h"
 
 // Static CCoopSystem class instance forward declaration.
 CCoopSystem CCoopSystem::s_instance = CCoopSystem();
@@ -250,6 +251,8 @@ bool CCoopSystem::Initialize()
 	m_pDialogSystem = new CDialogSystem();
 	m_pDialogSystem->Init();
 
+	CCoopAdminMenu::GetInstance().Init();
+
 	return true;
 }
 
@@ -262,6 +265,8 @@ void CCoopSystem::CompleteInit()
 //	Shuts down the CCoopSystem instance.
 void CCoopSystem::Shutdown()
 {
+	CCoopAdminMenu::GetInstance().Shutdown();
+
 	IScriptSystem *pSS = gEnv->pScriptSystem;
 	if (pSS->ExecuteFile("Scripts/Coop/AI.lua", true, true))
 	{
@@ -297,6 +302,17 @@ bool bReinited = false;
 void CCoopSystem::Update(float fFrameTime)
 {
 	EnforceCoopPhysicsSettings();
+
+	CCoopAdminMenu::GetInstance().Update(fFrameTime);
+
+	// Ensure server AI ticks animations, dialogues and goal pipes (e.g. Prophet, enemy AI)
+	if (gEnv->bServer && gEnv->pAISystem)
+	{
+		bool savedMP = gEnv->bMultiplayer;
+		gEnv->bMultiplayer = false;
+		gEnv->pAISystem->Update(gEnv->pTimer ? gEnv->pTimer->GetFrameStartTime() : CTimeValue(), fFrameTime);
+		gEnv->bMultiplayer = savedMP;
+	}
 
 	if (m_pDialogSystem)
 		m_pDialogSystem->Update(fFrameTime);

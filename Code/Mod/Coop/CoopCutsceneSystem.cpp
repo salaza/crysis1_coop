@@ -7,8 +7,8 @@ CCoopCutsceneSystem CCoopCutsceneSystem::s_instance = CCoopCutsceneSystem();
  
 CCoopCutsceneSystem::CCoopCutsceneSystem() : m_bPlayingCutscene(0),
     m_pCameraEntity(0),
-    //m_pCurrentView(0),
-    m_fCameraFOV(0)
+    m_fCameraFOV(0),
+    m_seqPollTimer(0.0f)
 {
  
 }
@@ -30,6 +30,8 @@ void CCoopCutsceneSystem::Unregister()
         gEnv->pGame->GetIGameFramework()->GetIViewSystem()->RemoveListener(this);
 }
  
+#include "Entities/SequenceSynchronizer.h"
+
 void CCoopCutsceneSystem::Update(float fFrameTime)
 {
     if (m_bPlayingCutscene && m_pCameraEntity && !gEnv->bEditor)
@@ -62,9 +64,52 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
     }
 
     m_bPlayingCutsceneLastFrame = m_bPlayingCutscene;
-}
 
-#include "Entities/SequenceSynchronizer.h"
+    // Server: Poll playing sequences to broadcast non-camera dialogues and animations (e.g. Prophet talking on beach)
+    if (gEnv->bServer && gEnv->bMultiplayer && gEnv->pMovieSystem && !gEnv->bEditor)
+    {
+        m_seqPollTimer += fFrameTime;
+        if (m_seqPollTimer >= 0.15f)
+        {
+            m_seqPollTimer = 0.0f;
+            std::set<string> currentPlaying;
+            ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+            if (pIt)
+            {
+                for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
+                {
+                    if (gEnv->pMovieSystem->IsPlaying(pSeq))
+                    {
+                        currentPlaying.insert(pSeq->GetName());
+                    }
+                }
+                pIt->Release();
+            }
+
+            CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
+            if (pSync)
+            {
+                for (std::set<string>::iterator it = currentPlaying.begin(); it != currentPlaying.end(); ++it)
+                {
+                    if (m_serverPlayingSequences.find(*it) == m_serverPlayingSequences.end())
+                    {
+                        IAnimSequence* pSeq = gEnv->pMovieSystem->FindSequence(it->c_str());
+                        float playTime = pSeq ? gEnv->pMovieSystem->GetPlayingTime(pSeq) : 0.0f;
+                        pSync->PlaySequence(*it, playTime, false);
+                    }
+                }
+                for (std::set<string>::iterator it = m_serverPlayingSequences.begin(); it != m_serverPlayingSequences.end(); ++it)
+                {
+                    if (currentPlaying.find(*it) == currentPlaying.end())
+                    {
+                        pSync->StopSeqeunce(*it, 0.0f, false);
+                    }
+                }
+            }
+            m_serverPlayingSequences = currentPlaying;
+        }
+    }
+}
 
 bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 {

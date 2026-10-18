@@ -105,8 +105,8 @@ echo.
 echo Launching: "%EXE%"
 if "%SERVER_IP%"=="" (
     echo Launching Crysis Co-op directly into the In-Game Menu ^(Intro movies skipped^)...
-    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_lanonly 1
+    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop +g_skipIntro 1 +sv_lanonly 1
 ) else (
     echo Connecting to Co-op Server at %SERVER_IP%...
-    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_lanonly 1 +cl_AfterLoadScreen "+coop_connect %SERVER_IP%"
+    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop +g_skipIntro 1 +sv_lanonly 1 +cl_AfterLoadScreen "+coop_connect %SERVER_IP%"
 )

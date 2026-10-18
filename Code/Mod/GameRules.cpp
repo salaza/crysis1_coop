@@ -153,6 +153,11 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	bool isCoop = IsCoop();
 	bool isMultiplayer = gEnv->bMultiplayer && !isCoop;
 
+	if (isCoop && g_pGame->GetWeaponSystem())
+	{
+		g_pGame->GetWeaponSystem()->SetConfiguration("");
+	}
+
 	if(gEnv->bClient)
 	{
 		IActionMapManager *pActionMapMan = g_pGame->GetIGameFramework()->GetIActionMapManager();

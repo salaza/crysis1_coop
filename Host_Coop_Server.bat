@@ -104,9 +104,9 @@ echo.
 set "MAP=%~1"
 if not "%MAP%"=="" (
     echo Starting Crysis Singleplayer Co-op Host on map: %MAP%
-    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_gamerules coop +sv_lanonly 1 +map %MAP% s
+    start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop +g_skipIntro 1 +sv_gamerules coop +sv_lanonly 1 +map %MAP% s
     exit /b 0
 )
 
 echo Launching Crysis Co-op directly into the In-Game Menu ^(Intro movies skipped^)...
-start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_gamerules coop +sv_lanonly 1
+start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop +g_skipIntro 1 +sv_gamerules coop +sv_lanonly 1

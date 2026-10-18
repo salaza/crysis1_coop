@@ -57,23 +57,28 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 		// Physical collision registration for cutting/breaking trees, vegetation and pushing props
 		if (pCollision->pEntity[1])
 		{
-			pe_action_register_coll_event collision;
-			collision.collMass = 0.005f;
-			collision.partid[1] = pCollision->partid[1];
-			collision.partid[0] = -2;
-			ISurfaceTypeManager *pSTM = gEnv->p3DEngine->GetMaterialManager()->GetSurfaceTypeManager();
-			int invId = pSTM ? pSTM->GetSurfaceTypeByName("mat_invulnerable")->GetId() : 0;
-			collision.idmat[1] = pCollision->idmat[1];
-			collision.idmat[0] = invId;
-			collision.n = pCollision->n;
-			collision.pt = pCollision->pt;
-			float speed = cry_sqrtf(4000.0f / (80.0f * 0.5f));
-			collision.vSelf = dir * speed;
-			collision.v = Vec3(0, 0, 0);
-			collision.pCollider = NULL;
-			pCollision->pEntity[1]->Action(&collision);
-
-			if (pCollision->pEntity[1]->GetType() == PE_RIGID)
+			int entType = pCollision->pEntity[1]->GetType();
+			// ONLY send pe_action_register_coll_event to static geometry/trees (PE_STATIC).
+			// Calling it with pCollider=NULL on living/articulated actors (Prophet, players, AI) crashes CryPhysics!
+			if (entType == PE_STATIC)
+			{
+				pe_action_register_coll_event collision;
+				collision.collMass = 0.005f;
+				collision.partid[1] = pCollision->partid[1];
+				collision.partid[0] = -2;
+				ISurfaceTypeManager *pSTM = gEnv->p3DEngine->GetMaterialManager()->GetSurfaceTypeManager();
+				int invId = pSTM ? pSTM->GetSurfaceTypeByName("mat_invulnerable")->GetId() : 0;
+				collision.idmat[1] = pCollision->idmat[1];
+				collision.idmat[0] = invId;
+				collision.n = pCollision->n;
+				collision.pt = pCollision->pt;
+				float speed = cry_sqrtf(4000.0f / (80.0f * 0.5f));
+				collision.vSelf = dir * speed;
+				collision.v = Vec3(0, 0, 0);
+				collision.pCollider = NULL;
+				pCollision->pEntity[1]->Action(&collision);
+			}
+			else if (entType == PE_RIGID)
 			{
 				pe_action_impulse ai;
 				ai.partid = pCollision->partid[1];
@@ -87,7 +92,8 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 		IActor* pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(m_ownerId);
 
 		bool ok = true;
-		if(pTarget && !gEnv->bMultiplayer && pActor && pActor->IsPlayer())
+		bool isCoop = pGameRules && pGameRules->IsCoop();
+		if(pTarget && (!gEnv->bMultiplayer || isCoop) && pActor && pActor->IsPlayer())
 		{
 			IActor* pAITarget = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pTarget->GetId());
 			if(pAITarget && pTarget->GetAI() && !pTarget->GetAI()->IsHostile(pActor->GetEntity()->GetAI(),false))
@@ -121,7 +127,7 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 			pGameRules->ClientHit(hitInfo);
 
 			// Notify AI
-			if (gEnv->pAISystem && !gEnv->bMultiplayer)
+			if (gEnv->pAISystem && (!gEnv->bMultiplayer || isCoop))
 			{
 				IEntity* pShooter = gEnv->pEntitySystem->GetEntity(m_ownerId);
 				if (pShooter)

@@ -43,6 +43,7 @@ History:
 #include "ISound.h"
 #include "IPlayerInput.h"
 #include "IWorldQuery.h"
+#include "Coop/CoopAdminMenu.h"
 #include "IInput.h"
 #include "IMaterialEffects.h"
 #include "ISaveGame.h"
@@ -1837,6 +1838,9 @@ bool CHUD::OnInputEventUI( const SInputEvent &rInputEvent )
 
 bool CHUD::OnInputEvent(const SInputEvent &rInputEvent)
 {
+	if (CCoopAdminMenu::GetInstance().OnInputEvent(rInputEvent))
+		return true;
+
 	if ((gEnv->bEditor || g_pGame->GetMenu()->IsActive() == false) && m_bCutscenePlaying && m_fCutsceneSkipTimer <= 0.0f)
 	{
 		//skip cut scene
@@ -2626,16 +2630,6 @@ void CHUD::ShowObjectives(bool bShow)
 	{
 		m_animBattleLog.SetVisible(!bShow);
 	}
-
-	//Crysis Co-op
-	if(!gEnv->bMultiplayer || m_currentGameRules == EHUD_COOP)
-	{
-		if (bShow && m_pModalHUD != &m_animPDA)
-			ShowPDA(true, false);
-		else if (!bShow && m_pModalHUD == &m_animPDA)
-			ShowPDA(false, false);
-	}
-	//~Crysis Co-op
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -3790,6 +3784,17 @@ void CHUD::OnPostUpdate(float frameTime)
 
 	// Modal dialog box must be always rendered last
 	UpdateWarningMessages(frameTime);
+
+	// Render in-game admin menu if open
+	CCoopAdminMenu::GetInstance().Render();
+
+	// Render mod version on bottom left
+	if (gEnv->pRenderer)
+	{
+		float color[4] = { 0.55f, 0.75f, 0.95f, 0.75f };
+		float screenHeight = (float)gEnv->pRenderer->GetHeight();
+		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.0");
+	}
 }
 
 //-----------------------------------------------------------------------------------------------------

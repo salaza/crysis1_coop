@@ -112,4 +112,4 @@ echo Connecting to Co-op Server at %SERVER_IP%...
 echo (Skipping intro movies, starting directly into game)
 echo.
 
-start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop -devmode +g_skipIntro 1 +sv_lanonly 1 +cl_AfterLoadScreen "+coop_connect %SERVER_IP%"
+start "" /D "%CRYSIS_DIR%" "%EXE%" -dx9 -mod CrysisCoop +g_skipIntro 1 +sv_lanonly 1 +cl_AfterLoadScreen "+coop_connect %SERVER_IP%"
