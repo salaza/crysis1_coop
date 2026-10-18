@@ -73,19 +73,31 @@ echo [OK] Crysis directory: "%CRYSIS_DIR%"
 for %%I in ("%~dp0.") do set "SCRIPT_DIR=%%~fI"
 for %%I in ("%CRYSIS_DIR%\Mods\CrysisCoop") do set "TARGET_MOD_DIR=%%~fI"
 if /I not "%SCRIPT_DIR%"=="%TARGET_MOD_DIR%" (
+    if not exist "%TARGET_MOD_DIR%" mkdir "%TARGET_MOD_DIR%"
     if exist "%~dp0build\Mods\CrysisCoop\Bin64\Release\CrysisCoop.dll" (
         echo [Updater] Syncing latest compiled 64-bit binaries to "%TARGET_MOD_DIR%\Bin64"...
         if not exist "%TARGET_MOD_DIR%\Bin64" mkdir "%TARGET_MOD_DIR%\Bin64"
         copy /Y "%~dp0build\Mods\CrysisCoop\Bin64\Release\CrysisCoop.dll" "%TARGET_MOD_DIR%\Bin64\CrysisCoop.dll" >nul
+    ) else if exist "%~dp0Bin64\CrysisCoop.dll" (
+        echo [Updater] Syncing latest 64-bit binaries to "%TARGET_MOD_DIR%\Bin64"...
+        if not exist "%TARGET_MOD_DIR%\Bin64" mkdir "%TARGET_MOD_DIR%\Bin64"
+        copy /Y "%~dp0Bin64\CrysisCoop.dll" "%TARGET_MOD_DIR%\Bin64\CrysisCoop.dll" >nul
     )
     if exist "%~dp0build\Mods\CrysisCoop\Bin32\Release\CrysisCoop.dll" (
         echo [Updater] Syncing latest compiled 32-bit binaries to "%TARGET_MOD_DIR%\Bin32"...
         if not exist "%TARGET_MOD_DIR%\Bin32" mkdir "%TARGET_MOD_DIR%\Bin32"
         copy /Y "%~dp0build\Mods\CrysisCoop\Bin32\Release\CrysisCoop.dll" "%TARGET_MOD_DIR%\Bin32\CrysisCoop.dll" >nul
+    ) else if exist "%~dp0Bin32\CrysisCoop.dll" (
+        echo [Updater] Syncing latest 32-bit binaries to "%TARGET_MOD_DIR%\Bin32"...
+        if not exist "%TARGET_MOD_DIR%\Bin32" mkdir "%TARGET_MOD_DIR%\Bin32"
+        copy /Y "%~dp0Bin32\CrysisCoop.dll" "%TARGET_MOD_DIR%\Bin32\CrysisCoop.dll" >nul
     )
-    if exist "%~dp0Game\Libs\FlowNodes\Substitutions.xml" (
-        if not exist "%TARGET_MOD_DIR%\Game\Libs\FlowNodes" mkdir "%TARGET_MOD_DIR%\Game\Libs\FlowNodes"
-        copy /Y "%~dp0Game\Libs\FlowNodes\Substitutions.xml" "%TARGET_MOD_DIR%\Game\Libs\FlowNodes\Substitutions.xml" >nul
+    if exist "%~dp0Game" (
+        echo [Updater] Syncing Game assets and scripts...
+        xcopy /S /Y /D /Q "%~dp0Game\*" "%TARGET_MOD_DIR%\Game\" >nul 2>&1
+    )
+    if exist "%~dp0Launcher" (
+        xcopy /S /Y /D /Q "%~dp0Launcher\*" "%TARGET_MOD_DIR%\Launcher\" >nul 2>&1
     )
 )
 

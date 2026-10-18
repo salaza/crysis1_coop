@@ -194,6 +194,18 @@ bool CCoopSystem::Initialize()
 	if (pObjQuality)
 		pObjQuality->ForceSet("4");
 
+	// Enable full SinglePlayer physics simulation, destruction, tree cutting and foliage bending in Co-op
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_joint_breaking")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_tree_cut_reuse_dist")) pCVar->Set(0.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_cull_veg_activation")) pCVar->Set(50);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_phys_foliage")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_vegetation_bending")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDist")) pCVar->Set(200.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDistInvisible")) pCVar->Set(25.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_foliage_wind_activation_dist")) pCVar->Set(25.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_breakage_particles_limit")) pCVar->Set(250);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("ca_aimIKFadeout")) pCVar->Set(1);
+
 	// Crysis Co-op: GameSpy is offline - use direct connections only
 	if (ICVar* pLan = gEnv->pConsole->GetCVar("sv_lanonly"))
 		pLan->Set(1);
@@ -298,6 +310,16 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 	// regardless of graphics settings so static network entity bindings match.
 	if (ICVar* pObjQuality = gEnv->pConsole->GetCVar("e_obj_quality"))
 		pObjQuality->ForceSet("4");
+
+	// Ensure physics destruction is fully enabled on both Host and Client
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_joint_breaking")) pCVar->Set(1);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("g_tree_cut_reuse_dist")) pCVar->Set(0.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_cull_veg_activation")) pCVar->Set(50);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_phys_foliage")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("e_vegetation_bending")) pCVar->Set(2);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDist")) pCVar->Set(200.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("es_MaxPhysDistInvisible")) pCVar->Set(25.0f);
+	if (ICVar* pCVar = gEnv->pConsole->GetCVar("ca_aimIKFadeout")) pCVar->Set(1);
 
 	if (!gEnv->bServer) return;
 

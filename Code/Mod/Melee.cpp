@@ -496,6 +496,23 @@ void CMelee::Hit(const Vec3 &pt, const Vec3 &dir, const Vec3 &normal, IPhysicalE
 			pGameRules->ClientHit(info);
 		}
 	}
+	else if (pCollider)
+	{
+		CGameRules *pGameRules = g_pGame->GetGameRules();
+		if (pGameRules)
+		{
+			HitInfo info(m_pWeapon->GetOwnerId(), 0, m_pWeapon->GetEntityId(),
+				m_pWeapon->GetFireModeIdx(GetName()), 0.0f, pGameRules->GetHitMaterialIdFromSurfaceId(surfaceIdx), partId,
+				pGameRules->GetHitTypeId(m_meleeparams.hit_type.c_str()), pt, dir, normal);
+
+			info.remote = remote;
+			if (!remote)
+				info.seq = m_pWeapon->GenerateShootSeqN();
+			info.damage = m_meleeparams.damage;
+
+			pGameRules->ClientHit(info);
+		}
+	}
 
 	// play effects
 	if(ok)
@@ -555,7 +572,8 @@ void CMelee::Impulse(const Vec3 &pt, const Vec3 &dir, const Vec3 &normal, IPhysi
 		// if no pEntity - do it old way
 		IEntity * pEntity = (IEntity*) pCollider->GetForeignData(PHYS_FOREIGN_ID_ENTITY);
 
-		if(gEnv->bMultiplayer && pEntity)
+		bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+		if(gEnv->bMultiplayer && !isCoop && pEntity)
 		{
 			if(g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pEntity->GetId()) == NULL)
 				impulseScale *= 0.33f;
@@ -641,14 +659,20 @@ void CMelee::Impulse(const Vec3 &pt, const Vec3 &dir, const Vec3 &normal, IPhysi
 		collision.pCollider = pCollider;
 
 		IEntity *pOwner = m_pWeapon->GetOwner();
-		if (pOwner && pOwner->GetCharacter(0) && pOwner->GetCharacter(0)->GetISkeletonPose()->GetCharacterPhysics())
-		{
-			if (ISkeletonPose *pSkeletonPose=pOwner->GetCharacter(0)->GetISkeletonPose())
-			{
-				if (pSkeletonPose && pSkeletonPose->GetCharacterPhysics())
-					pSkeletonPose->GetCharacterPhysics()->Action(&collision);
-			}
+		IPhysicalEntity *pPlayerPhys = NULL;
+		if (pOwner && pOwner->GetCharacter(0) && pOwner->GetCharacter(0)->GetISkeletonPose())
+			pPlayerPhys = pOwner->GetCharacter(0)->GetISkeletonPose()->GetCharacterPhysics();
+		if (!pPlayerPhys && pOwner)
+			pPlayerPhys = pOwner->GetPhysics();
 
+		if (pPlayerPhys)
+			pPlayerPhys->Action(&collision);
+
+		if (pCollider)
+		{
+			pe_action_register_coll_event targetCollision = collision;
+			targetCollision.pCollider = pPlayerPhys;
+			pCollider->Action(&targetCollision);
 		}
 	}
 }

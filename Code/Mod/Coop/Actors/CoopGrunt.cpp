@@ -100,13 +100,18 @@ void CCoopGrunt::DrawDebugInfo()
 
 void CCoopGrunt::Update(SEntityUpdateContext& ctx, int updateSlot)
 {
+	if (!gEnv->bServer)
+	{
+		UpdateMovementState();
+	}
+
 	CPlayer::Update(ctx, updateSlot);
 
 	// Register AI System in MP
 	if (gEnv->bServer && gEnv->bMultiplayer && !gEnv->bEditor)
 		RegisterMultiplayerAI();
 
-	// Movement reqeust stuff so proper anims play on client
+	// Movement request stuff so proper anims play on client
 	if (gEnv->bServer)
 	{
 		CMovementRequest currMovement = static_cast<CPlayerMovementController*>(m_pMovementController)->GetMovementReqState();
@@ -130,6 +135,15 @@ void CCoopGrunt::Update(SEntityUpdateContext& ctx, int updateSlot)
 		m_bAllowStrafing = currMovement.AllowStrafing();
 		m_bHasAimTarget = currMovement.HasAimTarget();
 
+		if (IAnimationGraphState* pAG = GetAnimationGraphState())
+		{
+			char actionBuf[64] = {0};
+			char signalBuf[64] = {0};
+			pAG->GetInput(pAG->GetInputId("Action"), actionBuf);
+			pAG->GetInput(pAG->GetInputId("Signal"), signalBuf);
+			m_sAction = actionBuf;
+			m_sSignal = signalBuf;
+		}
 
 		if (GetNanoSuit())
 		{
@@ -143,57 +157,53 @@ void CCoopGrunt::Update(SEntityUpdateContext& ctx, int updateSlot)
 		if (GetHealth() > 0.f)
 			GetGameObject()->ChangedNetworkState(ASPECT_ALIVE);
 	}
-	else
-	{
-		UpdateMovementState();
-	}
-
-	//DrawDebugInfo();
-
 }
 
 void CCoopGrunt::UpdateMovementState()
 {
 	CMovementRequest request;
 
-	if (m_vAimTarget != Vec3(0, 0, 0) || m_vLookTarget != Vec3(0, 0, 0) || m_vMoveTarget != Vec3(0, 0, 0))
-	{
-		
-		if (m_bHasAimTarget)
-			request.SetAimTarget(m_vAimTarget);
-		else
-			request.ClearAimTarget();
+	if (m_bHasAimTarget)
+		request.SetAimTarget(m_vAimTarget);
+	else
+		request.ClearAimTarget();
 
-		// Vec3
+	if (m_vMoveTarget != Vec3(0, 0, 0))
 		request.SetMoveTarget(m_vMoveTarget);
+	if (m_vLookTarget != Vec3(0, 0, 0))
+	{
 		request.SetLookTarget(m_vLookTarget);
 		request.SetFireTarget(m_vLookTarget);
+	}
+	if (m_vBodyTarget != Vec3(0, 0, 0))
 		request.SetBodyTarget(m_vBodyTarget);
 
-		// Float
-		request.SetPseudoSpeed(m_fPseudoSpeed);
-		request.SetDesiredSpeed(m_fDesiredSpeed);
+	request.SetPseudoSpeed(m_fPseudoSpeed);
+	request.SetDesiredSpeed(m_fDesiredSpeed);
+	request.SetAlertness(m_nAlertness);
+	request.SetStance((EStance)m_nStance);
+	request.SetAllowStrafing(m_bAllowStrafing);
 
-		// Int
-		request.SetAlertness(m_nAlertness);
-		request.SetStance((EStance)m_nStance);
+	if (IMovementController* pMC = GetMovementController())
+		pMC->RequestMovement(request);
 
-		// Bool
-		request.SetAllowStrafing(m_bAllowStrafing);
-		
-		GetMovementController()->RequestMovement(request);
+	if (IAnimationGraphState* pAG = GetAnimationGraphState())
+	{
+		if (!m_sAction.empty() && m_sAction != "none")
+			pAG->SetInput("Action", m_sAction.c_str());
+		if (!m_sSignal.empty() && m_sSignal != "none")
+			pAG->SetInput("Signal", m_sSignal.c_str());
+	}
 
-		if (IVehicle* pVehicle = GetLinkedVehicle())
+	if (IVehicle* pVehicle = GetLinkedVehicle())
+	{
+		EntityId nWeaponEntity = pVehicle->GetCurrentWeaponId(GetEntityId());
+		CWeapon* pWeapon = (CWeapon*)gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetItem(nWeaponEntity);
+		if (pWeapon)
 		{
-			EntityId nWeaponEntity = pVehicle->GetCurrentWeaponId(GetEntityId());
-			CWeapon* pWeapon = (CWeapon*)gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GetItem(nWeaponEntity);
-			if (pWeapon)
-			{
-				pWeapon->SetAimLocation(m_vAimTarget);
-				pWeapon->SetTargetLocation(m_vAimTarget);
-			}
+			pWeapon->SetAimLocation(m_vAimTarget);
+			pWeapon->SetTargetLocation(m_vAimTarget);
 		}
-
 	}
 }
 
@@ -279,6 +289,10 @@ bool CCoopGrunt::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 prof
 			//Bool
 			ser.Value("bStrafe", m_bAllowStrafing, 'bool');
 			ser.Value("bTarget", m_bHasAimTarget, 'bool');
+
+			//Action & Signal animations
+			ser.Value("sAction", m_sAction);
+			ser.Value("sSignal", m_sSignal);
 			break;
 		}
 		case ASPECT_HIDE:

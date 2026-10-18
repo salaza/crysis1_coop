@@ -629,7 +629,8 @@ void COffHand::UpdateFPView(float frameTime)
 
 	if(m_currentState==eOHS_INIT_STATE)
 	{
-		if(!gEnv->bMultiplayer)
+		bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+		if(!gEnv->bMultiplayer || isCoop)
 			UpdateCrosshairUsabilitySP();
 		else
 			UpdateCrosshairUsabilityMP();
@@ -1821,7 +1822,8 @@ int COffHand::CanPerformPickUp(CActor *pActor, IPhysicalEntity *pPhysicalEntity 
 	SMovementState info;
 	pMC->GetMovementState(info);
 
-	if(gEnv->bMultiplayer)
+	bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+	if(gEnv->bMultiplayer && !isCoop)
 		return CheckItemsInProximity(info.eyePosition,info.eyeDirection,getEntityInfo);
 
 	EStance playerStance = pActor->GetStance();
@@ -2453,7 +2455,8 @@ void COffHand::StartPickUpItem()
 	}
 
 	//No animation in MP
-	if(gEnv->bMultiplayer)
+	bool isCoop = (g_pGame->GetGameRules() && strcmp(g_pGame->GetGameRules()->GetEntity()->GetClass()->GetName(), "Coop") == 0);
+	if(gEnv->bMultiplayer && !isCoop)
 	{
 		m_currentState = eOHS_PICKING_ITEM2;
 		pPlayer->PickUpItem(m_preHeldEntityId,true);

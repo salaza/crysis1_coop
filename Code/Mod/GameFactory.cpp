@@ -142,8 +142,8 @@ void InitGameFactory(IGameFramework *pFramework)
 
   //Crysis Co-op
   REGISTER_FACTORY(pFramework, "Player", CCoopPlayer, false);
-  REGISTER_FACTORY(pFramework, "Grunt", CPlayer, true);
-  REGISTER_FACTORY(pFramework, "Civilian", CPlayer, true);
+  REGISTER_FACTORY(pFramework, "Grunt", CCoopGrunt, true);
+  REGISTER_FACTORY(pFramework, "Civilian", CCoopGrunt, true);
   REGISTER_FACTORY(pFramework, "CoopGrunt", CCoopGrunt, true);
   REGISTER_FACTORY(pFramework, "Aliens/CoopScout", CCoopScout, true);
   REGISTER_FACTORY(pFramework, "Aliens/CoopTrooper", CCoopTrooper, true);
@@ -202,8 +202,8 @@ void InitGameFactory(IGameFramework *pFramework)
   REGISTER_FACTORY(pFramework, "AlienPlayer", CAlien, false);
   REGISTER_FACTORY(pFramework, "Aliens/Alien", CAlien, true);
 //  REGISTER_FACTORY(pFramework, "Aliens/Observer", CObserver, true);
-  REGISTER_FACTORY(pFramework, "Aliens/Trooper", CTrooper, true);
-  REGISTER_FACTORY(pFramework, "Aliens/Scout", CScout, true);
+  REGISTER_FACTORY(pFramework, "Aliens/Trooper", CCoopTrooper, true);
+  REGISTER_FACTORY(pFramework, "Aliens/Scout", CCoopScout, true);
   REGISTER_FACTORY(pFramework, "Aliens/Hunter", CHunter, true);
 	REGISTER_FACTORY(pFramework, "Misc/Shark", CShark, true);
   //	REGISTER_FACTORY(m_pFramework, "Aliens/Warrior", CDrone, true);

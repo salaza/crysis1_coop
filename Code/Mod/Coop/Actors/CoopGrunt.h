@@ -70,6 +70,8 @@ private:
 	bool m_bHasAimTarget;
 
 	bool m_bHidden;
+	string m_sAction;
+	string m_sSignal;
 };
 
 

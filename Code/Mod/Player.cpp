@@ -2484,8 +2484,24 @@ void CPlayer::UpdateStats(float frameTime)
 
 	UpdateSwimStats(frameTime);
 
-	//FIXME:
-	if ((m_stats.spectatorMode || (!simPar.bActive && !isClient) || m_stats.flyMode || GetLinkedVehicle()) && !forceForAnimTarget)
+	// Remote AI on multiplayer client: calculate speed from actual entity movement so animation graph plays walk/run
+	if (!IsPlayer() && !gEnv->bServer)
+	{
+		Vec3 currentPos = GetEntity()->GetWorldPos();
+		if (m_lastKnownPosition.len2() > 0.001f && frameTime > 0.0001f)
+		{
+			Vec3 moveDelta = currentPos - m_lastKnownPosition;
+			m_stats.velocity = moveDelta / frameTime;
+			Vec3 flatVel(m_baseQuat.GetInverted() * m_stats.velocity);
+			flatVel.z = 0;
+			m_stats.speedFlat = flatVel.len();
+			m_stats.speed = m_stats.velocity.len();
+			m_stats.onGround = 1.0f;
+			m_stats.inAir = 0.0f;
+		}
+		m_lastKnownPosition = currentPos;
+	}
+	else if ((m_stats.spectatorMode || (!simPar.bActive && !isClient) || m_stats.flyMode || GetLinkedVehicle()) && !forceForAnimTarget)
 	{
 		ChangeParachuteState(0);
 
