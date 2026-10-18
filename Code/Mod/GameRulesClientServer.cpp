@@ -1261,3 +1261,122 @@ IMPLEMENT_RMI(CGameRules, ClEnteredGame)
 	}
 	return true;
 }
+
+//------------------------------------------------------------------------
+void CGameRules::SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width)
+{
+	MapDrawStrokeParams params(x0, y0, x1, y1, color, width);
+
+	// Always render on sender immediately for instant feedback
+	if (CHUD* pHUD = g_pGame->GetHUD())
+	{
+		pHUD->OnReceiveMapDrawStroke(x0, y0, x1, y1, color, width);
+	}
+
+	if (gEnv->bServer)
+	{
+		GetGameObject()->InvokeRMI(ClMapDraw(), params, eRMI_ToRemoteClients);
+	}
+	else
+	{
+		GetGameObject()->InvokeRMI(SvRequestMapDraw(), params, eRMI_ToServer);
+	}
+}
+
+//------------------------------------------------------------------------
+void CGameRules::SendMapClearDrawings()
+{
+	MapClearDrawingsParams params;
+
+	if (CHUD* pHUD = g_pGame->GetHUD())
+	{
+		pHUD->OnReceiveMapClearDrawings();
+	}
+
+	if (gEnv->bServer)
+	{
+		GetGameObject()->InvokeRMI(ClMapClearDrawings(), params, eRMI_ToRemoteClients);
+	}
+	else
+	{
+		GetGameObject()->InvokeRMI(SvRequestMapClearDrawings(), params, eRMI_ToServer);
+	}
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, SvRequestMapDraw)
+{
+	int senderChannel = m_pGameFramework->GetGameChannelId(pNetChannel);
+	std::vector<int>::const_iterator begin = m_channelIds.begin();
+	std::vector<int>::const_iterator end = m_channelIds.end();
+	for (std::vector<int>::const_iterator it = begin; it != end; ++it)
+	{
+		if (*it != senderChannel)
+		{
+			if (CActor* pActor = GetActorByChannelId(*it))
+			{
+				GetGameObject()->InvokeRMIWithDependentObject(ClMapDraw(), params, eRMI_ToClientChannel, pActor->GetEntityId(), *it);
+			}
+		}
+	}
+
+	// If server host is a player client, also render locally
+	if (gEnv->pGame->GetIGameFramework()->GetClientActor())
+	{
+		if (CHUD* pHUD = g_pGame->GetHUD())
+		{
+			pHUD->OnReceiveMapDrawStroke(params.x0, params.y0, params.x1, params.y1, params.color, params.width);
+		}
+	}
+
+	return true;
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, ClMapDraw)
+{
+	if (CHUD* pHUD = g_pGame->GetHUD())
+	{
+		pHUD->OnReceiveMapDrawStroke(params.x0, params.y0, params.x1, params.y1, params.color, params.width);
+	}
+	return true;
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, SvRequestMapClearDrawings)
+{
+	int senderChannel = m_pGameFramework->GetGameChannelId(pNetChannel);
+	std::vector<int>::const_iterator begin = m_channelIds.begin();
+	std::vector<int>::const_iterator end = m_channelIds.end();
+	for (std::vector<int>::const_iterator it = begin; it != end; ++it)
+	{
+		if (*it != senderChannel)
+		{
+			if (CActor* pActor = GetActorByChannelId(*it))
+			{
+				GetGameObject()->InvokeRMIWithDependentObject(ClMapClearDrawings(), params, eRMI_ToClientChannel, pActor->GetEntityId(), *it);
+			}
+		}
+	}
+
+	if (gEnv->pGame->GetIGameFramework()->GetClientActor())
+	{
+		if (CHUD* pHUD = g_pGame->GetHUD())
+		{
+			pHUD->OnReceiveMapClearDrawings();
+		}
+	}
+
+	return true;
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, ClMapClearDrawings)
+{
+	if (CHUD* pHUD = g_pGame->GetHUD())
+	{
+		pHUD->OnReceiveMapClearDrawings();
+	}
+	return true;
+}
+

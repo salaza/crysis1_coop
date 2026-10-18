@@ -184,6 +184,11 @@ void CHUD::HandleFSCommandPDA(const char *strCommand,const char *strArgs)
 		int tab = atoi(strArgs);
 		HUD_CALL_LISTENERS(PDATabChanged(tab));
 	}
+	else if(0 == strcmp(strCommand,"ClearMap") || 0 == strcmp(strCommand,"coop_clearmap"))
+	{
+		if (CGameRules* pGameRules = g_pGame->GetGameRules())
+			pGameRules->SendMapClearDrawings();
+	}
 /*	else if(0 == strcmp(strCommand,"ChangeTeam"))
 	{
 		char strConsole[256];

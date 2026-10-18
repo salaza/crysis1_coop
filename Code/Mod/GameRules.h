@@ -847,6 +847,33 @@ public:
 		}
 	};
 
+	struct MapDrawStrokeParams
+	{
+		MapDrawStrokeParams(): x0(0), y0(0), x1(0), y1(0), color(0), width(2.5f) {};
+		MapDrawStrokeParams(float x0, float y0, float x1, float y1, uint32 c, float w = 2.5f): x0(x0), y0(y0), x1(x1), y1(y1), color(c), width(w) {};
+
+		float x0, y0;
+		float x1, y1;
+		uint32 color;
+		float width;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("x0", x0);
+			ser.Value("y0", y0);
+			ser.Value("x1", x1);
+			ser.Value("y1", y1);
+			ser.Value("c", color, 'ui32');
+			ser.Value("w", width);
+		}
+	};
+
+	struct MapClearDrawingsParams
+	{
+		MapClearDrawingsParams() {};
+		void SerializeWith(TSerialize ser) {};
+	};
+
 	struct FreezeEntityParams
 	{
 		FreezeEntityParams() {};
@@ -947,6 +974,14 @@ public:
   DECLARE_CLIENT_RMI_NOATTACH(ClVotingStatus, VotingStatusParams, eNRT_ReliableUnordered);
 
 	DECLARE_CLIENT_RMI_NOATTACH(ClEnteredGame, NoParams, eNRT_ReliableUnordered);
+
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestMapDraw, MapDrawStrokeParams, eNRT_ReliableUnordered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClMapDraw, MapDrawStrokeParams, eNRT_ReliableUnordered);
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestMapClearDrawings, MapClearDrawingsParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClMapClearDrawings, MapClearDrawingsParams, eNRT_ReliableOrdered);
+
+	void SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width = 2.5f);
+	void SendMapClearDrawings();
 
 	virtual void AddHitListener(IHitListener* pHitListener);
 	virtual void RemoveHitListener(IHitListener* pHitListener);

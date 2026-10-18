@@ -177,6 +177,8 @@ CHUD::CHUD()
 	m_bigOverlayTextX = 1024 / 2;
 	m_bigOverlayTextY = 768 / 2;
 	m_curFireMode = 0;
+	m_bMapDrawing = false;
+	m_lastMapDrawPos = Vec2(0,0);
 
 	m_fPlayerRespawnTimer = 0.0f;
 	m_fLastPlayerRespawnEffect = 0.0f;
@@ -2428,7 +2430,10 @@ bool CHUD::OnAction(const ActionId& action, int activationMode, float value)
 	else if(action == rGameActions.hud_mouserightbtndown)
 	{
 		if(m_pModalHUD == &m_animPDA)
+		{
+			m_bMapDrawing = false;
 			m_pHUDRadar->SetDrag(true);
+		}
 		filterOut = false;
 	}
 	else if(action == rGameActions.hud_mouserightbtnup)
@@ -2617,7 +2622,12 @@ void CHUD::ShowObjectives(bool bShow)
 
 	//Crysis Co-op
 	if(!gEnv->bMultiplayer || m_currentGameRules == EHUD_COOP)
-		ShowPDA(bShow, false);
+	{
+		if (bShow && m_pModalHUD != &m_animPDA)
+			ShowPDA(true, false);
+		else if (!bShow && m_pModalHUD == &m_animPDA)
+			ShowPDA(false, false);
+	}
 	//~Crysis Co-op
 }
 
@@ -2663,7 +2673,7 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 	if(!pGameRules)
 		return false;
 
-	if(gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1)
+	if(gEnv->bMultiplayer && pGameRules->GetTeamCount() > 1 && m_currentGameRules != EHUD_COOP)
 	{
 		if(pGameRules->GetTeam(pActor->GetEntityId()) == 0) //show team selection
 		{
@@ -2776,7 +2786,14 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 		}
 
 		SetFlashColor(anim);
-		anim->Invoke("showPDA", gEnv->bMultiplayer);
+		bool isMP = (m_currentGameRules == EHUD_COOP) ? false : gEnv->bMultiplayer;
+		anim->Invoke("showPDA", isMP);
+		if (m_currentGameRules == EHUD_COOP)
+		{
+			anim->SetVariable("MultiPlayer", SFlashVarValue(false));
+			anim->SetVariable("InMultiPlayerGame", SFlashVarValue(0.0f));
+			anim->Invoke("Root.PDAArea.Buttons.gotoAndStop", "SinglePlayer");
+		}
 		if(buyMenu)
 		{
 			anim->GetFlashPlayer()->Advance(0.1f);
@@ -2813,6 +2830,8 @@ bool CHUD::ShowPDA(bool show, bool buyMenu)
 			m_pHUDRadar->SetRenderMapOverlay(false);
 			m_pHUDRadar->SetDrag(false);
 			m_bMiniMapZooming = false;
+			m_bMapDrawing = false;
+			ShowObjectives(false);
 		}
 
 		if(m_pHUDPowerStruggle)
@@ -2869,6 +2888,90 @@ void CHUD::OnHardwareMouseEvent(int iX,int iY,EHARDWAREMOUSEEVENT eHardwareMouse
 		int x(iX), y(iY);
 		m_animScoreBoard.GetFlashPlayer()->ScreenToClient(x,y);
 		m_animScoreBoard.GetFlashPlayer()->SendCursorEvent(SFlashCursorEvent(eCursorState,x,y));
+	}
+
+	// Crysis Co-op: Strategic map drawing
+	if (m_pModalHUD == &m_animPDA && m_animPDA.GetVisible() && m_animPDA.GetFlashPlayer())
+	{
+		SFlashVarValue vMouseX(0.0), vMouseY(0.0);
+		if (m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._xmouse", &vMouseX) &&
+			m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._ymouse", &vMouseY))
+		{
+			double localX = vMouseX.GetDouble();
+			double localY = vMouseY.GetDouble();
+			bool bOverMap = (localX >= 0.0 && localX <= 508.0 && localY >= 0.0 && localY <= 508.0);
+
+			if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_LBUTTONDOWN && bOverMap)
+			{
+				m_bMapDrawing = true;
+				SFlashVarValue gx(0.0), gy(0.0);
+				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx);
+				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
+				m_lastMapDrawPos = Vec2((float)gx.GetDouble(), (float)gy.GetDouble());
+			}
+			else if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_LBUTTONUP)
+			{
+				m_bMapDrawing = false;
+			}
+			else if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_LBUTTONDOUBLECLICK && bOverMap)
+			{
+				// Double-click clears tactical drawings
+				if (CGameRules* pGameRules = g_pGame->GetGameRules())
+					pGameRules->SendMapClearDrawings();
+			}
+			else if (m_bMapDrawing && bOverMap)
+			{
+				SFlashVarValue gx(0.0), gy(0.0);
+				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx);
+				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
+				Vec2 currentPos((float)gx.GetDouble(), (float)gy.GetDouble());
+
+				if ((currentPos - m_lastMapDrawPos).GetLength() >= 3.0f)
+				{
+					static const uint32 s_tacticalColors[] = {
+						0x00E5FF, // Neon Cyan
+						0xFF9100, // Neon Orange
+						0x76FF03, // Neon Lime
+						0xFF1744, // Neon Red
+						0xE040FB, // Neon Magenta
+						0xFFEA00  // Neon Yellow
+					};
+					uint32 color = s_tacticalColors[0];
+					if (CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor()))
+					{
+						int idx = (pActor->GetEntityId() & 0xFF) % 6;
+						color = s_tacticalColors[idx];
+					}
+
+					if (CGameRules* pGameRules = g_pGame->GetGameRules())
+					{
+						pGameRules->SendMapDrawStroke(m_lastMapDrawPos.x, m_lastMapDrawPos.y, currentPos.x, currentPos.y, color, 3.0f);
+					}
+					m_lastMapDrawPos = currentPos;
+				}
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void CHUD::OnReceiveMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width)
+{
+	if (m_animPDA.IsLoaded())
+	{
+		SFlashVarValue args[6] = { x0, y0, x1, y1, (double)color, width };
+		m_animPDA.Invoke("drawTacticalStroke", args, 6);
+	}
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void CHUD::OnReceiveMapClearDrawings()
+{
+	if (m_animPDA.IsLoaded())
+	{
+		m_animPDA.Invoke("clearTacticalDrawings");
 	}
 }
 

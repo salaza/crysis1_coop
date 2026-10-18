@@ -401,6 +401,8 @@ public:
 	bool IsPDAActive() const { return m_animPDA.GetVisible(); };
 	bool IsBuyMenuActive() const { return (m_pModalHUD == &m_animBuyMenu); };
 	bool IsScoreboardActive() const;
+	void OnReceiveMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width);
+	void OnReceiveMapClearDrawings();
 	ILINE bool HasTACWeapon() { return m_hasTACWeapon; };
 	void SetTACWeapon(bool hasTACWeapon);
 	void SetStealthExposure(float exposure);
@@ -707,6 +709,9 @@ private:
 	float m_fAutosnapCursorControllerY;
 	bool m_bOnCircle;
 	float m_lastSpawnUpdate;
+
+	bool m_bMapDrawing;
+	Vec2 m_lastMapDrawPos;
 
 	// sv_restart
 	bool m_bNoMouse;

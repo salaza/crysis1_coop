@@ -14,6 +14,7 @@
 #include <IVehicleSystem.h>
 
 #include "Game.h"
+#include "GameRules.h"
 #include "HUD/HUD.h"
 #include "CoopNetPlatform.h"
 
@@ -146,6 +147,15 @@ static void CmdCoopAddress(IConsoleCmdArgs* pArgs)
 	else
 		CryLogAlways("[Co-op] Local IP: %s (start hosting to forward the port and detect the public IP)", CoopNet::GetLocalIP().c_str());
 }
+
+static void CmdCoopClearMap(IConsoleCmdArgs* pArgs)
+{
+	if (CGameRules* pGameRules = g_pGame->GetGameRules())
+	{
+		pGameRules->SendMapClearDrawings();
+		CryLogAlways("[Co-op] Strategic map drawings cleared.");
+	}
+}
 //~Crysis Co-op
 
 CCoopSystem::CCoopSystem() :
@@ -214,6 +224,7 @@ bool CCoopSystem::Initialize()
 	gEnv->pConsole->AddCommand("coop_connect", CmdCoopConnect, 0, "Connect to a co-op server over the internet: coop_connect <ip or hostname>[:port]");
 	gEnv->pConsole->AddCommand("coop_addserver", CmdCoopAddServer, 0, "Add a server to the in-game list (Multiplayer -> LAN): coop_addserver <ip or hostname>[:port]");
 	gEnv->pConsole->AddCommand("coop_address", CmdCoopAddress, 0, "Show the address your friends need to join your co-op server");
+	gEnv->pConsole->AddCommand("coop_clearmap", CmdCoopClearMap, 0, "Clear all drawings on the strategic map for all co-op players");
 
 	m_pDialogSystem = new CDialogSystem();
 	m_pDialogSystem->Init();
