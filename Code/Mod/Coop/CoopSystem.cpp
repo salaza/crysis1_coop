@@ -373,31 +373,32 @@ static void EnforceCoopMaxGraphicsSettings()
 	SetIntCVar("e_shadows", 1);
 	SetIntCVar("e_shadows_max_texture_size", 2048); // High-res 2048x2048 shadow map cascades
 	SetFloatCVar("e_shadows_cast_view_dist_ratio", 1.0f);
-	SetIntCVar("e_shadows_from_terrain_in_all_dirs", 1); // Experimental sun-to-terrain shadows
+	SetIntCVar("e_shadows_from_terrain_in_all_dirs", 0); // Balanced directional sun shadows
 	SetIntCVar("e_gsm_lods_num", 5);
 	SetFloatCVar("e_gsm_range", 3.0f);
 	SetFloatCVar("e_gsm_range_step", 3.0f);
 	SetFloatCVar("r_ShadowJittering", 2.5f);
 	SetIntCVar("r_ShadowBlur", 3);
-	SetIntCVar("e_ram_maps", 1);                    // Experimental Realtime Ambient Maps
+	SetIntCVar("e_ram_maps", 0);                    // Disabled to prevent CPU bottleneck
 	SetIntCVar("e_terrain_ao", 1);                  // Terrain Ambient Occlusion
 	SetIntCVar("e_terrain_normal_map", 1);
 	SetFloatCVar("e_sky_update_rate", 1.0f);
 
-	// 6. Extreme Draw Distances, Vegetation Density, LODs & Particles
-	SetFloatCVar("e_view_dist_ratio", 100.0f);
-	SetFloatCVar("e_view_dist_ratio_detail", 100.0f);
-	SetFloatCVar("e_view_dist_ratio_vegetation", 100.0f);
-	SetFloatCVar("e_lod_ratio", 20.0f);
+	// 6. Balanced High-End Draw Distances & LODs (60+ FPS on RTX 3080 Ti)
+	SetFloatCVar("e_view_dist_ratio", 60.0f);
+	SetFloatCVar("e_view_dist_ratio_detail", 40.0f);
+	SetFloatCVar("e_view_dist_ratio_vegetation", 50.0f);
+	SetFloatCVar("e_lod_ratio", 6.0f);              // Reduced LOD ratio to eliminate CPU bottleneck
 	SetIntCVar("e_lod_min", 0);
-	SetFloatCVar("e_vegetation_sprites_distance_ratio", 4.0f);
-	SetFloatCVar("e_vegetation_min_size", 0.0f);
+	SetFloatCVar("e_vegetation_sprites_distance_ratio", 1.5f);
+	SetFloatCVar("e_vegetation_min_size", 0.5f);     // Cull distant sub-pixel foliage
 	SetIntCVar("e_particles_quality", 4);
 	SetIntCVar("e_particles_max_emitter_draw_screen", 64);
 	SetIntCVar("e_particles_object_collisions", 1);
 	SetIntCVar("e_decals_allow_game_decals", 1);
 	SetFloatCVar("e_decals_life_time_scale", 4.0f);
-	SetFloatCVar("ca_AttachmentCullingRation", 300.0f);
+	SetFloatCVar("ca_AttachmentCullingRation", 120.0f);
+	SetIntCVar("e_water_tesselation_amount", 7);
 }
 
 static void EnforceCoopLuaPhysics()

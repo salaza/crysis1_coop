@@ -1411,3 +1411,95 @@ IMPLEMENT_RMI(CGameRules, ClMapClearDrawings)
 	return true;
 }
 
+
+//------------------------------------------------------------------------
+// Coop: Carried Object Synchronization
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, SvRequestObjectGrab)
+{
+	GetGameObject()->InvokeRMI(ClSyncObjectGrab(), params, eRMI_ToAllClients);
+	return true;
+}
+
+IMPLEMENT_RMI(CGameRules, ClSyncObjectGrab)
+{
+	IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+	if (pClientActor && pClientActor->GetEntityId() == params.playerId)
+		return true;
+
+	CActor* pActor = GetActorByEntityId(params.playerId);
+	if (!pActor)
+		return true;
+
+	if (pActor->IsPlayer())
+	{
+		CPlayer* pPlayer = static_cast<CPlayer*>(pActor);
+		pPlayer->NotifyObjectGrabbed(params.bGrab, params.objectId, params.bIsNPC, params.bTwoHanded);
+	}
+
+	IEntity* pObject = gEnv->pEntitySystem->GetEntity(params.objectId);
+	if (pObject && pActor->GetEntity())
+	{
+		ICharacterInstance* pChar = pActor->GetEntity()->GetCharacter(0);
+		if (pChar)
+		{
+			IAttachmentManager* pAM = pChar->GetIAttachmentManager();
+			if (pAM)
+			{
+				IAttachment* pAtt = pAM->GetInterfaceByName("carried_object");
+				if (!pAtt)
+					pAtt = pAM->CreateAttachment("carried_object", CA_BONE, "weapon_bone");
+				if (!pAtt)
+					pAtt = pAM->CreateAttachment("carried_object", CA_BONE, "Bip01 R Hand");
+
+				if (pAtt)
+				{
+					if (params.bGrab)
+					{
+						CEntityAttachment* pEA = new CEntityAttachment();
+						pEA->SetEntityId(params.objectId);
+						pAtt->AddBinding(pEA);
+
+						if (IPhysicalEntity* pPhys = pObject->GetPhysics())
+						{
+							pe_action_awake awake;
+							awake.bAwake = 0;
+							pPhys->Action(&awake);
+						}
+					}
+					else
+					{
+						pAtt->ClearBinding();
+
+						if (IPhysicalEntity* pPhys = pObject->GetPhysics())
+						{
+							pe_action_awake awake;
+							awake.bAwake = 1;
+							pPhys->Action(&awake);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+//------------------------------------------------------------------------
+// Coop: Voice & Dialog Sound Broadcast
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, ClPlayVoiceSound)
+{
+	if (!gEnv->bServer && gEnv->pSoundSystem)
+	{
+		_smart_ptr<ISound> pSound = gEnv->pSoundSystem->CreateSound(params.soundName.c_str(), FLAG_SOUND_2D | FLAG_SOUND_VOICE);
+		if (pSound)
+		{
+			ESoundSemantic sem = params.semantic ? (ESoundSemantic)params.semantic : eSoundSemantic_Dialog;
+			pSound->SetSemantic(sem);
+			pSound->Play();
+		}
+	}
+	return true;
+}

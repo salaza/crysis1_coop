@@ -816,6 +816,18 @@ void CGameRules::OnKill(CActor *pActor, EntityId shooterId, const char *weaponCl
 {
 	SAFE_HUD_FUNC(ActorDeath(pActor));
 
+	if (pActor && !pActor->IsPlayer())
+	{
+		if (IVehicle* pVehicle = pActor->GetLinkedVehicle())
+		{
+			if (IVehicleSeat* pSeat = pVehicle->GetSeatForPassenger(pActor->GetEntityId()))
+			{
+				pSeat->UnlinkPassenger(true);
+				pActor->RagDollize(false);
+			}
+		}
+	}
+
 	ScriptHandle handleEntity(pActor->GetEntityId()), handleShooter(shooterId);
 	CallScript(m_clientStateScript, "OnKill", handleEntity, handleShooter, weaponClassName, damage, material, hit_type);
 }
@@ -956,6 +968,11 @@ CActor *CGameRules::ChangePlayerClass(int channelId, const char *className)
 //------------------------------------------------------------------------
 void CGameRules::RevivePlayer(CActor *pActor, const Vec3 &pos, const Ang3 &angles, int teamId, bool clearInventory)
 {
+	if (pActor && pActor->IsPlayer() && IsCoop() && GetPlayerLives(pActor->GetEntityId()) <= 0)
+	{
+		CryLogAlways("[Co-op] RevivePlayer blocked for '%s': 0 lives remaining (Spectating)", pActor->GetEntity()->GetName());
+		return;
+	}
 	// get out of vehicles before reviving
 	if (IVehicle *pVehicle=pActor->GetLinkedVehicle())
 	{
@@ -1140,6 +1157,45 @@ void CGameRules::KillPlayer(CActor *pActor, bool dropItem, bool ragdoll, EntityI
 {
 	if(!gEnv->bServer)
 		return;
+
+	// Crysis Co-op: 3 Lives System
+	if (pActor && pActor->IsPlayer() && IsCoop())
+	{
+		EntityId playerId = pActor->GetEntityId();
+		int lives = GetPlayerLives(playerId);
+		lives = (lives > 0) ? (lives - 1) : 0;
+		SetPlayerLives(playerId, lives);
+
+		if (lives > 0)
+		{
+			CryLogAlways("[Co-op] Player '%s' died. Lives remaining: %d", pActor->GetEntity()->GetName(), lives);
+			string msg;
+			msg.Format("Lives remaining: %d", lives);
+			OnTextMessage(eTextMessageCenter, msg.c_str());
+		}
+		else
+		{
+			CryLogAlways("[Co-op] Player '%s' has 0 lives remaining! Entering spectator follow mode.", pActor->GetEntity()->GetName());
+			string msg;
+			msg.Format("%s has used all 3 lives! Spectating teammates.", pActor->GetEntity()->GetName());
+			OnTextMessage(eTextMessageCenter, msg.c_str());
+
+			EntityId followTarget = 0;
+			IActorIteratorPtr it = m_pGameFramework->GetIActorSystem()->CreateActorIterator();
+			while (CActor* pOther = static_cast<CActor*>(it->Next()))
+			{
+				if (pOther->IsPlayer() && pOther != pActor && pOther->GetHealth() > 0)
+				{
+					followTarget = pOther->GetEntityId();
+					break;
+				}
+			}
+
+			CPlayer* pPlayer = static_cast<CPlayer*>(pActor);
+			pPlayer->SetSpectatorMode(CActor::eASM_Follow, followTarget);
+			return;
+		}
+	}
 
 	IInventory *pInventory=pActor->GetInventory();
 	EntityId itemId=pInventory?pInventory->GetCurrentItem():0;
@@ -4227,4 +4283,34 @@ IMPLEMENT_RMI(CGameRules, ClSyncCutscene)
 		}
 	}
 	return true;
+}
+
+int CGameRules::GetPlayerLives(EntityId playerId) const
+{
+	int lives = 3;
+	if (const_cast<CGameRules*>(this)->GetSynchedEntityValue(playerId, COOP_PLAYER_LIVES_KEY, lives))
+		return lives;
+	std::map<EntityId, int>::const_iterator it = m_playerLives.find(playerId);
+	if (it != m_playerLives.end())
+		return it->second;
+	return 3;
+}
+
+void CGameRules::SetPlayerLives(EntityId playerId, int lives)
+{
+	m_playerLives[playerId] = lives;
+	if (gEnv->bServer)
+	{
+		SetSynchedEntityValue(playerId, COOP_PLAYER_LIVES_KEY, lives);
+	}
+}
+
+void CGameRules::ResetPlayerLives()
+{
+	for (std::map<EntityId, int>::iterator it = m_playerLives.begin(); it != m_playerLives.end(); ++it)
+	{
+		it->second = 3;
+		if (gEnv->bServer)
+			SetSynchedEntityValue(it->first, COOP_PLAYER_LIVES_KEY, 3);
+	}
 }

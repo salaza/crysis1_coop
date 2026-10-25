@@ -1789,7 +1789,14 @@ void CActor::Kill()
 	if (IVehicle* pVehicle = GetLinkedVehicle())
 	{
 		if (IVehicleSeat* pVehicleSeat = pVehicle->GetSeatForPassenger(GetEntityId()))
+		{
 			pVehicleSeat->OnPassengerDeath();
+			if (!IsPlayer())
+			{
+				pVehicleSeat->UnlinkPassenger(true);
+				RagDollize(false);
+			}
+		}
 	}
 
 	RequestFacialExpression( NULL );
@@ -2468,7 +2475,8 @@ IMPLEMENT_RMI(CActor, ClPlayReadabilitySound)
 		_smart_ptr<ISound> pSound = gEnv->pSoundSystem->CreateSound(params.sSoundEventName.c_str(), FLAG_SOUND_DEFAULT_3D | FLAG_SOUND_VOICE);
 		if (pSound)
 		{
-			pSound->SetSemantic(eSoundSemantic_AI_Readability);
+			ESoundSemantic sem = params.nSemantic ? (ESoundSemantic)params.nSemantic : eSoundSemantic_Dialog;
+			pSound->SetSemantic(sem);
 			pSoundProxy->PlaySound(pSound, Vec3(0, 0, 0), FORWARD_DIRECTION, 1.0f);
 		}
 	}

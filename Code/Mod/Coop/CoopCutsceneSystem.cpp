@@ -55,6 +55,17 @@ void CCoopCutsceneSystem::OnHostCameraSync(const Vec3& pos, const Quat& rot, flo
     if (!active)
     {
         m_bHostCamActive = false;
+        if (!gEnv->bEditor && gEnv->pGame)
+        {
+            IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+            IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+            if (pVS && pClientActor)
+            {
+                IView* pView = pVS->GetViewByEntityId(pClientActor->GetEntityId(), true);
+                if (pView)
+                    pVS->SetActiveView(pView);
+            }
+        }
         return;
     }
 
@@ -92,7 +103,10 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
 
             if (gEnv->pGame && !gEnv->bEditor)
             {
-                IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+                IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+                if (!pClientActor || !pClientActor->GetLinkedVehicle())
+                {
+                    IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
                 if (pVS)
                 {
                     IView* pView = pVS->GetActiveView();
@@ -110,6 +124,7 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
                             pView->SetCurrentParams(newParams);
                         }
                     }
+                }
                 }
             }
         }
@@ -169,24 +184,19 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
         bool bHostInCutscene = m_bPlayingCutscene;
         if (!bHostInCutscene && gEnv->pMovieSystem)
         {
-            if (gEnv->pMovieSystem->GetCameraParams().cameraEntityId != 0)
-                bHostInCutscene = true;
-            else
+            ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+            if (pIt)
             {
-                ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
-                if (pIt)
+                for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
                 {
-                    for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
+                    if (gEnv->pMovieSystem->IsPlaying(pSeq) &&
+                        (pSeq->GetFlags() & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER)))
                     {
-                        if (gEnv->pMovieSystem->IsPlaying(pSeq) &&
-                            (pSeq->GetFlags() & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER)))
-                        {
-                            bHostInCutscene = true;
-                            break;
-                        }
+                        bHostInCutscene = true;
+                        break;
                     }
-                    pIt->Release();
                 }
+                pIt->Release();
             }
         }
 

@@ -1461,6 +1461,16 @@ function Coop.Server:RequestRevive(entityId)
 	local player = System.GetEntity(entityId);
 
 	if (player and player.actor) then
+		-- Check if player has lives remaining (via C++ GameRules synched key 960)
+		local lives = self.game:GetSynchedEntityValue(entityId, 960) or 3;
+		if (lives <= 0) then
+			-- No lives remaining: remain in spectator mode following teammates
+			if (player.actor:GetSpectatorMode() == 0) then
+				player.actor:SetSpectatorMode(3, NULL_ENTITY);
+			end
+			return;
+		end
+
 		if ((player.death_time and _time-player.death_time>2.5 and player:IsDead()) or (player.actor:GetSpectatorMode()~=0)) then
 			self:RevivePlayer(player.actor:GetChannel(), player);
 		end

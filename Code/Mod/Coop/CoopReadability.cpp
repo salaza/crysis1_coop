@@ -22,24 +22,47 @@ void CCoopReadability::OnSoundSystemEvent( ESoundSystemCallbackEvent event,ISoun
 		SendSoundToClosestActor(pSound);
 }
 
+#include "GameRules.h"
+
 bool CCoopReadability::SendSoundToClosestActor(ISound* pSound)
 {
     if (!pSound)
-        return false; // fag.
+        return false;
 
 	ESoundSemantic sem = pSound->GetSemantic();
-	if (sem == eSoundSemantic_AI_Readability)
+	const char* soundName = pSound->GetName();
+	if (!soundName || !soundName[0])
+		return false;
+
+	bool isVoiceOrDialog = (sem == eSoundSemantic_Dialog ||
+	                        sem == eSoundSemantic_AI_Readability ||
+	                        sem == eSoundSemantic_AI_Readability_Response ||
+	                        sem == eSoundSemantic_Living_Entity ||
+	                        (pSound->GetFlags() & FLAG_SOUND_VOICE) != 0 ||
+	                        strstr(soundName, "dialog") != NULL ||
+	                        strstr(soundName, "Dialog") != NULL ||
+	                        strstr(soundName, "Languages") != NULL ||
+	                        strstr(soundName, "languages") != NULL ||
+	                        strstr(soundName, "radio") != NULL ||
+	                        strstr(soundName, "Radio") != NULL ||
+	                        strstr(soundName, "voice") != NULL);
+
+	if (!isVoiceOrDialog)
+		return false;
+
+	CActor* pClosestActor = NULL;
+	float fClosestDistance = 2500.0f; // 50m search radius
+	Vec3 soundPos = pSound->GetPosition();
+	bool is3D = (pSound->GetFlags() & FLAG_SOUND_3D) != 0 || soundPos.GetLengthSquared() > 1.0f;
+
+	if (is3D)
 	{
-		CActor* pClosestActor = NULL;
-		float fClosestDistance = 66666.6f;
- 
 		IActorIteratorPtr it = g_pGame->GetIGameFramework()->GetIActorSystem()->CreateActorIterator();
 		while (CActor* pActor = static_cast<CActor*>(it->Next()))
 		{
-			if (!pActor->IsPlayer() && pActor->GetHealth() > 0)
+			if (pActor->GetHealth() > 0)
 			{
- 
-				float fDistance = (pActor->GetEntity()->GetPos() - pSound->GetPosition()).GetLengthSquared();
+				float fDistance = (pActor->GetEntity()->GetPos() - soundPos).GetLengthSquared();
 				if (fDistance < fClosestDistance)
 				{
 					pClosestActor = pActor;
@@ -47,18 +70,24 @@ bool CCoopReadability::SendSoundToClosestActor(ISound* pSound)
 				}
 			}
 		}
- 
-		if (pClosestActor)
+	}
+
+	if (pClosestActor)
+	{
+		CActor::PlayReadabilitySoundParams params(soundName, (int)sem);
+		pClosestActor->GetGameObject()->InvokeRMI(CActor::ClPlayReadabilitySound(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
+		return true;
+	}
+	else
+	{
+		CGameRules* pGameRules = g_pGame ? g_pGame->GetGameRules() : NULL;
+		if (pGameRules && pGameRules->GetGameObject())
 		{
-			CActor::PlayReadabilitySoundParams params;
-			params.sSoundEventName = pSound->GetName();
-		   // params.nSoundFlags = pSound->GetFlags();
-		   // params.vDirection = pSound->GetDirection();
-		   // params.vOffset = pSound->GetPosition() - pClosestActor->GetEntity()->GetPos();
-		   // params.nSemantic = pSound->GetSemantic();
-			pClosestActor->GetGameObject()->InvokeRMI(CActor::ClPlayReadabilitySound(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
+			CGameRules::SPlayVoiceSoundParams params(soundName, (int)sem);
+			pGameRules->GetGameObject()->InvokeRMI(CGameRules::ClPlayVoiceSound(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
 			return true;
 		}
 	}
+
     return false;
 }

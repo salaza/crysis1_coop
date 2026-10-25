@@ -621,14 +621,16 @@ public:
 	};
 	struct PlayReadabilitySoundParams
 	{
-		PlayReadabilitySoundParams() : sSoundEventName("") {};
-		PlayReadabilitySoundParams(string sSound) : sSoundEventName(sSound) {};
+		PlayReadabilitySoundParams() : sSoundEventName(""), nSemantic(0) {};
+		PlayReadabilitySoundParams(string sSound, int sem = 0) : sSoundEventName(sSound), nSemantic(sem) {};
 
 		string sSoundEventName;
+		int nSemantic;
 
 		void SerializeWith(TSerialize ser)
 		{
 			ser.Value("name", sSoundEventName);
+			ser.Value("sem", nSemantic);
 		}
 	};
 

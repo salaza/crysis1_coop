@@ -1297,13 +1297,13 @@ bool COffHand::EvaluateStateTransition(int requestedAction, int activationMode, 
 															//Evaluate mouse inputs first
 															if(inputMethod==INPUT_LBM)
 															{
-																//Two handed object throw/drop is handled with the mouse now...
-																if(activationMode==eAAM_OnPress && m_currentState&eOHS_HOLDING_OBJECT && m_grabType==GRAB_TYPE_TWO_HANDED)
+																// Object throw/drop is handled with the mouse (both 1-handed animals/props and 2-handed)
+																if(activationMode==eAAM_OnPress && m_currentState&eOHS_HOLDING_OBJECT)
 																{
 																	m_forceThrow = true;
 																	return true;
 																}
-																else if(activationMode==eAAM_OnRelease && m_currentState&eOHS_THROWING_OBJECT && m_grabType==GRAB_TYPE_TWO_HANDED)
+																else if(activationMode==eAAM_OnRelease && m_currentState&eOHS_THROWING_OBJECT)
 																{
 																	return true;
 																}

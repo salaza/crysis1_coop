@@ -1689,7 +1689,7 @@ void CPlayer::PostUpdateView(SViewParams &viewParams)
 {
 	if (IsClient())
 	{
-		if (!gEnv->bServer && CCoopCutsceneSystem::GetInstance()->HasHostCutsceneCamera())
+		if (!gEnv->bServer && CCoopCutsceneSystem::GetInstance()->HasHostCutsceneCamera() && !GetLinkedVehicle())
 		{
 			viewParams.position = CCoopCutsceneSystem::GetInstance()->GetHostCamPos();
 			viewParams.rotation = CCoopCutsceneSystem::GetInstance()->GetHostCamRot();
@@ -1698,7 +1698,7 @@ void CPlayer::PostUpdateView(SViewParams &viewParams)
 				viewParams.fov = fov;
 			viewParams.blend = false;
 		}
-		else if (CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+		else if (CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene() && !GetLinkedVehicle())
 		{
 			IEntity* pCam = CCoopCutsceneSystem::GetInstance()->GetCameraEntity();
 			if (!pCam && gEnv->pMovieSystem)
@@ -4050,6 +4050,11 @@ void CPlayer::SelectNextItem(int direction, bool keepHistory, const char *catego
 			pOffHand->SetResetTimer(0.25f); //Just in case...
 			pOffHand->RequireUpdate(eIUS_General);
 		}
+		else if (pOffHand->IsHoldingEntity())
+		{
+			pOffHand->OnAction(GetEntityId(), "use", eAAM_OnPress, 0);
+			pOffHand->OnAction(GetEntityId(), "use", eAAM_OnRelease, 0);
+		}
 		else
 			return;
 	}
@@ -4087,6 +4092,12 @@ void CPlayer::SelectItemByName(const char *name, bool keepHistory)
 
 void CPlayer::SelectItem(EntityId itemId, bool keepHistory)
 {
+	COffHand* pOffHand = static_cast<COffHand*>(GetWeaponByClass(CItem::sOffHandClass));
+	if (pOffHand && pOffHand->IsHoldingEntity())
+	{
+		pOffHand->OnAction(GetEntityId(), "use", eAAM_OnPress, 0);
+		pOffHand->OnAction(GetEntityId(), "use", eAAM_OnRelease, 0);
+	}
 	CActor::SelectItem(itemId, keepHistory);
 
 	GetGameObject()->ChangedNetworkState(ASPECT_CURRENT_ITEM);
@@ -6594,6 +6605,19 @@ void CPlayer::NotifyObjectGrabbed(bool bIsGrab, EntityId objectId, bool bIsNPC, 
 	}
 	else if(!bIsGrab)
 		m_stats.grabbedHeavyEntity = false;
+
+	if (gEnv->bMultiplayer && IsClient())
+	{
+		CGameRules* pGameRules = g_pGame ? g_pGame->GetGameRules() : NULL;
+		if (pGameRules && pGameRules->GetGameObject())
+		{
+			CGameRules::SObjectGrabParams params(GetEntityId(), objectId, bIsGrab, bIsNPC, bIsTwoHanded);
+			if (gEnv->bServer)
+				pGameRules->GetGameObject()->InvokeRMI(CGameRules::ClSyncObjectGrab(), params, eRMI_ToAllClients | eRMI_NoLocalCalls);
+			else
+				pGameRules->GetGameObject()->InvokeRMI(CGameRules::SvRequestObjectGrab(), params, eRMI_ToServer);
+		}
+	}
 }
 
 void CPlayer::StopLoopingSounds()

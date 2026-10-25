@@ -1027,6 +1027,54 @@ public:
 	};
 	DECLARE_CLIENT_RMI_NOATTACH(ClCutsceneCameraSync, SCutsceneCameraParams, eNRT_UnreliableUnordered);
 
+	// Coop: Carried object network synchronization
+	struct SObjectGrabParams
+	{
+		SObjectGrabParams() : playerId(0), objectId(0), bGrab(false), bIsNPC(false), bTwoHanded(false) {}
+		SObjectGrabParams(EntityId pId, EntityId objId, bool grab, bool npc, bool twoHand)
+			: playerId(pId), objectId(objId), bGrab(grab), bIsNPC(npc), bTwoHanded(twoHand) {}
+
+		EntityId playerId;
+		EntityId objectId;
+		bool bGrab;
+		bool bIsNPC;
+		bool bTwoHanded;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("playerId", playerId, 'eid');
+			ser.Value("objectId", objectId, 'eid');
+			ser.Value("bGrab", bGrab, 'bool');
+			ser.Value("bIsNPC", bIsNPC, 'bool');
+			ser.Value("bTwoHanded", bTwoHanded, 'bool');
+		}
+	};
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestObjectGrab, SObjectGrabParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClSyncObjectGrab, SObjectGrabParams, eNRT_ReliableOrdered);
+
+	// Coop: Voice and dialog sound synchronization
+	struct SPlayVoiceSoundParams
+	{
+		SPlayVoiceSoundParams() : soundName(""), semantic(0) {}
+		SPlayVoiceSoundParams(const string& name, int sem) : soundName(name), semantic(sem) {}
+
+		string soundName;
+		int semantic;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("soundName", soundName);
+			ser.Value("semantic", semantic);
+		}
+	};
+	DECLARE_CLIENT_RMI_NOATTACH(ClPlayVoiceSound, SPlayVoiceSoundParams, eNRT_ReliableOrdered);
+
+	// Coop: 3 Lives System
+	static const TSynchedKey COOP_PLAYER_LIVES_KEY = 960;
+	int  GetPlayerLives(EntityId playerId) const;
+	void SetPlayerLives(EntityId playerId, int lives);
+	void ResetPlayerLives();
+
 	void SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width = 2.5f);
 	void SendMapClearDrawings();
 
@@ -1247,6 +1295,7 @@ protected:
 	bool                m_explosionScreenFX;
 
 	CShotValidator			*m_pShotValidator;
+	std::map<EntityId, int> m_playerLives;
 };
 
 #endif //__GAMERULES_H__

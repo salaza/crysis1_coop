@@ -3804,7 +3804,19 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		float color[4] = { 0.55f, 0.75f, 0.95f, 0.75f };
 		float screenHeight = (float)gEnv->pRenderer->GetHeight();
-		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.8");
+		int lives = 3;
+		if (CGameRules* pRules = g_pGame->GetGameRules())
+		{
+			IActor* pClient = gEnv->pGame->GetIGameFramework()->GetClientActor();
+			if (pClient)
+				lives = pRules->GetPlayerLives(pClient->GetEntityId());
+		}
+		string watermark;
+		if (lives > 0)
+			watermark.Format("Crysis Co-op v1.5.9 | Lives: %d", lives);
+		else
+			watermark = "Crysis Co-op v1.5.9 | Spectating";
+		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "%s", watermark.c_str());
 	}
 }
 
