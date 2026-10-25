@@ -3600,7 +3600,7 @@ void CGameRules::PrepCollision(int src, int trg, const SGameCollision& event, IE
 
 	chain.SetValue("velocity", pCollision->vloc[src]);
 	pe_status_living sl;
-	if (pCollision->pEntity[src]->GetStatus(&sl) && sl.bSquashed)
+	if (pCollision->pEntity[src] && pCollision->pEntity[src]->GetStatus(&sl) && sl.bSquashed)
 	{
 		chain.SetValue("target_velocity", pCollision->n*(200.0f*(1-src*2)));
 		chain.SetValue("target_mass", pCollision->mass[trg]>0 ? pCollision->mass[trg] : 10000.0f);

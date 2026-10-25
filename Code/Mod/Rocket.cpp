@@ -68,7 +68,7 @@ void CRocket::HandleEvent(const SGameObjectEvent &event)
 				return;
 		}
 
-		if(pCollision && pCollision->pEntity[0]->GetType()==PE_PARTICLE)
+		if(pCollision && pCollision->pEntity[0] && pCollision->pEntity[0]->GetType()==PE_PARTICLE)
 		{
 			float bouncy, friction;
 			uint	pierceabilityMat;

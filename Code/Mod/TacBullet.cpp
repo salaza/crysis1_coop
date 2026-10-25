@@ -80,7 +80,7 @@ void CTacBullet::HandleEvent(const SGameObjectEvent &event)
 				pGameRules->ClientHit(hitInfo);
 			}
 		}
-		else if (pCollision->pEntity[0]->GetType() == PE_PARTICLE)
+		else if (pCollision->pEntity[0] && pCollision->pEntity[0]->GetType() == PE_PARTICLE)
 		{
 			float bouncy, friction;
 			uint	pierceabilityMat;

@@ -317,38 +317,18 @@ void CGameRules::ProcessServerHit(HitInfo &hitInfo)
 
 		if (hitInfo.targetId == 0 && gEnv->pPhysicalWorld)
 		{
-			// Check if static geometry (tree, foliage, breakable brush) or rigid prop was hit
+			// Check if rigid prop was hit without entity ID (push physics objects)
 			ray_hit rh;
 			Vec3 rayDir = hitInfo.dir.len2() > 0.01f ? hitInfo.dir.normalized() : Vec3(0, 1, 0);
-			if (gEnv->pPhysicalWorld->RayWorldIntersection(hitInfo.pos - rayDir * 0.1f, rayDir * 0.5f, ent_static | ent_rigid | ent_sleeping_rigid, rwi_stop_at_pierceable, &rh, 1))
+			if (gEnv->pPhysicalWorld->RayWorldIntersection(hitInfo.pos - rayDir * 0.1f, rayDir * 0.5f, ent_rigid | ent_sleeping_rigid, rwi_stop_at_pierceable, &rh, 1))
 			{
-				if (rh.pCollider)
+				if (rh.pCollider && rh.pCollider->GetType() == PE_RIGID)
 				{
-					pe_action_register_coll_event collision;
-					collision.collMass = 0.005f;
-					collision.partid[1] = rh.partid;
-					collision.partid[0] = -2;
-					ISurfaceTypeManager *pSTM = gEnv->p3DEngine->GetMaterialManager()->GetSurfaceTypeManager();
-					int invId = pSTM->GetSurfaceTypeByName("mat_invulnerable")->GetId();
-					collision.idmat[1] = rh.surface_idx;
-					collision.idmat[0] = invId;
-					collision.n = rh.n;
-					collision.pt = rh.pt;
-					float speed = cry_sqrtf(4000.0f / (80.0f * 0.5f));
-					collision.vSelf = rayDir * speed;
-					collision.v = Vec3(0, 0, 0);
-					collision.pCollider = NULL;
-					rh.pCollider->Action(&collision);
-
-					// Apply impulse to rigid entities (props, boxes, barrels)
-					if (rh.pCollider->GetType() == PE_RIGID)
-					{
-						pe_action_impulse ai;
-						ai.partid = rh.partid;
-						ai.point = rh.pt;
-						ai.impulse = rayDir * (hitInfo.damage > 0.0f ? hitInfo.damage * 5.0f : 250.0f);
-						rh.pCollider->Action(&ai);
-					}
+					pe_action_impulse ai;
+					ai.partid = rh.partid;
+					ai.point = rh.pt;
+					ai.impulse = rayDir * (hitInfo.damage > 0.0f ? hitInfo.damage * 5.0f : 250.0f);
+					rh.pCollider->Action(&ai);
 				}
 			}
 		}

@@ -54,38 +54,14 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 		if (pCollision->vloc[0].GetLengthSquared() > 1e-6f)
 			dir = pCollision->vloc[0].GetNormalized();
 
-		// Physical collision registration for cutting/breaking trees, vegetation and pushing props
-		if (pCollision->pEntity[1])
+		// Physical impulse for rigid props (barrels, crates, physics objects)
+		if (pCollision->pEntity[1] && pCollision->pEntity[1]->GetType() == PE_RIGID)
 		{
-			int entType = pCollision->pEntity[1]->GetType();
-			// ONLY send pe_action_register_coll_event to static geometry/trees (PE_STATIC).
-			// Calling it with pCollider=NULL on living/articulated actors (Prophet, players, AI) crashes CryPhysics!
-			if (entType == PE_STATIC)
-			{
-				pe_action_register_coll_event collision;
-				collision.collMass = 0.005f;
-				collision.partid[1] = pCollision->partid[1];
-				collision.partid[0] = -2;
-				ISurfaceTypeManager *pSTM = gEnv->p3DEngine->GetMaterialManager()->GetSurfaceTypeManager();
-				int invId = pSTM ? pSTM->GetSurfaceTypeByName("mat_invulnerable")->GetId() : 0;
-				collision.idmat[1] = pCollision->idmat[1];
-				collision.idmat[0] = invId;
-				collision.n = pCollision->n;
-				collision.pt = pCollision->pt;
-				float speed = cry_sqrtf(4000.0f / (80.0f * 0.5f));
-				collision.vSelf = dir * speed;
-				collision.v = Vec3(0, 0, 0);
-				collision.pCollider = NULL;
-				pCollision->pEntity[1]->Action(&collision);
-			}
-			else if (entType == PE_RIGID)
-			{
-				pe_action_impulse ai;
-				ai.partid = pCollision->partid[1];
-				ai.point = pCollision->pt;
-				ai.impulse = dir * (m_damage > 0.0f ? m_damage * 10.0f : 250.0f);
-				pCollision->pEntity[1]->Action(&ai);
-			}
+			pe_action_impulse ai;
+			ai.partid = pCollision->partid[1];
+			ai.point = pCollision->pt;
+			ai.impulse = dir * (m_damage > 0.0f ? m_damage * 10.0f : 250.0f);
+			pCollision->pEntity[1]->Action(&ai);
 		}
 
 		CGameRules *pGameRules = g_pGame->GetGameRules();
@@ -146,7 +122,7 @@ void CBullet::HandleEvent(const SGameObjectEvent &event)
 		}
 
 
-		if (pCollision->pEntity[0]->GetType() == PE_PARTICLE)
+		if (pCollision->pEntity[0] && pCollision->pEntity[0]->GetType() == PE_PARTICLE)
 		{
 			float bouncy, friction;
 			uint	pierceabilityMat;
