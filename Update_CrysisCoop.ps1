@@ -15,6 +15,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Sanitize any trailing backslashes or accidentally escaped quotes from batch arguments
+if ($TargetModDir) { $TargetModDir = ($TargetModDir -replace '"', '').Trim().TrimEnd('\', '/') }
+if ($CrysisDir)    { $CrysisDir    = ($CrysisDir    -replace '"', '').Trim().TrimEnd('\', '/') }
+
 function Get-GitHubToken {
     # 1. Environment variable
     if ($env:GITHUB_TOKEN) {

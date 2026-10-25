@@ -11,7 +11,7 @@ for %%I in ("%~dp0..\..") do set "REL2=%%~fI"
 for %%I in ("%~dp0..") do set "REL1=%%~fI"
 
 if exist "%~dp0Game\GameData.pak" (
-    set "CRYSIS_DIR=%~dp0"
+    for %%I in ("%~dp0.") do set "CRYSIS_DIR=%%~fI"
 ) else if exist "%REL1%\Game\GameData.pak" (
     set "CRYSIS_DIR=%REL1%"
 ) else if exist "%REL2%\Game\GameData.pak" (
