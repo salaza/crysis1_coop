@@ -3096,7 +3096,8 @@ void CHUDRadar::UpdateBinoculars(CActor *pActor, float fDeltaTime)
 
 bool CHUDRadar::CheckObjectMultiplayer(EntityId id)
 {
-	if(!gEnv->bMultiplayer)
+	bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop()) || (g_pGame->GetHUD() && g_pGame->GetHUD()->GetCurrentGameRules() == EHUD_COOP);
+	if(!gEnv->bMultiplayer || isCoop)
 		return true;
 
 	// MP binoculars only add entities temporarily. Don't add if they are already there.

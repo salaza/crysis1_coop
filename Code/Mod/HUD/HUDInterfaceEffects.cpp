@@ -323,7 +323,9 @@ void CHUD::UpdateMissionObjectiveIcon(EntityId objective, int friendly, FlashOnS
 
 	m_missionObjectiveNumEntries += FillUpMOArray(&m_missionObjectiveValues, objective, vEntityScreenSpace.x*fScaleX+fHalfUselessSize+16.0f, vEntityScreenSpace.y*fScaleY, iconType, friendly, (int)fDist, fSize*fSize, -rotation);
 	bool nearCenter = (pow(centerX-vEntityScreenSpace.x+1.5f,2.0f)+pow(centerY-vEntityScreenSpace.y+2.5f,2.0f))<16.0f;
-	if(nearCenter && (gEnv->bMultiplayer || m_pHUDScopes->IsBinocularsShown()))
+	bool isCoop = (m_currentGameRules == EHUD_COOP) || (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+	bool showMO = (!gEnv->bMultiplayer || isCoop) ? m_pHUDScopes->IsBinocularsShown() : (gEnv->bMultiplayer || m_pHUDScopes->IsBinocularsShown());
+	if(nearCenter && showMO)
 	{
 		m_objectiveNearCenter = objective;
 	}
@@ -331,7 +333,9 @@ void CHUD::UpdateMissionObjectiveIcon(EntityId objective, int friendly, FlashOnS
 
 void CHUD::UpdateAllMissionObjectives()
 {
-	if(m_missionObjectiveValues.size() && (gEnv->bMultiplayer || m_pHUDScopes->IsBinocularsShown()))
+	bool isCoop = (m_currentGameRules == EHUD_COOP) || (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+	bool showMO = (!gEnv->bMultiplayer || isCoop) ? m_pHUDScopes->IsBinocularsShown() : (gEnv->bMultiplayer || m_pHUDScopes->IsBinocularsShown());
+	if(m_missionObjectiveValues.size() && showMO)
 	{
 		m_animMissionObjective.SetVisible(true);
 		m_animMissionObjective.GetFlashPlayer()->SetVariableArray(FVAT_Double, "m_allValues", 0, &m_missionObjectiveValues[0], m_missionObjectiveNumEntries);
@@ -613,7 +617,8 @@ void CHUD::IndicateHit(bool enemyIndicator,IEntity *pEntity, bool explosionFeedb
 		{
 			m_pHUDVehicleInterface->m_animMainWindow.Invoke("indicateHit", enemyIndicator);
 
-			if(pEntity && !gEnv->bMultiplayer)
+			bool isCoop = (m_currentGameRules == EHUD_COOP) || (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+			if(pEntity && (!gEnv->bMultiplayer || isCoop))
 			{
 				float r = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 16)	& 0xFF)) / 255.0f;
 				float g = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 8)	& 0xFF)) / 255.0f;
@@ -705,14 +710,15 @@ void CHUD::Targetting(EntityId pTargetEntity, bool bStatic)
 		}
 	}
 
-	if(!gEnv->bMultiplayer && GetScopes()->IsBinocularsShown() && g_pGameCVars->g_difficultyLevel < 3)
+	bool isCoop = (m_currentGameRules == EHUD_COOP) || (pGameRules && pGameRules->IsCoop());
+	if((!gEnv->bMultiplayer || isCoop) && GetScopes()->IsBinocularsShown() && (g_pGameCVars->g_difficultyLevel < 4 || isCoop))
 	{
 		//draw single player mission objectives
 		std::map<EntityId, CHUDRadar::RadarObjective>::const_iterator it = m_pHUDRadar->m_missionObjectives.begin();
 		std::map<EntityId, CHUDRadar::RadarObjective>::const_iterator end = m_pHUDRadar->m_missionObjectives.end();
 		for(; it != end; ++it)
 		{
-			UpdateMissionObjectiveIcon(it->first, 0, eOS_SPObjective);
+			UpdateMissionObjectiveIcon(it->first, it->second.secondaryObjective ? 1 : 0, eOS_SPObjective);
 		}
 	}
 
@@ -1189,13 +1195,14 @@ void CHUD::OnToggleThirdPerson(IActor *pActor,bool bThirdPerson)
 
 void CHUD::ShowTargettingAI(EntityId id)
 {
-	if(gEnv->bMultiplayer)
+	bool isCoop = (m_currentGameRules == EHUD_COOP) || (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+	if(gEnv->bMultiplayer && !isCoop)
 		return;
 
 	if(!g_pGameCVars->hud_chDamageIndicator)
 		return;
 
-	if(g_pGameCVars->g_difficultyLevel > 2)
+	if(g_pGameCVars->g_difficultyLevel > 2 && !isCoop)
 		return;
 
 	EntityId actorID = id;
@@ -1635,10 +1642,11 @@ void CHUD::ShowWeaponsOnGround()
 	if(!m_pHUDScopes->IsBinocularsShown())
 		return;
 
-	if(gEnv->bMultiplayer)
+	bool isCoop = (m_currentGameRules == EHUD_COOP) || (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+	if(gEnv->bMultiplayer && !isCoop)
 		return;
 
-	if(g_pGameCVars->g_difficultyLevel > 2)
+	if(g_pGameCVars->g_difficultyLevel > 2 && !isCoop)
 		return;
 
 	IActor *pClientActor = g_pGame->GetIGameFramework()->GetClientActor();

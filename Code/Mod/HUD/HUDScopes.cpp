@@ -237,7 +237,8 @@ void CHUDScopes::DisplayBinoculars(CPlayer* pPlayerActor)
 			drawnEntities[uiEntityId] = true;
 		}
 
-		if(g_pGameCVars->g_difficultyLevel < 3)
+		bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+		if(g_pGameCVars->g_difficultyLevel < 3 || isCoop)
 		{
 			for(std::vector<EntityId>::const_iterator iter=entitiesInProximity->begin(); iter!=entitiesInProximity->end(); ++iter)
 			{
@@ -268,7 +269,6 @@ void CHUDScopes::DisplayBinoculars(CPlayer* pPlayerActor)
 				if(stl::find_in_map(drawnEntities, uiEntityId, false))
 					continue;
 
-				bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
 				if(!gEnv->bMultiplayer || isCoop)
 				{
 					IAIObject *pAIObject = pEntity->GetAI();
