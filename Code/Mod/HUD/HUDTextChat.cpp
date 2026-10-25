@@ -25,7 +25,7 @@ History:
 #include "GameFlashLogic.h"
 
 CHUDTextChat::CHUDTextChat() : m_flashChat(NULL), m_isListening(false), m_repeatTimer(0.0f), m_chatHead(0), m_cursor(0),
-		m_anyCurrentText(false), m_teamChat(false), m_showVirtualKeyboard(false), m_textInputActive(false)
+		m_anyCurrentText(false), m_teamChat(false), m_showVirtualKeyboard(false), m_textInputActive(false), m_lastFrameUpdated(-1)
 {
 }
 
@@ -50,95 +50,70 @@ void CHUDTextChat::Init(CGameFlashAnimation *pFlashChat)
 
 void CHUDTextChat::Update(float fDeltaTime)
 {
-	if(!m_flashChat || !m_isListening)
+	int curFrame = gEnv->pRenderer ? gEnv->pRenderer->GetFrameID() : 0;
+	if (m_lastFrameUpdated == curFrame)
 		return;
+	m_lastFrameUpdated = curFrame;
 
-	float now = gEnv->pTimer->GetAsyncTime().GetMilliSeconds();
+	float now = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
 
-	//insert some fancy text-box
-	
-	//render current chat messages over it
-	/*if(m_anyCurrentText)
+	if (m_isListening)
 	{
-		bool current = false;
-		int msgNr = m_chatHead;
-		for(int i = 0; i < CHAT_LENGTH; i++)
+		float nowMs = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetMilliSeconds() : 0.0f;
+
+		if (m_repeatEvent.keyId != eKI_Unknown)
 		{
-			float age = now - m_chatSpawnTime[msgNr];
-			if(age < 10000.0f)
+			float repeatSpeed = 40.0f;
+			float nextTimer = (1000.0f / repeatSpeed);
+
+			if (nowMs - m_repeatTimer > nextTimer)
 			{
-				float alpha=1.0f;
-				if (age>4000.0f)
-					alpha=1.0f-(age-4000.0f)/6000.0f;
-				gEnv->pGame->GetIGameFramework()->GetIUIDraw()->DrawText(30, 320+i*20, 0, 0, m_chatStrings[msgNr].c_str(), alpha, 0.1f, 1.0f, 0.3f, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP);
-				current = true;
+				ProcessInput(m_repeatEvent);
+				m_repeatTimer = nowMs + nextTimer;
 			}
-			msgNr++;
-			if(msgNr > CHAT_LENGTH-1)
-				msgNr = 0;
 		}
 
-		if(!current)
-			m_anyCurrentText = false;
-	}*/
-
-	//render input text and cursor
-	if (m_repeatEvent.keyId!=eKI_Unknown)
-	{
-		float repeatSpeed = 40.0;
-		float nextTimer = (1000.0f/repeatSpeed); // repeat speed
-
-		if (now - m_repeatTimer > nextTimer)
+		if (m_flashChat && stricmp(m_lastInputText.c_str(), m_inputText.c_str()))
 		{
-			ProcessInput(m_repeatEvent);
-			m_repeatTimer = now + nextTimer;
+			m_flashChat->Invoke("setInputText", m_inputText.c_str());
+			m_lastInputText = m_inputText;
 		}
 	}
 
-	//gEnv->pGame->GetIGameFramework()->GetIUIDraw()->DrawText(30, 450, 16.0f, 16.0f, m_inputText.c_str(), 1.0f, 0.1f, 1.0f, 0.3f, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP);
-	if(stricmp(m_lastInputText.c_str(), m_inputText.c_str()))
+	if (gEnv->pRenderer)
 	{
-		m_flashChat->Invoke("setInputText", m_inputText.c_str());
-		m_lastInputText = m_inputText;
-		//m_lastUpdate = now;
-		//m_showing = true;
+		float y = 280.0f;
+		for (size_t i = 0; i < m_history.size(); ++i)
+		{
+			const SChatEntry& entry = m_history[i];
+			float age = now - entry.timestamp;
+			if (age < 12.0f)
+			{
+				float alpha = 1.0f;
+				if (age > 8.0f)
+					alpha = 1.0f - (age - 8.0f) / 4.0f;
+
+				float col[4] = { entry.isTeam ? 0.35f : 0.45f, entry.isTeam ? 0.95f : 0.85f, 1.0f, alpha };
+				gEnv->pRenderer->Draw2dLabel(25.0f, y, 1.35f, col, false, "%s%s: %s",
+					entry.isTeam ? "(Team) " : "", entry.sender.c_str(), entry.message.c_str());
+				y += 18.0f;
+			}
+		}
+
+		if (m_isListening)
+		{
+			bool blink = (int(now * 3.0f) % 2 == 0);
+			float colInput[4] = { 1.0f, 0.88f, 0.2f, 1.0f };
+			gEnv->pRenderer->Draw2dLabel(25.0f, y + 4.0f, 1.45f, colInput, false,
+				"%s: %s%s", m_teamChat ? "Say (Team)" : "Say", m_inputText.c_str(), blink ? "_" : " ");
+		}
 	}
-
-	//render cursor
-	/*if(int(now) % 200 < 100)
-	{
-		string sub = m_inputText.substr(0, m_cursor);
-		float width=0.0f;
-		gEnv->pGame->GetIGameFramework()->GetIUIDraw()->GetTextDim(&width, 0, 16.0f, 16.0f, sub.c_str());
-		gEnv->pGame->GetIGameFramework()->GetIUIDraw()->DrawText(30+width, 450, 16.0f, 17.0f, "_", 1.0f, 0.1f, 1.0f, 0.3f, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP, UIDRAWHORIZONTAL_LEFT, UIDRAWVERTICAL_TOP);
-	}*/
-
-	/*if(m_showing && now - m_lastUpdate >= 3000)
-	{
-		m_flashChat->Invoke("hideChat", "");
-		m_showing = false;
-	}*/
 }
 
 bool CHUDTextChat::OnInputEvent(const SInputEvent &event )
 {
-	if(!m_flashChat || gEnv->pConsole->IsOpened())
+	if(gEnv->pConsole->IsOpened() || gEnv->pConsole->GetStatus())
 		return false;
-
-	//X-gamepad virtual keyboard input
-	if(event.deviceId == eDI_XI && event.state == eIS_Pressed)
-	{
-		if(event.keyId == eKI_XI_DPadUp || event.keyId == eKI_PS3_Up)
-			VirtualKeyboardInput("up");
-		else if(event.keyId == eKI_XI_DPadDown || event.keyId == eKI_PS3_Down)
-			VirtualKeyboardInput("down");
-		else if(event.keyId == eKI_XI_DPadLeft || event.keyId == eKI_PS3_Left)
-			VirtualKeyboardInput("left");
-		else if(event.keyId == eKI_XI_DPadRight || event.keyId == eKI_PS3_Right)
-			VirtualKeyboardInput("right");
-		else if(event.keyId == eKI_XI_A || event.keyId == eKI_PS3_Square)
-			VirtualKeyboardInput("press");
-	}
 
 	if (event.deviceId != eDI_Keyboard)
 		return false;
@@ -149,31 +124,25 @@ bool CHUDTextChat::OnInputEvent(const SInputEvent &event )
 	if (event.state != eIS_Pressed)
 		return true;
 
-	if(gEnv->pConsole->GetStatus())
-		return false;
-
-	if (!gEnv->bMultiplayer)
-		return false;
-
 	m_repeatEvent = event;
 
 	float repeatDelay = 200.0f;
-	float now = gEnv->pTimer->GetAsyncTime().GetMilliSeconds();
+	float now = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetMilliSeconds() : 0.0f;
 
-	m_repeatTimer = now+repeatDelay;
+	m_repeatTimer = now + repeatDelay;
 
 	bool isClose = (event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter);
 
-	if (isClose)		//end text chat
+	if (isClose)
 	{
 		Flush();
-
 		return true;
 	}
-	else if (event.keyId==eKI_Escape)
+	else if (event.keyId == eKI_Escape)
 	{
 		m_inputText.clear();
 		Flush();
+		return true;
 	}
 
 	ProcessInput(event);
@@ -183,7 +152,7 @@ bool CHUDTextChat::OnInputEvent(const SInputEvent &event )
 
 bool CHUDTextChat::OnInputEventUI(const SInputEvent &event)
 {
-	if(!m_flashChat || gEnv->pConsole->IsOpened())
+	if(gEnv->pConsole->IsOpened())
 		return false;
 
 	const char* keyName = event.keyName;
@@ -193,7 +162,7 @@ bool CHUDTextChat::OnInputEventUI(const SInputEvent &event)
 
 	Insert(keyName);
 
-	if (m_inputText.length()>60)
+	if (m_inputText.length() > 120)
 		Flush(false);
 
 	return true;
@@ -290,9 +259,11 @@ void CHUDTextChat::Flush(bool close)
 	{
 		m_isListening = false;
 		gEnv->pInput->SetExclusiveListener(NULL);
-		//((CHUD*)m_parent)->ShowTextField(false);
-		m_flashChat->Invoke("setVisibleChatBox", 0);
-		m_flashChat->Invoke("GamepadAvailable", false);
+		if (m_flashChat)
+		{
+			m_flashChat->Invoke("setVisibleChatBox", 0);
+			m_flashChat->Invoke("GamepadAvailable", false);
+		}
 		m_textInputActive = false;
 	}
 }
@@ -371,19 +342,39 @@ void CHUDTextChat::ProcessInput(const SInputEvent &event)
 
 void CHUDTextChat::AddChatMessage(const char* nick, const wchar_t* msg, int teamFaction, bool teamChat)
 {
-	if(!m_flashChat)
-		return;
-
-	if(teamChat)
+	string msgNarrow;
+	if (msg)
 	{
-		wstring nameAndTarget = g_pGame->GetHUD()->LocalizeWithParams("@ui_chat_team", true, nick);
-		SFlashVarValue args[3] = {nameAndTarget.c_str(), msg, teamFaction};
-		m_flashChat->Invoke("setChatText", args, 3);
+		char buf[512];
+		size_t converted = 0;
+		wcstombs_s(&converted, buf, sizeof(buf), msg, _TRUNCATE);
+		msgNarrow = buf;
 	}
-	else
+
+	CryLogAlways("[Chat] %s%s: %s", teamChat ? "(Team) " : "", nick ? nick : "Player", msgNarrow.c_str());
+
+	SChatEntry entry;
+	entry.sender = nick ? nick : "Player";
+	entry.message = msgNarrow;
+	entry.timestamp = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
+	entry.isTeam = teamChat;
+	if (m_history.size() >= 10)
+		m_history.erase(m_history.begin());
+	m_history.push_back(entry);
+
+	if (m_flashChat)
 	{
-		SFlashVarValue args[3] = {nick, msg, teamFaction};
-		m_flashChat->Invoke("setChatText", args, 3);
+		if(teamChat)
+		{
+			wstring nameAndTarget = g_pGame->GetHUD()->LocalizeWithParams("@ui_chat_team", true, nick);
+			SFlashVarValue args[3] = {nameAndTarget.c_str(), msg, teamFaction};
+			m_flashChat->Invoke("setChatText", args, 3);
+		}
+		else
+		{
+			SFlashVarValue args[3] = {nick, msg, teamFaction};
+			m_flashChat->Invoke("setChatText", args, 3);
+		}
 	}
 
 	m_chatHead++;
@@ -411,10 +402,7 @@ void CHUDTextChat::AddChatMessage(EntityId sourceId, const char* msg, int teamFa
 
 void CHUDTextChat::AddChatMessage(const char* nick, const char* msg, int teamFaction, bool teamChat)
 {
-  if(!m_flashChat)
-    return;
-
-	string message(msg);
+	string message(msg ? msg : "");
 	int idx = message.find("@mp_vote_initialized_kick:#:");
 	if(idx!=-1)
 	{
@@ -425,26 +413,40 @@ void CHUDTextChat::AddChatMessage(const char* nick, const char* msg, int teamFac
 		AddChatMessage(nick, localizedString.c_str(), teamFaction,teamChat);
 		return;
 	}
-	m_chatStrings[m_chatHead] = string(msg);
-	m_chatSpawnTime[m_chatHead] = gEnv->pTimer->GetAsyncTime().GetMilliSeconds();
 
-	// flash stuff
-	if(teamChat)
+	CryLogAlways("[Chat] %s%s: %s", teamChat ? "(Team) " : "", nick ? nick : "Player", msg ? msg : "");
+
+	SChatEntry entry;
+	entry.sender = nick ? nick : "Player";
+	entry.message = msg ? msg : "";
+	entry.timestamp = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
+	entry.isTeam = teamChat;
+	if (m_history.size() >= 10)
+		m_history.erase(m_history.begin());
+	m_history.push_back(entry);
+
+	m_chatStrings[m_chatHead] = string(msg ? msg : "");
+	m_chatSpawnTime[m_chatHead] = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetMilliSeconds() : 0.0f;
+
+	if (m_flashChat)
 	{
-		wstring nameAndTarget = g_pGame->GetHUD()->LocalizeWithParams("@ui_chat_team", true, nick);
-		SFlashVarValue args[3] = {nameAndTarget.c_str(), msg, teamFaction};
-		m_flashChat->Invoke("setChatText", args, 3);
+		if(teamChat)
+		{
+			wstring nameAndTarget = g_pGame->GetHUD()->LocalizeWithParams("@ui_chat_team", true, nick);
+			SFlashVarValue args[3] = {nameAndTarget.c_str(), msg, teamFaction};
+			m_flashChat->Invoke("setChatText", args, 3);
+		}
+		else
+		{
+			SFlashVarValue args[3] = {nick, msg, teamFaction};
+			m_flashChat->Invoke("setChatText", args, 3);
+		}
 	}
-	else
-	{
-		SFlashVarValue args[3] = {nick, msg, teamFaction};
-		m_flashChat->Invoke("setChatText", args, 3);
-	}
-	//m_showing = true;
-  m_chatHead++;
-  if(m_chatHead > CHAT_LENGTH-1)
-    m_chatHead = 0;
-  m_anyCurrentText = true;  
+
+	m_chatHead++;
+	if(m_chatHead > CHAT_LENGTH-1)
+		m_chatHead = 0;
+	m_anyCurrentText = true;  
 }
 
 void CHUDTextChat::GetMemoryStatistics(ICrySizer * s)
@@ -485,24 +487,18 @@ void CHUDTextChat::OpenChat(int type)
 		gEnv->pInput->ClearKeyState();
 		gEnv->pInput->SetExclusiveListener(this);
 		m_isListening = true;
-		//((CHUD*)m_parent)->ShowTextField(true);
-		m_flashChat->Invoke("setVisibleChatBox", 1);
-		m_flashChat->Invoke("GamepadAvailable", m_showVirtualKeyboard);
+		m_teamChat = (type == 2);
+
+		if (m_flashChat)
+		{
+			m_flashChat->Invoke("setVisibleChatBox", 1);
+			m_flashChat->Invoke("GamepadAvailable", m_showVirtualKeyboard);
+			if (m_teamChat)
+				m_flashChat->Invoke("setShowTeamChat");
+			else
+				m_flashChat->Invoke("setShowGlobalChat");
+		}
 		m_textInputActive = true;
-
-		if(type == 2)
-		{
-			m_teamChat = true;
-			m_flashChat->Invoke("setShowTeamChat");
-		}
-		else
-		{
-			m_teamChat = false;
-			m_flashChat->Invoke("setShowGlobalChat");
-		}
-
-		//m_lastUpdate = now;
-		//m_showing = true;
 
 		m_repeatEvent = SInputEvent();
 		m_inputText.clear();

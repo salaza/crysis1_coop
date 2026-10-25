@@ -1687,26 +1687,38 @@ void CPlayer::UpdateView(SViewParams &viewParams)
 
 void CPlayer::PostUpdateView(SViewParams &viewParams)
 {
-	if (IsClient() && CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+	if (IsClient())
 	{
-		IEntity* pCam = CCoopCutsceneSystem::GetInstance()->GetCameraEntity();
-		if (!pCam && gEnv->pMovieSystem)
+		if (!gEnv->bServer && CCoopCutsceneSystem::GetInstance()->HasHostCutsceneCamera())
 		{
-			EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
-			if (camId)
-				pCam = gEnv->pEntitySystem->GetEntity(camId);
-		}
-
-		if (pCam)
-		{
-			viewParams.position = pCam->GetWorldPos();
-			viewParams.rotation = pCam->GetWorldRotation();
-			float fov = CCoopCutsceneSystem::GetInstance()->GetCameraFOV();
-			if (fov <= 0.0f && gEnv->pMovieSystem)
-				fov = gEnv->pMovieSystem->GetCameraParams().fFOV;
+			viewParams.position = CCoopCutsceneSystem::GetInstance()->GetHostCamPos();
+			viewParams.rotation = CCoopCutsceneSystem::GetInstance()->GetHostCamRot();
+			float fov = CCoopCutsceneSystem::GetInstance()->GetHostCamFOV();
 			if (fov > 0.0f)
 				viewParams.fov = fov;
 			viewParams.blend = false;
+		}
+		else if (CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+		{
+			IEntity* pCam = CCoopCutsceneSystem::GetInstance()->GetCameraEntity();
+			if (!pCam && gEnv->pMovieSystem)
+			{
+				EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
+				if (camId)
+					pCam = gEnv->pEntitySystem->GetEntity(camId);
+			}
+
+			if (pCam)
+			{
+				viewParams.position = pCam->GetWorldPos();
+				viewParams.rotation = pCam->GetWorldRotation();
+				float fov = CCoopCutsceneSystem::GetInstance()->GetCameraFOV();
+				if (fov <= 0.0f && gEnv->pMovieSystem)
+					fov = gEnv->pMovieSystem->GetCameraParams().fFOV;
+				if (fov > 0.0f)
+					viewParams.fov = fov;
+				viewParams.blend = false;
+			}
 		}
 	}
 

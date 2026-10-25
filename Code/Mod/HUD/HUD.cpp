@@ -290,6 +290,15 @@ CHUD::CHUD()
 
 //-----------------------------------------------------------------------------------------------------
 
+void CHUD::CreateMPChat()
+{
+	if (!m_pHUDTextChat)
+	{
+		m_pHUDTextChat = new CHUDTextChat;
+		m_hudObjectsList.push_back(m_pHUDTextChat);
+	}
+}
+
 CHUD::~CHUD()
 {
   ShowDeathFX(0);
@@ -432,11 +441,11 @@ bool CHUD::Init()
 	m_pHUDTagNames		= new CHUDTagNames;
 	m_pHUDSilhouettes	= new CHUDSilhouettes;
 
+	CreateMPChat();
+
 	if(gEnv->bMultiplayer)
 	{
-		m_pHUDTextChat	= new CHUDTextChat;
 		m_pHUDScore			= new CHUDScore;
-		m_hudObjectsList.push_back(m_pHUDTextChat);
 		m_hudObjectsList.push_back(m_pHUDScore);
 	}
 
@@ -3243,6 +3252,8 @@ void CHUD::OnPostUpdate(float frameTime)
 			GetMPChat()->OpenChat(m_iOpenTextChat);
 		m_iOpenTextChat = 0;
 	}
+	if (m_pHUDTextChat)
+		m_pHUDTextChat->Update(frameTime);
 
 	if(m_pHUDPowerStruggle)
 	{
@@ -3793,7 +3804,7 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		float color[4] = { 0.55f, 0.75f, 0.95f, 0.75f };
 		float screenHeight = (float)gEnv->pRenderer->GetHeight();
-		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.7");
+		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.8");
 	}
 }
 

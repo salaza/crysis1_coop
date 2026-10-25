@@ -50,6 +50,47 @@ int CGameRules::s_invulnID = 0;
 int CGameRules::s_barbWireID = 0;
 
 //------------------------------------------------------------------------
+struct CChatConsoleCommands
+{
+	static void CmdSay(IConsoleCmdArgs* pArgs)
+	{
+		if (!pArgs || pArgs->GetArgCount() < 2)
+			return;
+		CGameRules* pGameRules = g_pGame ? g_pGame->GetGameRules() : NULL;
+		if (!pGameRules)
+			return;
+		IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+		EntityId myId = pClientActor ? pClientActor->GetEntityId() : 0;
+
+		string fullMsg = pArgs->GetCommandLine();
+		size_t spacePos = fullMsg.find(' ');
+		if (spacePos != string::npos)
+		{
+			fullMsg = fullMsg.substr(spacePos + 1);
+			pGameRules->SendChatMessage(eChatToAll, myId, 0, fullMsg.c_str());
+		}
+	}
+
+	static void CmdTeamSay(IConsoleCmdArgs* pArgs)
+	{
+		if (!pArgs || pArgs->GetArgCount() < 2)
+			return;
+		CGameRules* pGameRules = g_pGame ? g_pGame->GetGameRules() : NULL;
+		if (!pGameRules)
+			return;
+		IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+		EntityId myId = pClientActor ? pClientActor->GetEntityId() : 0;
+
+		string fullMsg = pArgs->GetCommandLine();
+		size_t spacePos = fullMsg.find(' ');
+		if (spacePos != string::npos)
+		{
+			fullMsg = fullMsg.substr(spacePos + 1);
+			pGameRules->SendChatMessage(eChatToTeam, myId, 0, fullMsg.c_str());
+		}
+	}
+};
+
 CGameRules::CGameRules()
 : m_pGameFramework(0),
 	m_pGameplayRecorder(0),
@@ -91,6 +132,12 @@ CGameRules::~CGameRules()
 
 	g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 	m_pGameFramework->GetIGameRulesSystem()->SetCurrentGameRules(0);
+
+	if (gEnv->pConsole)
+	{
+		gEnv->pConsole->RemoveCommand("say");
+		gEnv->pConsole->RemoveCommand("teamsay");
+	}
 	if(m_pGameFramework->GetIViewSystem())
 		m_pGameFramework->GetIViewSystem()->RemoveListener(this);
 	GetGameObject()->ReleaseActions(this);
@@ -148,6 +195,12 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	m_scriptExplosionInfo->SetValue("AffectedEntitiesObstruction", affectedObstruction);
   
 	m_pGameFramework->GetIGameRulesSystem()->SetCurrentGameRules(this);
+
+	if (gEnv->pConsole)
+	{
+		gEnv->pConsole->AddCommand("say", CChatConsoleCommands::CmdSay, 0, "Send chat message to all players");
+		gEnv->pConsole->AddCommand("teamsay", CChatConsoleCommands::CmdTeamSay, 0, "Send chat message to team");
+	}
 	g_pGame->GetGameRulesScriptBind()->AttachTo(this);
 
 	// setup animation time scaling (until we have assets that cover the speeds we need timescaling).
@@ -165,8 +218,8 @@ bool CGameRules::Init( IGameObject * pGameObject )
 	{
 		IActionMapManager *pActionMapMan = g_pGame->GetIGameFramework()->GetIActionMapManager();
 		IActionMap *am = NULL;
-		pActionMapMan->EnableActionMap("multiplayer", isMultiplayer);
-		pActionMapMan->EnableActionMap("singleplayer", !isMultiplayer || isCoop);
+		pActionMapMan->EnableActionMap("multiplayer", gEnv->bMultiplayer);
+		pActionMapMan->EnableActionMap("singleplayer", !gEnv->bMultiplayer || isCoop);
 		if(isMultiplayer)
 		{
 			am=pActionMapMan->GetActionMap("multiplayer");
@@ -1260,6 +1313,9 @@ void CGameRules::GetPlayers(TPlayers &players)
 //------------------------------------------------------------------------
 bool CGameRules::IsPlayerInGame(EntityId playerId) const
 {
+	if (IsCoop())
+		return true;
+
 	INetChannel *pNetChannel=g_pGame->GetIGameFramework()->GetNetChannel(GetChannelId(playerId));
 	if (pNetChannel && pNetChannel->GetContextViewState()>=eCVS_InGame)
 		return true;
@@ -1269,6 +1325,9 @@ bool CGameRules::IsPlayerInGame(EntityId playerId) const
 //------------------------------------------------------------------------
 bool CGameRules::IsPlayerActivelyPlaying(EntityId playerId) const
 {
+	if (IsCoop())
+		return true;
+
 	if(!gEnv->bMultiplayer)
 		return true;
 
@@ -2789,6 +2848,9 @@ void CGameRules::SendTextMessage(ETextMessageType type, const char *msg, unsigne
 //------------------------------------------------------------------------
 bool CGameRules::CanReceiveChatMessage(EChatMessageType type, EntityId sourceId, EntityId targetId) const
 {
+	if (IsCoop())
+		return true;
+
 	if(sourceId == targetId)
 		return true;
 
@@ -2878,8 +2940,14 @@ void CGameRules::SendChatMessage(EChatMessageType type, EntityId sourceId, Entit
 				{
 					if (CActor *pActor=GetActorByChannelId(*it))
 					{
-						if (CanReceiveChatMessage(type, sourceId, pActor->GetEntityId()) && IsPlayerInGame(pActor->GetEntityId()))
-							GetGameObject()->InvokeRMIWithDependentObject(ClChatMessage(), params, eRMI_ToClientChannel, pActor->GetEntityId(), *it);
+						bool canReceive = IsCoop() || (CanReceiveChatMessage(type, sourceId, pActor->GetEntityId()) && IsPlayerInGame(pActor->GetEntityId()));
+						if (canReceive)
+						{
+							if (pActor->IsClient())
+								OnChatMessage(type, sourceId, pActor->GetEntityId(), msg, false);
+							else
+								GetGameObject()->InvokeRMIWithDependentObject(ClChatMessage(), params, eRMI_ToClientChannel, pActor->GetEntityId(), *it);
+						}
 					}
 				}
 			}
@@ -2887,7 +2955,7 @@ void CGameRules::SendChatMessage(EChatMessageType type, EntityId sourceId, Entit
 		case eChatToTeam:
 			{
 				int teamId = GetTeam(sourceId);
-				if (teamId)
+				if (teamId || IsCoop())
 				{
 					TPlayerTeamIdMap::const_iterator tit=m_playerteams.find(teamId);
 					if (tit!=m_playerteams.end())
@@ -2898,7 +2966,28 @@ void CGameRules::SendChatMessage(EChatMessageType type, EntityId sourceId, Entit
 						for (TPlayers::const_iterator it=begin; it!=end; ++it)
 						{
 							if (CanReceiveChatMessage(type, sourceId, *it))
-								GetGameObject()->InvokeRMIWithDependentObject(ClChatMessage(), params, eRMI_ToClientChannel, *it, GetChannelId(*it));
+							{
+								if (CActor* pActor = GetActorByEntityId(*it))
+								{
+									if (pActor->IsClient())
+										OnChatMessage(type, sourceId, *it, msg, true);
+									else
+										GetGameObject()->InvokeRMIWithDependentObject(ClChatMessage(), params, eRMI_ToClientChannel, *it, GetChannelId(*it));
+								}
+							}
+						}
+					}
+					else if (IsCoop())
+					{
+						for (std::vector<int>::const_iterator it=m_channelIds.begin(); it!=m_channelIds.end(); ++it)
+						{
+							if (CActor *pActor=GetActorByChannelId(*it))
+							{
+								if (pActor->IsClient())
+									OnChatMessage(type, sourceId, pActor->GetEntityId(), msg, true);
+								else
+									GetGameObject()->InvokeRMIWithDependentObject(ClChatMessage(), params, eRMI_ToClientChannel, pActor->GetEntityId(), *it);
+							}
 						}
 					}
 				}

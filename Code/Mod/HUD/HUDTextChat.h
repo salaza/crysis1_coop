@@ -89,6 +89,7 @@ private:
 	string				m_inputText;
 	string				m_lastInputText;
 	int						m_cursor;
+	int					m_lastFrameUpdated;
 	bool					m_isListening;
 	bool					m_teamChat;
 
@@ -104,6 +105,14 @@ private:
 	float					m_lastUpdate;*/
 	float					m_repeatTimer;
 	SInputEvent		m_repeatEvent;
+	struct SChatEntry
+	{
+		string sender;
+		string message;
+		float timestamp;
+		bool isTeam;
+	};
+	std::vector<SChatEntry> m_history;
 };
 
 #endif

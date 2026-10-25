@@ -34,6 +34,12 @@ public:
     float GetCameraFOV() const { return m_fCameraFOV; }
     void SetCameraEntity(IEntity* pEnt, float fov) { m_pCameraEntity = pEnt; m_fCameraFOV = fov; }
 
+    bool HasHostCutsceneCamera() const { return m_bHostCamActive; }
+    Vec3 GetHostCamPos() const { return m_vHostCamCurrentPos; }
+    Quat GetHostCamRot() const { return m_qHostCamCurrentRot; }
+    float GetHostCamFOV() const { return m_fHostCamCurrentFOV; }
+    void OnHostCameraSync(const Vec3& pos, const Quat& rot, float fov, bool active);
+
 private:
     bool            m_bPlayingCutscene;
     bool            m_bPlayingCutsceneLastFrame;
@@ -43,6 +49,17 @@ private:
     float           m_seqPollTimer;
     IAnimSequence*  m_pActiveSequence;
     std::set<string> m_serverPlayingSequences;
+
+    bool            m_bHostCamActive;
+    Vec3            m_vHostCamTargetPos;
+    Quat            m_qHostCamTargetRot;
+    float           m_fHostCamTargetFOV;
+    Vec3            m_vHostCamCurrentPos;
+    Quat            m_qHostCamCurrentRot;
+    float           m_fHostCamCurrentFOV;
+    float           m_fLastCamPacketTime;
+    float           m_camSyncTimer;
+    bool            m_wasCutsceneActiveOnServer;
 
 public:
     // IViewSystemListener

@@ -1007,6 +1007,26 @@ public:
 	DECLARE_CLIENT_RMI_NOATTACH(ClMapClearDrawings, MapClearDrawingsParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_NOATTACH(ClSyncCutscene, SSyncCutsceneParams, eNRT_ReliableOrdered);
 
+	struct SCutsceneCameraParams
+	{
+		SCutsceneCameraParams() : pos(ZERO), rot(IDENTITY), fov(0.0f), active(false) {}
+		SCutsceneCameraParams(const Vec3& p, const Quat& r, float f, bool a) : pos(p), rot(r), fov(f), active(a) {}
+
+		Vec3 pos;
+		Quat rot;
+		float fov;
+		bool active;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("pos", pos);
+			ser.Value("rot", rot);
+			ser.Value("fov", fov);
+			ser.Value("active", active);
+		}
+	};
+	DECLARE_CLIENT_RMI_NOATTACH(ClCutsceneCameraSync, SCutsceneCameraParams, eNRT_UnreliableUnordered);
+
 	void SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width = 2.5f);
 	void SendMapClearDrawings();
 

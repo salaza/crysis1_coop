@@ -12,6 +12,7 @@
 
 *************************************************************************/
 #include "StdAfx.h"
+#include "Coop/CoopCutsceneSystem.h"
 #include "Game.h"
 #include "GameCVars.h"
 #include "GameActions.h"
@@ -411,6 +412,8 @@ int CGame::Update(bool haveFocus, unsigned int updateFlags)
 		m_pBulletTime->Update();
 		m_pSoundMoods->Update();
 	}
+
+	CCoopCutsceneSystem::GetInstance()->Update(frameTime);
 
 	m_pFramework->PostUpdate( true, updateFlags );
 

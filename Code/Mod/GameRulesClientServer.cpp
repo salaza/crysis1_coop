@@ -11,6 +11,7 @@ History:
 
 *************************************************************************/
 #include "StdAfx.h"
+#include "Coop/CoopCutsceneSystem.h"
 #include "ScriptBind_GameRules.h"
 #include "GameRules.h"
 #include "Game.h"
@@ -876,6 +877,14 @@ IMPLEMENT_RMI(CGameRules, SvRequestChatMessage)
 IMPLEMENT_RMI(CGameRules, ClChatMessage)
 {
 	OnChatMessage((EChatMessageType)params.type, params.sourceId, params.targetId, params.msg.c_str(), params.onlyTeam);
+
+	return true;
+}
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, ClCutsceneCameraSync)
+{
+	CCoopCutsceneSystem::GetInstance()->OnHostCameraSync(params.pos, params.rot, params.fov, params.active);
 
 	return true;
 }

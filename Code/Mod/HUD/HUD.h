@@ -332,7 +332,13 @@ public:
 	ILINE CHUDRadar* GetRadar() {return m_pHUDRadar;}
 	ILINE CHUDVehicleInterface* GetVehicleInterface() { return m_pHUDVehicleInterface; }
 	ILINE CHUDPowerStruggle* GetPowerStruggleHUD() { return m_pHUDPowerStruggle; }
-	ILINE CHUDTextChat* GetMPChat() {return m_pHUDTextChat;}
+	ILINE CHUDTextChat* GetMPChat()
+	{
+		if (!m_pHUDTextChat)
+			CreateMPChat();
+		return m_pHUDTextChat;
+	}
+	void CreateMPChat();
 	ILINE CHUDScopes* GetScopes() { return m_pHUDScopes; }
 	ILINE CHUDCrosshair* GetCrosshair() { return m_pHUDCrosshair; }
 	ILINE CHUDTagNames* GetTagNames() { return m_pHUDTagNames; }
