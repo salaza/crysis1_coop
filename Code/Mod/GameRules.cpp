@@ -803,6 +803,11 @@ void CGameRules::OnChatMessage(EChatMessageType type, EntityId sourceId, EntityI
 //------------------------------------------------------------------------
 void CGameRules::OnRevive(CActor *pActor, const Vec3 &pos, const Quat &rot, int teamId)
 {
+	if (pActor && pActor->IsPlayer() && IsCoop())
+	{
+		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+	}
+
 	if(g_pGame->GetHUD())
 		g_pGame->GetHUD()->ActorRevive(pActor);
 
@@ -835,6 +840,11 @@ void CGameRules::OnKill(CActor *pActor, EntityId shooterId, const char *weaponCl
 //------------------------------------------------------------------------
 void CGameRules::OnReviveInVehicle(CActor *pActor, EntityId vehicleId, int seatId, int teamId)
 {
+	if (pActor && pActor->IsPlayer() && IsCoop())
+	{
+		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+	}
+
 	SGameObjectEvent evt(eCGE_ActorRevive,eGOEF_ToAll, IGameObjectSystem::InvalidExtensionID, (void*)pActor);
 	SAFE_HUD_FUNC(HandleEvent(evt));
 
@@ -968,10 +978,14 @@ CActor *CGameRules::ChangePlayerClass(int channelId, const char *className)
 //------------------------------------------------------------------------
 void CGameRules::RevivePlayer(CActor *pActor, const Vec3 &pos, const Ang3 &angles, int teamId, bool clearInventory)
 {
-	if (pActor && pActor->IsPlayer() && IsCoop() && GetPlayerLives(pActor->GetEntityId()) <= 0)
+	if (pActor && pActor->IsPlayer() && IsCoop())
 	{
-		CryLogAlways("[Co-op] RevivePlayer blocked for '%s': 0 lives remaining (Spectating)", pActor->GetEntity()->GetName());
-		return;
+		if (GetPlayerLives(pActor->GetEntityId()) <= 0)
+		{
+			CryLogAlways("[Co-op] RevivePlayer restoring 3 lives for '%s'", pActor->GetEntity()->GetName());
+			SetPlayerLives(pActor->GetEntityId(), 3);
+		}
+		pActor->SetSpectatorMode(CActor::eASM_None, 0);
 	}
 	// get out of vehicles before reviving
 	if (IVehicle *pVehicle=pActor->GetLinkedVehicle())
@@ -1025,6 +1039,16 @@ void CGameRules::RevivePlayer(CActor *pActor, const Vec3 &pos, const Ang3 &angle
 //------------------------------------------------------------------------
 void CGameRules::RevivePlayerInVehicle(CActor *pActor, EntityId vehicleId, int seatId, int teamId/* =0 */, bool clearInventory/* =true */)
 {
+	if (pActor && pActor->IsPlayer() && IsCoop())
+	{
+		if (GetPlayerLives(pActor->GetEntityId()) <= 0)
+		{
+			CryLogAlways("[Co-op] RevivePlayerInVehicle restoring 3 lives for '%s'", pActor->GetEntity()->GetName());
+			SetPlayerLives(pActor->GetEntityId(), 3);
+		}
+		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+	}
+
 	// might get here with an invalid (-ve) seat id if all seats are currently occupied. 
 	// In that case we use the seat exit code to find a valid position to spawn at.
 	if(seatId < 0)
@@ -3664,6 +3688,8 @@ void CGameRules::PrepCollision(int src, int trg, const SGameCollision& event, IE
 //------------------------------------------------------------------------
 void CGameRules::Restart()
 {
+	ResetPlayerLives();
+
 	if (gEnv->bServer)
 		CallScript(m_script, "RestartGame", true);
 }
@@ -3684,6 +3710,8 @@ void CGameRules::NextLevel()
 //------------------------------------------------------------------------
 void CGameRules::ResetEntities()
 {
+	ResetPlayerLives();
+
 	g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 
 	ResetFrozen();
@@ -4307,10 +4335,19 @@ void CGameRules::SetPlayerLives(EntityId playerId, int lives)
 
 void CGameRules::ResetPlayerLives()
 {
-	for (std::map<EntityId, int>::iterator it = m_playerLives.begin(); it != m_playerLives.end(); ++it)
+	m_playerLives.clear();
+	if (m_pGameFramework && m_pGameFramework->GetIActorSystem())
 	{
-		it->second = 3;
-		if (gEnv->bServer)
-			SetSynchedEntityValue(it->first, COOP_PLAYER_LIVES_KEY, 3);
+		IActorIteratorPtr it = m_pGameFramework->GetIActorSystem()->CreateActorIterator();
+		while (CActor* pActor = static_cast<CActor*>(it->Next()))
+		{
+			if (pActor && pActor->IsPlayer())
+			{
+				EntityId id = pActor->GetEntityId();
+				m_playerLives[id] = 3;
+				if (gEnv->bServer)
+					SetSynchedEntityValue(id, COOP_PLAYER_LIVES_KEY, 3);
+			}
+		}
 	}
 }

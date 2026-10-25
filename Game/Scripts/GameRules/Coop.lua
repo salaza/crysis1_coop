@@ -330,12 +330,18 @@ function Coop:CaptureSinglePlayerStart()
 		return;
 	end
 
-	-- 1. Check for known SP intro beach / start markers
+	-- 1. Check for known SP intro / start markers across all missions
 	local startEnt = System.GetEntityByName("cine_1_Player_endPoint_beach")
 		or System.GetEntityByName("cine_1_endPoint")
+		or System.GetEntityByName("cine_1_endpoint")
+		or System.GetEntityByName("cine_1_playerStart")
 		or System.GetEntityByName("Player_Start")
 		or System.GetEntityByName("SpawnPoint_SP")
-		or System.GetEntityByName("Mission_Start");
+		or System.GetEntityByName("Mission_Start")
+		or System.GetEntityByName("AB1_Mission_Start")
+		or System.GetEntityByName("SpawnPoint1")
+		or System.GetEntityByName("Spawnpoint1")
+		or System.GetEntityByName("AB1_player_start_tank");
 	if (startEnt) then
 		self.spStartPos = { x = 0, y = 0, z = 0 };
 		self.spStartAngles = { x = 0, y = 0, z = 0 };
@@ -345,13 +351,28 @@ function Coop:CaptureSinglePlayerStart()
 		return;
 	end
 
-	-- 2. Fallback for island mission: Nomad beach landing position
+	-- 2. Guaranteed fallbacks for all 11 campaign chapters
 	local level = string.lower(self.game:GetLevelName() or "");
-	if (string.find(level, "island")) then
-		self.spStartPos = { x = 1275.288, y = 1839.266, z = 95.288 };
-		self.spStartAngles = { x = 0, y = 0, z = 0 };
-		System.LogAlways(string.format("[Coop] Assigned default island SP start position: (%.1f, %.1f, %.1f)", self.spStartPos.x, self.spStartPos.y, self.spStartPos.z));
-		return;
+	local levelStarts = {
+		island    = { pos = { x = 1275.3, y = 1839.3, z = 95.3 },  angles = { x = 0, y = 0, z = 0 } },
+		village   = { pos = { x = 1157.0, y = 577.0,  z = 123.4 }, angles = { x = 0, y = 0, z = 0 } },
+		rescue    = { pos = { x = 934.5,  y = 2110.4, z = 265.1 }, angles = { x = 0, y = 0, z = 0 } },
+		harbor    = { pos = { x = 1569.2, y = 2167.0, z = 148.2 }, angles = { x = 0, y = 0, z = 0 } },
+		tank      = { pos = { x = 374.5,  y = 2586.4, z = 267.2 }, angles = { x = 0, y = 0, z = 0 } },
+		mine      = { pos = { x = 2159.4, y = 2337.8, z = 225.7 }, angles = { x = 0, y = 0, z = 0 } },
+		core      = { pos = { x = 1337.3, y = 170.0,  z = 237.9 }, angles = { x = 0, y = 0, z = 0 } },
+		ice       = { pos = { x = 3935.6, y = 2834.7, z = 478.0 }, angles = { x = 0, y = 0, z = 0 } },
+		sphere    = { pos = { x = 3396.0, y = 2815.0, z = 257.4 }, angles = { x = 0, y = 0, z = 0 } },
+		ascension = { pos = { x = 582.1,  y = 354.6,  z = 222.0 }, angles = { x = 0, y = 0, z = 0 } },
+		fleet     = { pos = { x = 1542.3, y = 180.6,  z = 121.0 }, angles = { x = 0, y = 0, z = 0 } },
+	};
+	for k, entry in pairs(levelStarts) do
+		if (string.find(level, k)) then
+			self.spStartPos = { x = entry.pos.x, y = entry.pos.y, z = entry.pos.z };
+			self.spStartAngles = { x = entry.angles.x, y = entry.angles.y, z = entry.angles.z };
+			System.LogAlways(string.format("[Coop] Assigned campaign fallback SP start position for '%s': (%.1f, %.1f, %.1f)", k, self.spStartPos.x, self.spStartPos.y, self.spStartPos.z));
+			return;
+		end
 	end
 
 	local players = System.GetEntitiesByClass("Player");
@@ -425,6 +446,8 @@ function Coop:Reset(forcePregame)
 	self.forceInGame=nil;
 	
 	self.works={};
+	self.spStartPos = nil;
+	self.spStartAngles = nil;
 end
 
 
@@ -433,6 +456,8 @@ function Coop:RestartGame(forceInGame)
 	self:GotoState("Reset");
 
 	self.game:ResetEntities();
+	self.spStartPos = nil;
+	self.spStartAngles = nil;
 
 	if (forceInGame) then
 		self.forceInGame=true;
@@ -1010,15 +1035,56 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 			end
 		end
 
+		-- 4. Fallback: scan any SpawnPoint / RespawnPoint in the map
 		if (not result) then
-			local spPoints = System.GetEntitiesByClass("SpawnPoint") or System.GetEntitiesByClass("RespawnPoint");
-			if (spPoints and spPoints[1]) then
-				pos = spPoints[1]:GetWorldPos(g_Vectors.temp_v1);
-				angles = spPoints[1]:GetWorldAngles(g_Vectors.temp_v2);
+			local spList = {};
+			local sp1 = System.GetEntitiesByClass("SpawnPoint");
+			if (sp1) then for _, sp in pairs(sp1) do table.insert(spList, sp); end end
+			local sp2 = System.GetEntitiesByClass("RespawnPoint");
+			if (sp2) then for _, sp in pairs(sp2) do table.insert(spList, sp); end end
+
+			local chosenSP = nil;
+			for _, sp in ipairs(spList) do
+				if (sp:GetName() == "SpawnPoint1" or sp:GetName() == "Spawnpoint1") then
+					chosenSP = sp;
+					break;
+				end
+			end
+			if (not chosenSP) then
+				for _, sp in ipairs(spList) do
+					if (sp.enabled or (sp.Properties and tonumber(sp.Properties.bEnabled) ~= 0)) then
+						chosenSP = sp;
+						break;
+					end
+				end
+			end
+			if (not chosenSP and #spList > 0) then
+				chosenSP = spList[1];
+			end
+
+			if (chosenSP) then
+				local pos = chosenSP:GetWorldPos(g_Vectors.temp_v1);
+				local angles = chosenSP:GetWorldAngles(g_Vectors.temp_v2);
 				pos.z = pos.z + 0.15;
 				self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);
 				result = true;
+				System.LogAlways(string.format("[Coop] Spawning player '%s' at fallback spawnpoint '%s' (%.1f, %.1f, %.1f)", player:GetName(), chosenSP:GetName(), pos.x, pos.y, pos.z));
 			end
+		end
+
+		-- 5. Ultimate fallback: guaranteed coordinates
+		if (not result) then
+			local spos = { x = 374.5, y = 2586.4, z = 267.2 };
+			if (self.spStartPos) then
+				spos = self.spStartPos;
+			end
+			local pos = g_Vectors.temp_v1;
+			local angles = g_Vectors.temp_v2;
+			pos.x, pos.y, pos.z = spos.x, spos.y, spos.z + 0.15;
+			angles.x, angles.y, angles.z = 0, 0, 0;
+			self.game:RevivePlayer(player.id, pos, angles, teamId, not keepEquip);
+			result = true;
+			System.LogAlways(string.format("[Coop] Spawning player '%s' at ultimate fallback (%.1f, %.1f, %.1f)", player:GetName(), pos.x, pos.y, pos.z));
 		end
 	end
 	
