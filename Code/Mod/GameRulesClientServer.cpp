@@ -1090,7 +1090,6 @@ IMPLEMENT_RMI(CGameRules, ClTaggedEntity)
 	if (!params.entityId)
 		return true;
 
-	SAFE_HUD_FUNC(GetRadar()->AddTaggedEntity(params.entityId));
 	SAFE_HUD_FUNC(GetRadar()->AddEntityToRadar(params.entityId));
 
 	SEntityEvent scriptEvent( ENTITY_EVENT_SCRIPT_EVENT );

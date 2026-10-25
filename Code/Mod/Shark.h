@@ -260,6 +260,9 @@ public:
 	//virtual void StanceChanged(EStance last);
 	// ~CActor
 
+	void SetTarget(EntityId targetId);
+	void SetReaching(const Vec3& targetPos);
+
 	//virtual void ProcessRotation(float frameTime);
 	virtual void ProcessMovement(float frameTime);
 
@@ -336,7 +339,6 @@ protected:
 	void SetStartPos(const Vec3& targetPos);
 	void MeleeAnimation();
 	void FindEscapePoints();
-	void SetReaching(const Vec3& targetPos);
 	float GetDistHeadTarget(const Vec3& targetPos, const Vec3& targetDirN,float& dotMouth);
 	void ResetValues();
 

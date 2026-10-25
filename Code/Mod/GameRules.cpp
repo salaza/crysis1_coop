@@ -46,6 +46,7 @@
 #include <StringUtils.h>
 #include "Coop/CoopAdminMenu.h"
 #include <ILevelSystem.h>
+#include "Shark.h"
 
 int CGameRules::s_invulnID = 0;
 int CGameRules::s_barbWireID = 0;
@@ -4685,17 +4686,27 @@ void CGameRules::UpdateCoopSharks(float frameTime)
 					else
 						forw.Set(0, 1, 0);
 
-					Vec3 spawnPos = pos - forw * 25.0f;
-					spawnPos.z = oceanLevel - 2.5f;
+					Vec3 spawnPos = pos - forw * 18.0f;
+					spawnPos.z = oceanLevel - 1.5f;
 
 					SEntitySpawnParams params;
 					params.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("Shark");
 					params.vPosition = spawnPos;
+					params.qRotation = Quat::CreateRotationZ(atan2f(forw.x, forw.y));
 					params.sName = "OceanShark";
 					params.nFlags = ENTITY_FLAG_SPAWNED | ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
 					IEntity* pShark = gEnv->pEntitySystem->SpawnEntity(params);
 					if (pShark)
 					{
+						pShark->Hide(false);
+						pShark->Activate(true);
+
+						if (CShark* pSharkActor = static_cast<CShark*>(m_pGameFramework->GetIActorSystem()->GetActor(pShark->GetId())))
+						{
+							pSharkActor->SetTarget(pActor->GetEntityId());
+							pSharkActor->SetReaching(pos);
+						}
+
 						IScriptTable* pTbl = pShark->GetScriptTable();
 						if (pTbl)
 						{

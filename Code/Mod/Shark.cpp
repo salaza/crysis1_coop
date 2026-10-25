@@ -1038,6 +1038,11 @@ void CShark::UpdateSpawning()
 }
 
 */
+void CShark::SetTarget(EntityId targetId)
+{
+	m_targetId = targetId;
+}
+
 void CShark::SetReaching(const Vec3& targetPos)
 {
 	SetMoveTarget(targetPos, true, m_params.minDistForUpdatingMoveTarget);

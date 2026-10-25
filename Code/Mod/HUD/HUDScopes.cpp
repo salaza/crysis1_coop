@@ -204,7 +204,22 @@ void CHUDScopes::DisplayBinoculars(CPlayer* pPlayerActor)
 
 			IActor *pActor = gEnv->pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pEntity->GetId());
 			if(!pActor)
+			{
+				IVehicle *pVehicle = gEnv->pGame->GetIGameFramework()->GetIVehicleSystem()->GetVehicle(pEntity->GetId());
+				if(pVehicle && pAIPlayer)
+				{
+					IAIObject *pAIObject = pEntity->GetAI();
+					if(pAIObject && pAIObject->IsHostile(pAIPlayer,false) && pAIObject->IsEnabled())
+					{
+						float r = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 16) & 0xFF)) / 255.0f;
+						float g = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 8)  & 0xFF)) / 255.0f;
+						float b = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 0)  & 0xFF)) / 255.0f;
+						g_pHUD->m_pHUDSilhouettes->SetSilhouette(pEntity, r, g, b, 1.0f, -1);
+						drawnEntities[uiEntityId] = true;
+					}
+				}
 				continue;
+			}
 
 			IAIObject *pAIObject = pEntity->GetAI();
 			if(!pAIObject)
@@ -234,7 +249,21 @@ void CHUDScopes::DisplayBinoculars(CPlayer* pPlayerActor)
 
 				IActor *pActor = gEnv->pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pEntity->GetId());
 				if(!pActor)
+				{
+					IVehicle *pVehicle = gEnv->pGame->GetIGameFramework()->GetIVehicleSystem()->GetVehicle(pEntity->GetId());
+					if(pVehicle && pAIPlayer)
+					{
+						IAIObject *pAIObject = pEntity->GetAI();
+					if(pAIObject && pAIObject->IsHostile(pAIPlayer,false) && pAIObject->IsEnabled())
+						{
+							float r = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 16) & 0xFF)) / 255.0f;
+							float g = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 8)  & 0xFF)) / 255.0f;
+							float b = ((unsigned char) ((g_pGameCVars->hud_colorLine >> 0)  & 0xFF)) / 255.0f;
+							g_pHUD->m_pHUDSilhouettes->SetSilhouette(pEntity, r, g, b, 1.0f, -1);
+						}
+					}
 					continue;
+				}
 
 				if(stl::find_in_map(drawnEntities, uiEntityId, false))
 					continue;

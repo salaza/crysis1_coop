@@ -75,20 +75,20 @@ struct SSandboxItem
 };
 
 static const SSandboxItem s_npcs[] = {
-	{ "KPA Rifleman",        "Standard NK infantry soldier", "Asian.Camper\\Jungle.Heavy_Rifleman_a", "Grunt", NULL, false, 0.0f },
-	{ "KPA Shotgunner",      "Close quarters NK combatant", "Asian.Camper\\Jungle.Heavy_CQB_a", "Grunt", NULL, false, 0.0f },
-	{ "KPA Sniper",          "Long range marksman with scope", "Asian.Cover2\\Jungle.Heavy_CovertOps_a", "Grunt", NULL, false, 0.0f },
-	{ "KPA Grenadier",       "Heavy grenade launcher specialist", "Asian.Camper\\Jungle.Heavy_Grenadier_a", "Grunt", NULL, false, 0.0f },
-	{ "KPA Nanosuit Soldier","Elite Korean nanosuit operative", "Asian.Suit\\Elite.Heavy_SpecOps", "Grunt", NULL, false, 0.0f },
-	{ "US Marine Rifleman",  "Allied US Marine with SCAR", "US.Grunt/Cover.US_Rifleman_1b", "Grunt", NULL, false, 0.0f },
-	{ "US Marine Gauss",     "US Marine armed with Gauss sniper", "US.Grunt/Inaccurate.US_Gauss_1", "Grunt", NULL, false, 0.0f },
-	{ "Squadmate Psycho",    "Sergeant Michael Sykes", "Squad_mates.Squadmate_Sykes", "Grunt", NULL, false, 0.0f },
-	{ "Squadmate Prophet",   "Major Laurence Barnes", "Squad_mates.Squadmate_Barnes", "Grunt", NULL, false, 0.0f },
-	{ "Alien Scout",         "Flying Ceph assault bio-mechanoid", "Aliens.Scouts.Scout_MOAC", "Scout", NULL, false, 2.0f },
-	{ "Alien Trooper",       "Ceph ground trooper with MOAC", "Aliens.Troopers.Trooper_MOAC", "Trooper", NULL, false, 0.0f },
-	{ "Alien Hunter",        "Massive Ceph walking combat tripod", "Aliens.Hunters.Hunter", "Hunter", NULL, false, 0.0f },
-	{ "Great White Shark",   "Lethal oceanic predator", NULL, "Shark", NULL, false, -1.0f },
-	{ "Hostage Civilian",    "Unarmed civilian survivor", "US.Firefighters.US_Firefighter_a", "Civilian", NULL, false, 0.0f },
+	{ "KPA Rifleman",        "Standard NK infantry soldier", "Asian_new.Cover\\Camp.Heavy_Rifle", "CoopGrunt", "objects/characters/human/asian/nk_soldier/nk_soldier_camp_cover_heavy_01.cdf", false, 0.0f },
+	{ "KPA Shotgunner",      "Close quarters NK combatant", "Asian_new.Cover\\Camp.Heavy_Shotgun", "CoopGrunt", "objects/characters/human/asian/nk_soldier/nk_soldier_camp_cover_heavy_shotgun_01.cdf", false, 0.0f },
+	{ "KPA Sniper",          "Long range marksman with scope", "Asian_new.Special\\Sniper.Sniper_SniperScope", "CoopGrunt", "objects/characters/human/asian/nk_soldier/nk_soldier_jungle_flanker_light_01.cdf", false, 0.0f },
+	{ "KPA Grenadier",       "Heavy grenade launcher specialist", "Asian_new.Cover\\Camp.Heavy_Rifle_Gren", "CoopGrunt", "objects/characters/human/asian/nk_soldier/nk_soldier_camp_cover_heavy_gren_01.cdf", false, 0.0f },
+	{ "KPA Nanosuit Soldier","Elite Korean nanosuit operative", "Asian_new.Special\\Suit.Suit_Sniper", "CoopGrunt", "objects/characters/human/asian/nanosuit/nanosuit_asian.cdf", false, 0.0f },
+	{ "US Marine Rifleman",  "Allied US Marine with SCAR", "US.Grunt/Cover.US_Rifleman_1", "CoopGrunt", "objects/characters/human/us/marine/marine_01.cdf", false, 0.0f },
+	{ "US Marine Gauss",     "US Marine armed with Gauss sniper", "US.Grunt/Sniper.US_Gauss", "CoopGrunt", "objects/characters/human/us/marine/marine_01.cdf", false, 0.0f },
+	{ "Squadmate Psycho",    "Sergeant Michael Sykes", "Squad_mates.Squadmate_Sykes", "CoopGrunt", "objects/characters/human/story/michael_sykes/michael_sykes.cdf", false, 0.0f },
+	{ "Squadmate Prophet",   "Major Laurence Barnes", "Squad_mates.Squadmate_Barnes", "CoopGrunt", "objects/characters/human/story/laurence_barnes/laurence_barnes.cdf", false, 0.0f },
+	{ "Alien Scout",         "Flying Ceph assault bio-mechanoid", "Aliens.Scouts.Scout_MOAC", "CoopScout", "Objects/Characters/Alien/Scout/Scout_base.cdf", false, 2.0f },
+	{ "Alien Trooper",       "Ceph ground trooper with MOAC", "Aliens.Troopers.Trooper_MOAC", "Trooper", "objects/characters/alien/trooper/trooper_base.chr", false, 0.0f },
+	{ "Alien Hunter",        "Massive Ceph walking combat tripod", "Aliens.Hunters.Hunter", "Hunter", "objects/characters/alien/hunter/hunter.cdf", false, 0.0f },
+	{ "Great White Shark",   "Lethal oceanic predator", NULL, "Shark", "Objects/characters/animals/whiteshark/greatwhiteshark.cdf", false, -1.0f },
+	{ "Hostage Civilian",    "Unarmed civilian survivor", "US.Scientist.US_Scientist_02", "Civilian", "objects/characters/human/us/scientist/scientist_02.cdf", false, 0.0f },
 };
 
 static const SSandboxItem s_props[] = {
@@ -615,7 +615,7 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 			m_currentCategory = (m_currentCategory + 1) % ECAT_COUNT;
 			return true;
 		}
-		else if (event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter || event.keyId == eKI_Space)
+		else if (event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter)
 		{
 			ExecuteSelected();
 			return true;
@@ -1092,23 +1092,29 @@ void CCoopAdminMenu::Render()
 void CCoopAdminMenu::SpawnSandboxItem(int category, int index)
 {
 	IActor* pActor = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetClientActor() : NULL;
-	Vec3 eyePos = pActor ? pActor->GetEntity()->GetWorldPos() + Vec3(0, 0, 1.6f) : gEnv->pSystem->GetViewCamera().GetPosition();
+	Vec3 eyePos = gEnv->pSystem->GetViewCamera().GetPosition();
 	Vec3 viewDir = gEnv->pSystem->GetViewCamera().GetViewdir();
 	if (viewDir.GetLengthSquared() < 0.01f)
 		viewDir.Set(0, 1, 0);
 	viewDir.Normalize();
 
-	// Raycast forward from camera to find placement point on ground or surface
+	// Skip player entity so raycast hits ground/objects, not the player themselves
+	IPhysicalEntity* pSkipEnts[10];
+	int numSkip = 0;
+	if (pActor && pActor->GetEntity() && pActor->GetEntity()->GetPhysics())
+		pSkipEnts[numSkip++] = pActor->GetEntity()->GetPhysics();
+
+	// Raycast forward along player view direction to find ground/wall hit point
 	ray_hit hit;
 	static const int rayFlags = rwi_stop_at_pierceable | rwi_colltype_any;
 	Vec3 spawnPos;
-	if (gEnv->pPhysicalWorld && gEnv->pPhysicalWorld->RayWorldIntersection(eyePos, viewDir * 25.0f, ent_all, rayFlags, &hit, 1))
+	if (gEnv->pPhysicalWorld && gEnv->pPhysicalWorld->RayWorldIntersection(eyePos, viewDir * 300.0f, ent_all, rayFlags, &hit, 1, pSkipEnts, numSkip))
 	{
 		spawnPos = hit.pt;
 	}
 	else
 	{
-		spawnPos = eyePos + viewDir * 8.0f;
+		spawnPos = eyePos + viewDir * 10.0f;
 		if (gEnv->p3DEngine)
 		{
 			float terrZ = gEnv->p3DEngine->GetTerrainElevation(spawnPos.x, spawnPos.y);
@@ -1163,11 +1169,15 @@ void CCoopAdminMenu::ServerSpawnItem(int category, int index, const Vec3& pos, c
 		spawnParams.pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(item.archetype);
 	}
 
-	if (!spawnParams.pArchetype && item.className && item.className[0])
+	if (spawnParams.pArchetype)
+	{
+		spawnParams.pClass = spawnParams.pArchetype->GetClass();
+	}
+	else if (item.className && item.className[0])
 	{
 		spawnParams.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(item.className);
 	}
-	else if (!spawnParams.pArchetype)
+	else
 	{
 		spawnParams.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("BasicEntity");
 	}
@@ -1188,14 +1198,34 @@ void CCoopAdminMenu::ServerSpawnItem(int category, int index, const Vec3& pos, c
 	{
 		if (item.cgfModel && item.cgfModel[0])
 		{
-			pEntity->LoadGeometry(0, item.cgfModel);
-			SEntityPhysicalizeParams phys;
-			phys.type = item.bStatic ? PE_STATIC : PE_RIGID;
-			phys.mass = item.bStatic ? 0.0f : 120.0f;
-			pEntity->Physicalize(phys);
+			const char* ext = strrchr(item.cgfModel, '.');
+			if (ext && (!stricmp(ext, ".cdf") || !stricmp(ext, ".chr") || !stricmp(ext, ".cga")))
+			{
+				pEntity->LoadCharacter(0, item.cgfModel);
+			}
+			else
+			{
+				pEntity->LoadGeometry(0, item.cgfModel);
+				SEntityPhysicalizeParams phys;
+				phys.type = item.bStatic ? PE_STATIC : PE_RIGID;
+				phys.mass = item.bStatic ? 0.0f : 120.0f;
+				pEntity->Physicalize(phys);
+			}
 		}
 
+		pEntity->Hide(false);
 		pEntity->Activate(true);
+
+		// Call OnReset on script table if available so AI and character equipment initialize
+		if (IScriptTable* pScript = pEntity->GetScriptTable())
+		{
+			HSCRIPTFUNCTION pfnReset = 0;
+			if (pScript->GetValue("OnReset", pfnReset))
+			{
+				Script::CallMethod(pScript, "OnReset");
+				gEnv->pScriptSystem->ReleaseFunc(pfnReset);
+			}
+		}
 
 		CryLogAlways("[Sandbox] Spawned '%s' (%s) at (%.1f, %.1f, %.1f)", item.name, pEntity->GetName(), finalPos.x, finalPos.y, finalPos.z);
 		string msg;

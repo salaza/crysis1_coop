@@ -1976,7 +1976,7 @@ void CHUDRadar::RenderMapOverlay()
 				else
 				{
 					GetPosOnMap(pTempActor->GetEntity(), fX, fY);
-					numOfValues += FillUpDoubleArray(&entityValues, pActor->GetEntity()->GetId(), ChooseType(pTempActor->GetEntity(), false), fX, fY,
+					numOfValues += FillUpDoubleArray(&entityValues, pTempActor->GetEntity()->GetId(), ChooseType(pTempActor->GetEntity(), false), fX, fY,
 						270.0f-RAD2DEG(pTempActor->GetEntity()->GetWorldAngles().z), FriendOrFoe(isMultiplayer, team, pTempActor->GetEntity(), pGameRules), 100, 100, iOnScreenObjective==pTempActor->GetEntity()->GetId(), iCurrentSpawnPoint==pTempActor->GetEntity()->GetId());
 				}
 			}
