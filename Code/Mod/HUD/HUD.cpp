@@ -3813,9 +3813,9 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 		string watermark;
 		if (lives > 0)
-			watermark.Format("Crysis Co-op v1.6.4 | Lives: %d", lives);
+			watermark.Format("Crysis Co-op v1.6.5 | Lives: %d", lives);
 		else
-			watermark = "Crysis Co-op v1.6.4 | Spectating";
+			watermark = "Crysis Co-op v1.6.5 | Spectating";
 		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "%s", watermark.c_str());
 	}
 }
@@ -3838,7 +3838,11 @@ void CHUD::OnActionEvent(const SActionEvent& event)
 			// this will make sure we actually display it BEFORE the short stall due to saving
 			const ESaveGameReason reason = (ESaveGameReason) event.m_value;
 			if(reason == eSGR_FlowGraph)
+			{
 				m_delayedMessage = "@checkpoint";
+				if (g_pGame && g_pGame->GetGameRules())
+					g_pGame->GetGameRules()->OnCheckpointReached();
+			}
 			else
 				m_delayedMessage = "@game_saving";
 		}

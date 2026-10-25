@@ -1538,6 +1538,9 @@ function Coop.Server:RequestRevive(entityId)
 		end
 
 		if ((player.death_time and _time-player.death_time>2.5 and player:IsDead()) or (player.actor:GetSpectatorMode()~=0)) then
+			if (player.actor:GetSpectatorMode() ~= 0) then
+				player.actor:SetSpectatorMode(0, NULL_ENTITY);
+			end
 			self:RevivePlayer(player.actor:GetChannel(), player);
 		end
 	end
@@ -1781,6 +1784,24 @@ function Coop:ReviveAllPlayers(keepEquip)
 		for i,player in ipairs(players) do
 			if (player and player.actor and player.actor:GetSpectatorMode()==0) then
 				self:RevivePlayer(player.actor:GetChannel(), player, keepEquip);
+			end
+		end
+	end
+end
+
+
+----------------------------------------------------------------------------------------------------
+function Coop:OnCheckpointReached()
+	System.LogAlways("[Coop] Checkpoint reached! Refilling player lives and reviving fallen players.");
+	local players = self.game:GetPlayers();
+	if (players) then
+		for i, player in ipairs(players) do
+			if (player and player.actor) then
+				self.game:SetSynchedEntityValue(player.id, 960, 3);
+				if (player:IsDead() or player.actor:GetSpectatorMode() ~= 0) then
+					player.actor:SetSpectatorMode(0, NULL_ENTITY);
+					self:RevivePlayer(player.actor:GetChannel(), player, false);
+				end
 			end
 		end
 	end

@@ -440,3 +440,129 @@ REGISTER_FLOW_NODE("Crysis:HitInfo", CFlowHitInfoNode);
 REGISTER_FLOW_NODE("Crysis:ExplosionInfo", CFlowExplosionInfoNode);
 REGISTER_FLOW_NODE_SINGLETON("Crysis:FreezeEntity", CFlowFreezeEntityNode);
 
+class CFlowNode_SystemSaveGame : public CFlowBaseNode
+{
+public:
+	CFlowNode_SystemSaveGame( SActivationInfo * pActInfo )
+		: m_bEnabled(true)
+	{
+	}
+
+	IFlowNodePtr Clone( SActivationInfo * pActInfo )
+	{
+		return new CFlowNode_SystemSaveGame(pActInfo);
+	}
+
+	enum EInputPorts
+	{
+		EIP_Save = 0,
+		EIP_Load,
+		EIP_Name,
+		EIP_Desc,
+		EIP_InGameOnly,
+		EIP_Enable,
+		EIP_Disable,
+	};
+
+	enum EOutputPorts
+	{
+		EOP_Out = 0,
+		EOP_Output,
+		EOP_Succeed,
+		EOP_Failed,
+		EOP_Done,
+		EOP_Enable,
+		EOP_Disable,
+	};
+
+	virtual void GetConfiguration(SFlowNodeConfig& config)
+	{
+		static const SInputPortConfig inputs[] = {
+			InputPortConfig_Void("Save", _HELP("Trigger to save game")),
+			InputPortConfig_Void("Load", _HELP("Trigger to load game")),
+			InputPortConfig<string>("Name", _HELP("Save game name")),
+			InputPortConfig<string>("Desc", _HELP("Save game description")),
+			InputPortConfig<bool>("InGameOnly", true, _HELP("Only save if in game")),
+			InputPortConfig_Void("Enable", _HELP("Enable saving")),
+			InputPortConfig_Void("Disable", _HELP("Disable saving")),
+			{0}
+		};
+		static const SOutputPortConfig outputs[] = {
+			OutputPortConfig_Void("out", _HELP("Triggered after save")),
+			OutputPortConfig_Void("output", _HELP("Triggered after save")),
+			OutputPortConfig_Void("succeed", _HELP("Triggered on success")),
+			OutputPortConfig_Void("failed", _HELP("Triggered on failure")),
+			OutputPortConfig_Void("done", _HELP("Triggered on completion")),
+			OutputPortConfig_Void("Enable", _HELP("Triggered on enable")),
+			OutputPortConfig_Void("Disable", _HELP("Triggered on disable")),
+			{0}
+		};
+		config.pInputPorts = inputs;
+		config.pOutputPorts = outputs;
+		config.sDescription = _HELP("Save Game / Checkpoint Node (Co-op Enabled)");
+		config.SetCategory(EFLN_ADVANCED);
+	}
+
+	virtual void ProcessEvent( EFlowEvent event, SActivationInfo *pActInfo )
+	{
+		switch (event)
+		{
+		case eFE_Activate:
+			{
+				if (IsPortActive(pActInfo, EIP_Enable))
+				{
+					m_bEnabled = true;
+					ActivateOutput(pActInfo, EOP_Enable, true);
+				}
+				if (IsPortActive(pActInfo, EIP_Disable))
+				{
+					m_bEnabled = false;
+					ActivateOutput(pActInfo, EOP_Disable, true);
+				}
+				if (IsPortActive(pActInfo, EIP_Save))
+				{
+					if (m_bEnabled)
+					{
+						const string& name = GetPortString(pActInfo, EIP_Name);
+						const string& desc = GetPortString(pActInfo, EIP_Desc);
+
+						CryLogAlways("[Co-op FlowGraph] System:SaveGame triggered (Name: '%s', Desc: '%s')", name.c_str(), desc.c_str());
+
+						CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL;
+						if (pGR)
+						{
+							pGR->OnCheckpointReached();
+						}
+
+						if (!gEnv->bMultiplayer && g_pGame && g_pGame->GetIGameFramework())
+						{
+							g_pGame->GetIGameFramework()->SaveGame(name.c_str(), false, false, eSGR_FlowGraph, true, desc.c_str());
+						}
+
+						ActivateOutput(pActInfo, EOP_Out, true);
+						ActivateOutput(pActInfo, EOP_Output, true);
+						ActivateOutput(pActInfo, EOP_Succeed, true);
+						ActivateOutput(pActInfo, EOP_Done, true);
+					}
+					else
+					{
+						ActivateOutput(pActInfo, EOP_Failed, true);
+					}
+				}
+			}
+			break;
+		}
+	}
+
+	virtual void GetMemoryStatistics(ICrySizer * s)
+	{
+		s->Add(*this);
+	}
+
+private:
+	bool m_bEnabled;
+};
+
+REGISTER_FLOW_NODE("System:SaveGame", CFlowNode_SystemSaveGame);
+
+

@@ -45,6 +45,7 @@
 #include <StlUtils.h>
 #include <StringUtils.h>
 #include "Coop/CoopAdminMenu.h"
+#include <ILevelSystem.h>
 
 int CGameRules::s_invulnID = 0;
 int CGameRules::s_barbWireID = 0;
@@ -117,7 +118,11 @@ CGameRules::CGameRules()
 	m_timeOfDayInitialized(false),
 	m_processingHit(0),
 	m_explosionScreenFX(true),
-	m_pShotValidator(0)
+	m_pShotValidator(0),
+	m_lastCheckpointTime(0.0f),
+	m_allDeadRestartTimer(-1.0f),
+	m_lastAnnouncedSec(-1),
+	m_allDeadCheckTimer(0.0f)
 {
 }
 
@@ -375,6 +380,11 @@ void CGameRules::Update( SEntityUpdateContext& ctx, int updateSlot )
   {
     ProcessQueuedExplosions();
 		UpdateEntitySchedules(ctx.fFrameTime);
+
+		if (IsCoop())
+		{
+			UpdateCoopGameSession(ctx.fFrameTime);
+		}
 
 		if (m_pShotValidator)
 			m_pShotValidator->Update();
@@ -3720,6 +3730,10 @@ void CGameRules::NextLevel()
 void CGameRules::ResetEntities()
 {
 	ResetPlayerLives();
+	m_allDeadRestartTimer = -1.0f;
+	m_lastAnnouncedSec = -1;
+	m_allDeadCheckTimer = 0.0f;
+	m_lastCheckpointTime = 0.0f;
 
 	g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 
@@ -4366,5 +4380,246 @@ void CGameRules::ResetPlayerLives()
 					SetSynchedEntityValue(id, COOP_PLAYER_LIVES_KEY, 3);
 			}
 		}
+	}
+}
+
+//------------------------------------------------------------------------
+void CGameRules::UpdateCoopGameSession(float frameTime)
+{
+	if (!gEnv->bServer || !IsCoop())
+		return;
+
+	// Don't monitor or restart during admin menu lobby / waiting for players
+	if (CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+	{
+		m_allDeadRestartTimer = -1.0f;
+		m_lastAnnouncedSec = -1;
+		m_allDeadCheckTimer = 0.0f;
+		return;
+	}
+
+	// Don't monitor while a cutscene is playing
+	if (CCoopCutsceneSystem::GetInstance() && CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+	{
+		m_allDeadRestartTimer = -1.0f;
+		m_lastAnnouncedSec = -1;
+		m_allDeadCheckTimer = 0.0f;
+		return;
+	}
+
+	IActorSystem* pActorSystem = m_pGameFramework->GetIActorSystem();
+	if (!pActorSystem)
+		return;
+
+	int totalPlayers = 0;
+	int alivePlayers = 0;
+	int playersWithLives = 0;
+
+	IActorIteratorPtr it = pActorSystem->CreateActorIterator();
+	while (CActor* pActor = static_cast<CActor*>(it->Next()))
+	{
+		if (pActor && pActor->IsPlayer())
+		{
+			totalPlayers++;
+			EntityId pid = pActor->GetEntityId();
+			int lives = GetPlayerLives(pid);
+
+			if (lives > 0)
+				playersWithLives++;
+
+			// Check if actor is truly alive (health > 0 and not in spectator follow/free/fixed mode)
+			int specMode = pActor->GetSpectatorMode();
+			bool isSpectating = (specMode != CActor::eASM_None && specMode != CActor::eASM_Cutscene);
+			if (pActor->GetHealth() > 0 && !isSpectating)
+			{
+				alivePlayers++;
+			}
+		}
+	}
+
+	if (totalPlayers == 0)
+	{
+		m_allDeadRestartTimer = -1.0f;
+		m_lastAnnouncedSec = -1;
+		m_allDeadCheckTimer = 0.0f;
+		return;
+	}
+
+	// If there are living players, reset all-dead timers
+	if (alivePlayers > 0)
+	{
+		m_allDeadCheckTimer = 0.0f;
+		if (m_allDeadRestartTimer >= 0.0f)
+		{
+			CryLogAlways("[Co-op] Living players active, cancelling level restart countdown.");
+			m_allDeadRestartTimer = -1.0f;
+			m_lastAnnouncedSec = -1;
+		}
+		return;
+	}
+
+	// If we reach here, alivePlayers == 0 (all players are dead or spectating)
+	m_allDeadCheckTimer += frameTime;
+
+	// Restart condition: either all players have 0 lives, OR everyone has been dead for at least 5.0s
+	bool shouldRestart = (playersWithLives == 0) || (m_allDeadCheckTimer >= 5.0f);
+
+	if (shouldRestart)
+	{
+		if (m_allDeadRestartTimer < 0.0f)
+		{
+			m_allDeadRestartTimer = 5.0f;
+			m_lastAnnouncedSec = -1;
+			CryLogAlways("[Co-op] ALL PLAYERS ELIMINATED! Starting 5-second countdown to restart level...");
+		}
+
+		m_allDeadRestartTimer -= frameTime;
+		int currentSec = (int)ceilf(m_allDeadRestartTimer);
+		if (currentSec > 0 && currentSec != m_lastAnnouncedSec)
+		{
+			m_lastAnnouncedSec = currentSec;
+			string msg;
+			msg.Format("ALL PLAYERS ELIMINATED! RESTARTING LEVEL IN %d...", currentSec);
+			OnTextMessage(eTextMessageCenter, msg.c_str());
+			CryLogAlways("[Co-op] %s", msg.c_str());
+		}
+
+		if (m_allDeadRestartTimer <= 0.0f)
+		{
+			CryLogAlways("[Co-op] Elimination countdown complete! Restarting current level now.");
+			m_allDeadRestartTimer = -1.0f;
+			m_lastAnnouncedSec = -1;
+			m_allDeadCheckTimer = 0.0f;
+			RestartCurrentLevel();
+		}
+	}
+}
+
+//------------------------------------------------------------------------
+void CGameRules::OnCheckpointReached()
+{
+	CTimeValue now = gEnv->pTimer->GetFrameStartTime();
+	if ((now - m_lastCheckpointTime).GetSeconds() < 3.0f)
+		return;
+	m_lastCheckpointTime = now;
+
+	if (!gEnv->bServer)
+		return;
+
+	CryLogAlways("[Co-op] Checkpoint reached! Refilling player lives and reviving fallen teammates.");
+
+	// Cancel restart countdown if it was active
+	m_allDeadRestartTimer = -1.0f;
+	m_lastAnnouncedSec = -1;
+	m_allDeadCheckTimer = 0.0f;
+
+	// Refill lives in C++ state and network synched storage
+	ResetPlayerLives();
+
+	// Invoke Lua script Coop:OnCheckpointReached() to revive via spawn logic and re-equip
+	if (m_script.GetPtr())
+	{
+		CallScript(m_script, "OnCheckpointReached");
+	}
+
+	// C++ safeguard: find reference living teammate position
+	Vec3 refPos = ZERO;
+	Ang3 refAngles(0.0f, 0.0f, 0.0f);
+	bool hasRef = false;
+
+	IActorSystem* pActorSystem = m_pGameFramework->GetIActorSystem();
+	if (pActorSystem)
+	{
+		IActorIteratorPtr it = pActorSystem->CreateActorIterator();
+		while (CActor* pActor = static_cast<CActor*>(it->Next()))
+		{
+			if (pActor && pActor->IsPlayer() && pActor->GetHealth() > 0 && pActor->GetSpectatorMode() == CActor::eASM_None)
+			{
+				refPos = pActor->GetEntity()->GetWorldPos();
+				refAngles = pActor->GetEntity()->GetWorldAngles();
+				hasRef = true;
+				break;
+			}
+		}
+
+		// Ensure any dead or spectating player is revived and positioned near teammate
+		it = pActorSystem->CreateActorIterator();
+		int deadIndex = 0;
+		while (CActor* pActor = static_cast<CActor*>(it->Next()))
+		{
+			if (pActor && pActor->IsPlayer())
+			{
+				EntityId playerId = pActor->GetEntityId();
+				SetPlayerLives(playerId, 3);
+
+				int specMode = pActor->GetSpectatorMode();
+				bool isDead = (pActor->GetHealth() <= 0);
+				bool isSpec = (specMode != CActor::eASM_None && specMode != CActor::eASM_Cutscene);
+
+				if (isDead || isSpec)
+				{
+					CryLogAlways("[Co-op] Reviving fallen player '%s' at checkpoint", pActor->GetEntity()->GetName());
+					pActor->SetSpectatorMode(CActor::eASM_None, 0);
+
+					Vec3 spawnPos = refPos;
+					Ang3 spawnAngles = refAngles;
+
+					if (hasRef)
+					{
+						Matrix33 rot(Matrix33::CreateRotationZ(refAngles.z));
+						spawnPos = refPos + rot * Vec3(((deadIndex % 2 == 0) ? 1.0f : -1.0f) * 1.0f, -2.0f - (deadIndex * 1.5f), 0.1f);
+						deadIndex++;
+					}
+
+					RevivePlayer(pActor, spawnPos, spawnAngles, GetTeam(playerId), false);
+				}
+			}
+		}
+	}
+
+	// Announce checkpoint reached to all players
+	OnTextMessage(eTextMessageCenter, "CHECKPOINT REACHED! Lives refilled & fallen teammates respawned.");
+}
+
+//------------------------------------------------------------------------
+void CGameRules::RestartCurrentLevel()
+{
+	if (!gEnv->bServer)
+		return;
+
+	CryLogAlways("[Co-op] RestartCurrentLevel executing...");
+
+	ResetPlayerLives();
+
+	const char* levelName = NULL;
+	if (m_pGameFramework->GetILevelSystem() && m_pGameFramework->GetILevelSystem()->GetCurrentLevel())
+	{
+		ILevelInfo* pInfo = m_pGameFramework->GetILevelSystem()->GetCurrentLevel()->GetLevelInfo();
+		if (pInfo)
+			levelName = pInfo->GetName();
+	}
+	if (!levelName || !levelName[0])
+		levelName = m_pGameFramework->GetLevelName();
+
+	if (levelName && levelName[0])
+	{
+		CryLogAlways("[Co-op] Reloading level '%s' via ChangeGameContext...", levelName);
+
+		SGameContextParams ctx;
+		ctx.levelName = levelName;
+		ctx.gameRules = "Coop";
+
+		if (!m_pGameFramework->ChangeGameContext(&ctx))
+		{
+			CryLogAlways("[Co-op] ChangeGameContext failed, falling back to 'map %s s'", levelName);
+			string cmd;
+			cmd.Format("map %s s", levelName);
+			m_pGameFramework->ExecuteCommandNextFrame(cmd.c_str());
+		}
+	}
+	else
+	{
+		CryLogAlways("[Co-op] Level name unavailable, falling back to CGameRules::Restart()");
+		Restart();
 	}
 }

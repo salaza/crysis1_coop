@@ -1069,11 +1069,14 @@ public:
 	};
 	DECLARE_CLIENT_RMI_NOATTACH(ClPlayVoiceSound, SPlayVoiceSoundParams, eNRT_ReliableOrdered);
 
-	// Coop: 3 Lives System
+	// Coop: 3 Lives System & Session Management
 	static const TSynchedKey COOP_PLAYER_LIVES_KEY = 960;
 	int  GetPlayerLives(EntityId playerId) const;
 	void SetPlayerLives(EntityId playerId, int lives);
 	void ResetPlayerLives();
+	void OnCheckpointReached();
+	void RestartCurrentLevel();
+	void UpdateCoopGameSession(float frameTime);
 
 	void SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width = 2.5f);
 	void SendMapClearDrawings();
@@ -1296,6 +1299,10 @@ protected:
 
 	CShotValidator			*m_pShotValidator;
 	std::map<EntityId, int> m_playerLives;
+	CTimeValue          m_lastCheckpointTime;
+	float               m_allDeadRestartTimer;
+	int                 m_lastAnnouncedSec;
+	float               m_allDeadCheckTimer;
 	std::map<EntityId, EntityId> m_playerHeldEntity;
 	std::map<EntityId, EntityId> m_entityHeldByPlayer;
 

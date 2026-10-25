@@ -191,6 +191,8 @@ public:
 
 	static void CmdNextLevel(IConsoleCmdArgs* pArgs);
 	static void CmdCoopMap(IConsoleCmdArgs* pArgs);
+	static void CmdCoopCheckpoint(IConsoleCmdArgs* pArgs);
+	static void CmdCoopRestart(IConsoleCmdArgs* pArgs);
 
 protected:
 	virtual void LoadActionMaps(const char* filename = "libs/config/defaultProfile.xml");

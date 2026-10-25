@@ -656,6 +656,15 @@ void CGame::OnActionEvent(const SActionEvent& event)
 		if(gEnv->bServer && GetServerSynchedStorage())
 			GetServerSynchedStorage()->SetGlobalValue(GLOBAL_SERVER_NAME_KEY,CONST_TEMP_STRING(event.m_description));
 		break;
+	case eAE_preSaveGame:
+	case eAE_postSaveGame:
+		if ((ESaveGameReason)event.m_value == eSGR_FlowGraph || (ESaveGameReason)event.m_value == eSGR_QuickSave)
+		{
+			CGameRules* pGameRules = GetGameRules();
+			if (pGameRules)
+				pGameRules->OnCheckpointReached();
+		}
+		break;
   }
 }
 

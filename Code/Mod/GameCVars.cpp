@@ -923,6 +923,8 @@ void CGame::RegisterConsoleCommands()
 
   m_pConsole->AddCommand("g_nextlevel", CmdNextLevel,0,"Switch to next level in rotation or restart current one.");
   m_pConsole->AddCommand("coop_map", CmdCoopMap, VF_RESTRICTEDMODE, "Host and load a co-op mission in retail or devmode.");
+  m_pConsole->AddCommand("coop_checkpoint", CmdCoopCheckpoint, 0, "Trigger co-op checkpoint (refills lives & revives fallen players)");
+  m_pConsole->AddCommand("coop_restart", CmdCoopRestart, 0, "Restart current co-op level");
   m_pConsole->AddCommand("vote", CmdVote, VF_RESTRICTEDMODE, "Vote on current topic.");
   m_pConsole->AddCommand("startKickVoting",CmdStartKickVoting, VF_RESTRICTEDMODE, "Initiate voting.");
 	m_pConsole->AddCommand("listplayers",CmdListPlayers, VF_RESTRICTEDMODE, "Initiate voting.");
@@ -964,6 +966,8 @@ void CGame::UnregisterConsoleCommands()
 
   m_pConsole->RemoveCommand("g_nextlevel");
   m_pConsole->RemoveCommand("coop_map");
+  m_pConsole->RemoveCommand("coop_checkpoint");
+  m_pConsole->RemoveCommand("coop_restart");
   m_pConsole->RemoveCommand("vote");
   m_pConsole->RemoveCommand("startKickVoting");
   m_pConsole->RemoveCommand("startNextMapVoting");
@@ -1228,6 +1232,26 @@ void CGame::CmdCoopMap(IConsoleCmdArgs* pArgs)
   params.pContextParams = &ctx;
 
   g_pGame->GetIGameFramework()->StartGameContext(&params);
+}
+
+void CGame::CmdCoopCheckpoint(IConsoleCmdArgs* pArgs)
+{
+  CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL;
+  if (pGR)
+  {
+    CryLogAlways("[Co-op] coop_checkpoint command invoked");
+    pGR->OnCheckpointReached();
+  }
+}
+
+void CGame::CmdCoopRestart(IConsoleCmdArgs* pArgs)
+{
+  CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL;
+  if (pGR)
+  {
+    CryLogAlways("[Co-op] coop_restart command invoked");
+    pGR->RestartCurrentLevel();
+  }
 }
 
 void CGame::CmdStartKickVoting(IConsoleCmdArgs* pArgs)
