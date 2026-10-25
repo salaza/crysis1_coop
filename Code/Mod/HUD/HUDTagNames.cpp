@@ -203,7 +203,7 @@ void CHUDTagNames::AddEnemyTagName(EntityId uiEntityId)
 void CHUDTagNames::DrawTagName(IActor *pActor,bool bLocalVehicle)
 {
 	CRY_ASSERT(pActor);
-	if(!pActor)
+	if(!pActor || !pActor->IsPlayer())
 		return;
 
 	IActor *pClientActor = g_pGame->GetIGameFramework()->GetClientActor();
@@ -333,7 +333,7 @@ void CHUDTagNames::DrawTagName(IVehicle *pVehicle)
 				continue;
 
 			IActor *pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(pVehicleSeat->GetPassenger());
-			if(!pActor || (pActor == pClientActor && !bThirdPerson))
+			if(!pActor || !pActor->IsPlayer() || (pActor == pClientActor && !bThirdPerson))
 				continue;
 
 			DrawTagName(pActor,true);
@@ -379,7 +379,7 @@ void CHUDTagNames::DrawTagName(IVehicle *pVehicle)
 		EntityId uiEntityId = pVehicleSeat->GetPassenger();
 
 		IActor *pActor = g_pGame->GetIGameFramework()->GetIActorSystem()->GetActor(uiEntityId);
-		if(!pActor)
+		if(!pActor || !pActor->IsPlayer())
 			continue;
 
 		const char *szRank = GetPlayerRank(uiEntityId);

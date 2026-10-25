@@ -88,8 +88,6 @@ void CSequenceSynchronizer::PlaySequence(string sSequence, float fStartTime, boo
 
 	CryLogAlways("[CSequenceSynchronizer::PlaySequence] %s at %.2fs", sSequence.c_str(), fStartTime);
 
-	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(true, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
-
 	if (g_pGame && g_pGame->GetGameRules())
 	{
 		CGameRules::SSyncCutsceneParams grParams(true, sSequence, fStartTime, bBreakOnStop);
@@ -113,8 +111,6 @@ void CSequenceSynchronizer::StopSeqeunce(string sSequence, float fStartTime, boo
 		m_lastSequence.clear();
 
 	CryLogAlways("[CSequenceSynchronizer::StopSequence] %s", sSequence.c_str());
-
-	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(false, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
 
 	if (g_pGame && g_pGame->GetGameRules())
 	{

@@ -1397,6 +1397,45 @@ IMPLEMENT_RMI(CGameRules, ClMapClearDrawings)
 //------------------------------------------------------------------------
 IMPLEMENT_RMI(CGameRules, SvRequestObjectGrab)
 {
+	IEntity* pObject = gEnv->pEntitySystem->GetEntity(params.objectId);
+	CActor* pActor = GetActorByEntityId(params.playerId);
+	if (params.bGrab)
+	{
+		m_playerHeldEntity[params.playerId] = params.objectId;
+		m_entityHeldByPlayer[params.objectId] = params.playerId;
+
+		if (pObject && pActor)
+		{
+			if (IPhysicalEntity* pPE = pObject->GetPhysics())
+			{
+				pe_action_add_constraint ic;
+				ic.flags = constraint_inactive | constraint_ignore_buddy;
+				ic.pBuddy = pActor->GetEntity()->GetPhysics();
+				ic.pt[0].Set(0, 0, 0);
+				pPE->Action(&ic);
+
+				if (!params.bIsNPC)
+				{
+					pe_action_awake awake;
+					awake.bAwake = 0;
+					pPE->Action(&awake);
+				}
+			}
+		}
+	}
+	else
+	{
+		m_playerHeldEntity.erase(params.playerId);
+		m_entityHeldByPlayer.erase(params.objectId);
+
+		if (pObject && pObject->GetPhysics())
+		{
+			pe_action_awake awake;
+			awake.bAwake = 1;
+			pObject->GetPhysics()->Action(&awake);
+		}
+	}
+
 	GetGameObject()->InvokeRMI(ClSyncObjectGrab(), params, eRMI_ToAllClients);
 	return true;
 }
@@ -1420,6 +1459,29 @@ IMPLEMENT_RMI(CGameRules, ClSyncObjectGrab)
 	IEntity* pObject = gEnv->pEntitySystem->GetEntity(params.objectId);
 	if (pObject && pActor->GetEntity())
 	{
+		if (params.bIsNPC)
+		{
+			// Do NOT attach living NPCs by their feet to weapon_bone!
+			// Instead trigger struggle animation on the remote NPC
+			if (CActor* pNPCActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetIActorSystem()->GetActor(params.objectId)))
+			{
+				if (params.bGrab)
+				{
+					pNPCActor->SetAnimationInput("Action", "grabStruggleFP");
+					if (ICharacterInstance* pChar = pObject->GetCharacter(0))
+					{
+						if (ISkeletonAnim* pSA = pChar->GetISkeletonAnim())
+							pSA->StopAnimationsAllLayers();
+					}
+				}
+				else
+				{
+					pNPCActor->SetAnimationInput("Action", "idle");
+				}
+			}
+			return true;
+		}
+
 		ICharacterInstance* pChar = pActor->GetEntity()->GetCharacter(0);
 		if (pChar)
 		{

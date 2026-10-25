@@ -1296,6 +1296,24 @@ protected:
 
 	CShotValidator			*m_pShotValidator;
 	std::map<EntityId, int> m_playerLives;
+	std::map<EntityId, EntityId> m_playerHeldEntity;
+	std::map<EntityId, EntityId> m_entityHeldByPlayer;
+
+public:
+	bool IsEntityHeldBy(EntityId playerId, EntityId objectId) const
+	{
+		std::map<EntityId, EntityId>::const_iterator it = m_playerHeldEntity.find(playerId);
+		return (it != m_playerHeldEntity.end() && it->second == objectId);
+	}
+	bool IsEntityHeldByAny(EntityId objectId) const
+	{
+		return (m_entityHeldByPlayer.find(objectId) != m_entityHeldByPlayer.end());
+	}
+	EntityId GetPlayerHoldingEntity(EntityId objectId) const
+	{
+		std::map<EntityId, EntityId>::const_iterator it = m_entityHeldByPlayer.find(objectId);
+		return (it != m_entityHeldByPlayer.end()) ? it->second : 0;
+	}
 };
 
 #endif //__GAMERULES_H__

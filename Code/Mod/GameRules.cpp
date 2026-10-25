@@ -3234,6 +3234,15 @@ bool CGameRules::OnCollision(const SGameCollision& event)
 			}
 		}
 	}
+	else if (IsCoop() && event.pSrcEntity && event.pTrgEntity)
+	{
+		EntityId idSrc = event.pSrcEntity->GetId();
+		EntityId idTrg = event.pTrgEntity->GetId();
+		if (IsEntityHeldBy(idSrc, idTrg) || IsEntityHeldBy(idTrg, idSrc))
+			return false;
+		if (GetPlayerHoldingEntity(idSrc) == idTrg || GetPlayerHoldingEntity(idTrg) == idSrc)
+			return false;
+	}
 
 	// collisions with very low resulting impulse are ignored
 	if (event.pCollision->normImpulse<=0.001f)
@@ -4241,6 +4250,10 @@ bool CGameRules::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 		return false;
 
 	m_explosionScreenFX = false;
+
+	CCoopCutsceneSystem::GetInstance()->OnBeginCutScene(pSeq, bResetFX);
+	if (g_pGame && g_pGame->GetHUD())
+		g_pGame->GetHUD()->OnBeginCutScene(pSeq, bResetFX);
 	
 	return true;
 }
@@ -4251,6 +4264,10 @@ bool CGameRules::OnEndCutScene(IAnimSequence* pSeq)
 		return false;
 
 	m_explosionScreenFX = true;
+
+	CCoopCutsceneSystem::GetInstance()->OnEndCutScene(pSeq);
+	if (g_pGame && g_pGame->GetHUD())
+		g_pGame->GetHUD()->OnEndCutScene(pSeq);
 
 	return true;
 }

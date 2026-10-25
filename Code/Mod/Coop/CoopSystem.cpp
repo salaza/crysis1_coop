@@ -644,9 +644,9 @@ void CCoopSystem::Update(float fFrameTime)
 					IScriptSystem*	pIScriptSystem = gEnv->pScriptSystem;
 					if (IScriptTable* pScriptTable = pEntity->GetScriptTable())
 					{
-						if (pScriptTable->GetValue("ForceCoopAI", scriptFunction))
+						if (pScriptTable->GetValue("InitAI", scriptFunction) || pScriptTable->GetValue("ForceCoopAI", scriptFunction))
 						{
-							Script::Call(pIScriptSystem, scriptFunction, pScriptTable, false);
+							Script::Call(pIScriptSystem, scriptFunction, pScriptTable);
 							pIScriptSystem->ReleaseFunc(scriptFunction);
 						}
 					}
