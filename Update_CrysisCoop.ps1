@@ -87,6 +87,58 @@ function Fetch-LatestRelease([string]$authToken) {
     return Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest" -Headers $headers -Method Get
 }
 
+function Download-ReleaseAsset($targetAsset, [string]$destinationPath, [string]$authToken) {
+    if (Test-Path $destinationPath) { Remove-Item -Force $destinationPath }
+    $downloadSuccess = $false
+
+    if ($targetAsset.browser_download_url) {
+        try {
+            Invoke-WebRequest -Uri $targetAsset.browser_download_url -OutFile $destinationPath -UserAgent "CrysisCoop-Updater"
+            if ((Test-Path $destinationPath) -and (Get-Item $destinationPath).Length -gt 0) {
+                return $true
+            }
+        } catch {}
+    }
+
+    if ($authToken) {
+        try {
+            $req = [System.Net.HttpWebRequest]::Create($targetAsset.url)
+            $req.Headers.Add("Authorization", "Bearer $authToken")
+            $req.UserAgent = "CrysisCoop-Updater"
+            $req.Accept = "application/octet-stream"
+            $req.AllowAutoRedirect = $false
+
+            $s3Url = $null
+            try {
+                $resp = $req.GetResponse()
+                if ([int]$resp.StatusCode -eq 302) {
+                    $s3Url = $resp.GetResponseHeader("Location")
+                }
+                $resp.Close()
+            } catch [System.Net.WebException] {
+                $resp = $_.Exception.Response
+                if ($resp) {
+                    if ([int]$resp.StatusCode -eq 302) {
+                        $s3Url = $resp.GetResponseHeader("Location")
+                    }
+                    $resp.Close()
+                }
+            }
+
+            if ($s3Url) {
+                Invoke-WebRequest -Uri $s3Url -OutFile $destinationPath -UserAgent "CrysisCoop-Updater"
+                if ((Test-Path $destinationPath) -and (Get-Item $destinationPath).Length -gt 0) {
+                    return $true
+                }
+            }
+        } catch {
+            Write-Warning "Direct API download failed: $_"
+        }
+    }
+
+    return $false
+}
+
 $release = $null
 try {
     $release = Fetch-LatestRelease $token
@@ -124,89 +176,83 @@ $bin64File = Join-Path $TargetModDir "Bin64\CrysisCoop.dll"
 $bin32File = Join-Path $TargetModDir "Bin32\CrysisCoop.dll"
 $filesExist = (Test-Path $bin64File) -and (Test-Path $bin32File)
 
+# ----------------------------------------------------
+# 1. Download & Install Mod Release Package
+# ----------------------------------------------------
 if (-not $Force -and ($localVersion -eq $remoteTag) -and $filesExist) {
     Write-Host "[Updater] Crysis Co-op is up to date ($remoteTag)." -ForegroundColor Green
-    exit 0
-}
+} else {
+    Write-Host "[Updater] New version available: $remoteTag (Installed: $localVersion)" -ForegroundColor Cyan
+    $modAsset = $release.assets | Where-Object { $_.name -like "CrysisCoop_Release*.zip" } | Select-Object -First 1
+    if (-not $modAsset) {
+        $modAsset = $release.assets | Where-Object { $_.name -like "*.zip" -and $_.name -notlike "*Bin64*" } | Select-Object -First 1
+    }
 
-Write-Host "[Updater] New version available: $remoteTag (Installed: $localVersion)" -ForegroundColor Cyan
-$asset = $release.assets | Where-Object { $_.name -like "*.zip" } | Select-Object -First 1
-
-if (-not $asset) {
-    Write-Warning "No .zip asset found in release $remoteTag."
-    exit 0
-}
-
-Write-Host "[Updater] Downloading $($asset.name) ($([math]::Round($asset.size / 1MB, 2)) MB)..." -ForegroundColor Yellow
-
-$tempZip = Join-Path ([System.IO.Path]::GetTempPath()) "CrysisCoop_$remoteTag.zip"
-if (Test-Path $tempZip) { Remove-Item -Force $tempZip }
-
-# Download asset (try public browser_download_url first, fallback to private API if needed)
-$downloadSuccess = $false
-
-if ($asset.browser_download_url) {
-    try {
-        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempZip -UserAgent "CrysisCoop-Updater"
-        if ((Test-Path $tempZip) -and (Get-Item $tempZip).Length -gt 0) {
-            $downloadSuccess = $true
+    if (-not $modAsset) {
+        Write-Warning "No mod .zip asset found in release $remoteTag."
+    } else {
+        Write-Host "[Updater] Downloading $($modAsset.name) ($([math]::Round($modAsset.size / 1MB, 2)) MB)..." -ForegroundColor Yellow
+        $tempZip = Join-Path ([System.IO.Path]::GetTempPath()) "CrysisCoop_$remoteTag.zip"
+        
+        $downloadSuccess = Download-ReleaseAsset $modAsset $tempZip $token
+        if ($downloadSuccess -and (Test-Path $tempZip)) {
+            Write-Host "[Updater] Extracting package to $TargetModDir..." -ForegroundColor Yellow
+            Expand-Archive -Path $tempZip -DestinationPath $TargetModDir -Force
+            Remove-Item -Force $tempZip -ErrorAction SilentlyContinue
+            Set-Content -Path $versionFile -Value $remoteTag -Force -NoNewline
+        } else {
+            Write-Warning "Download of release package failed."
         }
-    } catch {
-        # Fallback to private API download
     }
 }
 
-if (-not $downloadSuccess -and $token) {
-    try {
-        $req = [System.Net.HttpWebRequest]::Create($asset.url)
-        $req.Headers.Add("Authorization", "Bearer $token")
-        $req.UserAgent = "CrysisCoop-Updater"
-        $req.Accept = "application/octet-stream"
-        $req.AllowAutoRedirect = $false
-
-        $s3Url = $null
-        try {
-            $resp = $req.GetResponse()
-            if ([int]$resp.StatusCode -eq 302) {
-                $s3Url = $resp.GetResponseHeader("Location")
-            }
-            $resp.Close()
-        } catch [System.Net.WebException] {
-            $resp = $_.Exception.Response
-            if ($resp) {
-                if ([int]$resp.StatusCode -eq 302) {
-                    $s3Url = $resp.GetResponseHeader("Location")
-                }
-                $resp.Close()
+# ----------------------------------------------------
+# 2. Check & Install Missing 64-bit Crysis Binaries (Steam Issue)
+# ----------------------------------------------------
+if ($CrysisDir -and (Test-Path $CrysisDir)) {
+    $bin64CrySystem = Join-Path $CrysisDir "Bin64\CrySystem.dll"
+    if (-not (Test-Path $bin64CrySystem)) {
+        Write-Host ""
+        Write-Host "[!] Missing 64-bit Crysis binaries in '$CrysisDir\Bin64'." -ForegroundColor Yellow
+        Write-Host "    Downloading official 64-bit patch binaries (Crysis_Bin64_v1.2.1.zip)..." -ForegroundColor Cyan
+        
+        $bin64Asset = $release.assets | Where-Object { $_.name -like "*Bin64*.zip" } | Select-Object -First 1
+        if ($bin64Asset) {
+            $tempBin64Zip = Join-Path ([System.IO.Path]::GetTempPath()) "Crysis_Bin64_v1.2.1.zip"
+            $dlSuccess = Download-ReleaseAsset $bin64Asset $tempBin64Zip $token
+            if ($dlSuccess -and (Test-Path $tempBin64Zip)) {
+                Write-Host "    Extracting 64-bit binaries to $CrysisDir..." -ForegroundColor Yellow
+                Expand-Archive -Path $tempBin64Zip -DestinationPath $CrysisDir -Force
+                Remove-Item -Force $tempBin64Zip -ErrorAction SilentlyContinue
+                Write-Host "    [OK] 64-bit Crysis installation patched successfully!" -ForegroundColor Green
+            } else {
+                Write-Warning "Failed to download 64-bit binaries. The game will run in 32-bit mode."
             }
         }
-
-        if ($s3Url) {
-            Invoke-WebRequest -Uri $s3Url -OutFile $tempZip -UserAgent "CrysisCoop-Updater"
-            $downloadSuccess = $true
-        }
-    } catch {
-        Write-Warning "Direct API download failed: $_"
     }
 }
 
-if (-not (Test-Path $tempZip) -or (Get-Item $tempZip).Length -eq 0) {
-    Write-Warning "Download of release package failed."
-    exit 0
+# ----------------------------------------------------
+# 3. Check Crysis Patch Version
+# ----------------------------------------------------
+if ($CrysisDir -and (Test-Path $CrysisDir)) {
+    $bin32CrySystem = Join-Path $CrysisDir "Bin32\CrySystem.dll"
+    if (Test-Path $bin32CrySystem) {
+        $gameVer = (Get-Item $bin32CrySystem).VersionInfo.FileVersion
+        if ($gameVer) {
+            if ($gameVer -match "6156") {
+                Write-Host "[OK] Crysis base installation is on latest official Patch 1.2.1 ($gameVer)." -ForegroundColor Green
+            } else {
+                Write-Host "[!] Note: Crysis is currently version $gameVer (latest is 1.2.1 / build 6156)." -ForegroundColor Yellow
+                Write-Host "    If you encounter crashes with retail DVD versions, patch to 1.2.1." -ForegroundColor Yellow
+            }
+        }
+    }
 }
 
-Write-Host "[Updater] Extracting package to $TargetModDir..." -ForegroundColor Yellow
-Expand-Archive -Path $tempZip -DestinationPath $TargetModDir -Force
-Remove-Item -Force $tempZip
-
-# Write updated version.txt
-Set-Content -Path $versionFile -Value $remoteTag -Force -NoNewline
-
-# Remove legacy IP connect bat if present
-$oldBatMod = Join-Path $TargetModDir "Connect_78.132.76.234.bat"
-if (Test-Path $oldBatMod) { Remove-Item -Force $oldBatMod -ErrorAction SilentlyContinue }
-
-# Also copy convenience launcher bats to Crysis root if CrysisDir is set and different from TargetModDir
+# ----------------------------------------------------
+# 4. Copy Convenience Launcher Batch Files to Crysis Root
+# ----------------------------------------------------
 if ($CrysisDir -and (Test-Path $CrysisDir) -and ($CrysisDir -ne $TargetModDir)) {
     $oldBatRoot = Join-Path $CrysisDir "Connect_78.132.76.234.bat"
     if (Test-Path $oldBatRoot) { Remove-Item -Force $oldBatRoot -ErrorAction SilentlyContinue }
@@ -220,7 +266,9 @@ if ($CrysisDir -and (Test-Path $CrysisDir) -and ($CrysisDir -ne $TargetModDir)) 
     }
 }
 
-# Ensure C1-Launcher fixed executables are installed for raw/unmodded clients
+# ----------------------------------------------------
+# 5. Ensure C1-Launcher Fixed Executables are Installed for Raw Clients
+# ----------------------------------------------------
 if ($CrysisDir -and (Test-Path $CrysisDir)) {
     # Bin32
     $launcher32 = Join-Path $TargetModDir "Launcher\Bin32\Crysis.exe"
@@ -249,5 +297,9 @@ if ($CrysisDir -and (Test-Path $CrysisDir)) {
     }
 }
 
-Write-Host "[Updater] Successfully updated Crysis Co-op to $remoteTag!" -ForegroundColor Green
+# Remove legacy IP connect bat if present in mod folder
+$oldBatMod = Join-Path $TargetModDir "Connect_78.132.76.234.bat"
+if (Test-Path $oldBatMod) { Remove-Item -Force $oldBatMod -ErrorAction SilentlyContinue }
+
+Write-Host "[Updater] Successfully verified and updated Crysis Co-op!" -ForegroundColor Green
 exit 0
