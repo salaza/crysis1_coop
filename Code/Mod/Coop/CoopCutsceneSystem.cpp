@@ -104,32 +104,37 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
             if (gEnv->pGame && !gEnv->bEditor)
             {
                 IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
-                if (!pClientActor || !pClientActor->GetLinkedVehicle())
+                if (pClientActor && pClientActor->GetLinkedVehicle())
+                {
+                    // Never override or fight local camera when client is in a vehicle
+                    m_bHostCamActive = false;
+                }
+                else
                 {
                     IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
-                if (pVS)
-                {
-                    IView* pView = pVS->GetActiveView();
-                    if (pView)
+                    if (pVS)
                     {
-                        const SViewParams* currParams = pView->GetCurrentParams();
-                        if (currParams)
+                        IView* pView = pVS->GetActiveView();
+                        if (pView)
                         {
-                            SViewParams newParams = *currParams;
-                            newParams.position = m_vHostCamCurrentPos;
-                            newParams.rotation = m_qHostCamCurrentRot;
-                            if (m_fHostCamCurrentFOV > 0.0f)
-                                newParams.fov = m_fHostCamCurrentFOV;
-                            newParams.blend = false;
-                            pView->SetCurrentParams(newParams);
+                            const SViewParams* currParams = pView->GetCurrentParams();
+                            if (currParams)
+                            {
+                                SViewParams newParams = *currParams;
+                                newParams.position = m_vHostCamCurrentPos;
+                                newParams.rotation = m_qHostCamCurrentRot;
+                                if (m_fHostCamTargetFOV > 0.0f)
+                                    newParams.fov = m_fHostCamCurrentFOV;
+                                newParams.blend = false;
+                                pView->SetCurrentParams(newParams);
+                            }
                         }
                     }
                 }
-                }
-            }
         }
     }
 
+    }
     if (m_bPlayingCutscene && (!m_bHostCamActive || gEnv->bServer))
     {
         if (gEnv->pMovieSystem)
@@ -181,8 +186,10 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
     // Server: Authoritative cutscene camera broadcast to all clients
     if (gEnv->bServer && gEnv->bMultiplayer && !gEnv->bEditor)
     {
-        bool bHostInCutscene = m_bPlayingCutscene;
-        if (!bHostInCutscene && gEnv->pMovieSystem)
+        IActor* pHostActor = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetClientActor() : NULL;
+        bool bHostInVehicle = (pHostActor && pHostActor->GetLinkedVehicle() != NULL);
+        bool bHostInCutscene = m_bPlayingCutscene && !bHostInVehicle;
+        if (!bHostInCutscene && !bHostInVehicle && gEnv->pMovieSystem)
         {
             ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
             if (pIt)
@@ -249,8 +256,8 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
         }
     }
 
-    // Client: auto-detect when a cutscene ends in movie system if abort sequence was not received
-    if (!gEnv->bServer && m_bPlayingCutscene && gEnv->pMovieSystem && !gEnv->bEditor)
+    // Auto-detect when a cutscene ends in movie system if abort sequence was not received (on both server & client)
+    if (m_bPlayingCutscene && gEnv->pMovieSystem && !gEnv->bEditor)
     {
         bool anyCutscenePlaying = false;
         ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);

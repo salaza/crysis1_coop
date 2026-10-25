@@ -942,7 +942,7 @@ void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 			m_bSpeedSprint = false;
 		}
 	
-		if(client)
+		if(client && !m_stats.spectatorMode)
 		{
 			UpdateFirstPersonFists();
 			UpdateFirstPersonEffects(frameTime);
@@ -1722,6 +1722,13 @@ void CPlayer::PostUpdateView(SViewParams &viewParams)
 		}
 	}
 
+	if (m_stats.spectatorMode != 0)
+	{
+		m_stats.FPWeaponPos = Vec3(0, 0, -1000.0f);
+		m_stats.FPSecWeaponPos = m_stats.FPWeaponPos;
+		return;
+	}
+
 	Vec3 shakeVec(viewParams.currentShakeShift*0.85f);
 	m_stats.FPWeaponPos = viewParams.position + m_stats.FPWeaponPosOffset + shakeVec;;
 
@@ -1756,6 +1763,15 @@ void CPlayer::UnregisterPlayerEventListener(IPlayerEventListener *pPlayerEventLi
 
 IEntity *CPlayer::LinkToVehicle(EntityId vehicleId) 
 {
+	if (!vehicleId)
+	{
+		if (IVehicle* pOldVehicle = GetLinkedVehicle())
+		{
+			pOldVehicle->OnAction(eVAI_Attack1, eAAM_OnRelease, 0.0f, GetEntityId());
+			pOldVehicle->OnAction(eVAI_Attack2, eAAM_OnRelease, 0.0f, GetEntityId());
+		}
+	}
+
 	IEntity *pLinkedEntity = CActor::LinkToVehicle(vehicleId);
 
 	if (pLinkedEntity)
@@ -5146,11 +5162,28 @@ void CPlayer::SetSpectatorMode(uint8 mode, EntityId targetId)
 	{
 		if (IVehicle *pVehicle=GetLinkedVehicle())
 		{
+			pVehicle->OnAction(eVAI_Attack1, eAAM_OnRelease, 0.0f, GetEntityId());
+			pVehicle->OnAction(eVAI_Attack2, eAAM_OnRelease, 0.0f, GetEntityId());
 			if (IVehicleSeat *pSeat=pVehicle->GetSeatForPassenger(GetEntityId()))
 				pSeat->Exit(false);
 		}
 
 		Revive(false);
+
+		// Holster and hide any currently equipped item and FP viewmodel
+		HolsterItem(true);
+		if (CItem* pItem = static_cast<CItem*>(GetCurrentItem()))
+		{
+			pItem->Select(false);
+			pItem->DrawSlot(CItem::eIGS_FirstPerson, false);
+			pItem->DrawSlot(CItem::eIGS_Arms, false);
+			pItem->DrawSlot(CItem::eIGS_ThirdPerson, false);
+		}
+		if (IInventory* pInventory = GetInventory())
+		{
+			pInventory->SetCurrentItem(0);
+			pInventory->HolsterItem(true);
+		}
 
 		if (server)
 		{

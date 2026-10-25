@@ -1213,6 +1213,15 @@ void CPlayerView::ViewFirstPersonOnLadder(SViewParams & viewParams)
 // Position the first person weapons
 void CPlayerView::FirstPersonWeaponPostProcess(CPlayer &rPlayer,SViewParams &viewParams)
 {
+	if (m_in.stats_spectatorMode != 0)
+	{
+		rPlayer.m_stats.FPWeaponPosOffset.zero();
+		rPlayer.m_stats.FPWeaponAnglesOffset.Set(0,0,0);
+		rPlayer.m_stats.FPSecWeaponPosOffset.zero();
+		rPlayer.m_stats.FPSecWeaponAnglesOffset.Set(0,0,0);
+		return;
+	}
+
 	rPlayer.m_stats.FPWeaponPosOffset = m_io.vFPWeaponOffset;
 	rPlayer.m_stats.FPWeaponAnglesOffset = m_io.vFPWeaponAngleOffset;
 

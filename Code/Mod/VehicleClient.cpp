@@ -310,16 +310,30 @@ void CVehicleClient::PreUpdate(IVehicle* pVehicle, EntityId actorId)
 //------------------------------------------------------------------------
 void CVehicleClient::OnEnterVehicleSeat(IVehicleSeat* pSeat)
 {
-	m_bMovementFlagRight=m_bMovementFlagLeft=m_bMovementFlagForward=m_bMovementFlagBack=false;
-  m_fLeftRight = m_fForwardBackward = 0.f;
+	if (!pSeat)
+		return;
+
+	IActorSystem* pActorSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetIActorSystem() : NULL;
+	if (!pActorSystem)
+		return;
+
+	EntityId passengerId = pSeat->GetPassenger();
+	IActor* pActor = pActorSystem->GetActor(passengerId);
+	if (!pActor)
+		return;
+
+	// In multiplayer/coop, only configure action maps and views for the LOCAL client actor!
+	// Remote players entering/exiting seats must never tamper with the local player's controls or view.
+	IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor();
+	if (!pClientActor || passengerId != pClientActor->GetEntityId())
+		return;
+
+	m_bMovementFlagRight = m_bMovementFlagLeft = m_bMovementFlagForward = m_bMovementFlagBack = false;
+	m_fLeftRight = m_fForwardBackward = 0.f;
 
 	IVehicle* pVehicle = pSeat->GetVehicle();
 	assert(pVehicle);
 
-	IActorSystem* pActorSystem = gEnv->pGame->GetIGameFramework()->GetIActorSystem();
-	assert(pActorSystem);
-
-	IActor* pActor = pActorSystem->GetActor(pSeat->GetPassenger());
 	bool isThirdPerson = pActor->IsThirdPerson() || m_tp;
 
 	TVehicleViewId viewId = InvalidVehicleViewId;
@@ -344,32 +358,46 @@ void CVehicleClient::OnEnterVehicleSeat(IVehicleSeat* pSeat)
 		pSeat->SetView(viewId);
 
 	IActionMapManager* pMapManager = gEnv->pGame->GetIGameFramework()->GetIActionMapManager();
-	assert(pMapManager);
-
-	pMapManager->EnableActionMap("landvehicle", false);
-	pMapManager->EnableActionMap("seavehicle", false);
-	pMapManager->EnableActionMap("helicopter", false);
-	pMapManager->EnableActionMap("vtol", false);
+	if (pMapManager)
+	{
+		pMapManager->EnableActionMap("landvehicle", false);
+		pMapManager->EnableActionMap("seavehicle", false);
+		pMapManager->EnableActionMap("helicopter", false);
+		pMapManager->EnableActionMap("vtol", false);
+	}
 }
 
 //------------------------------------------------------------------------
 void CVehicleClient::OnExitVehicleSeat(IVehicleSeat* pSeat)
 {
-	if(pSeat && pSeat->IsDriver())
+	if (!pSeat)
+		return;
+
+	IActor* pClientActor = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetClientActor() : NULL;
+	if (!pClientActor || pSeat->GetPassenger() != pClientActor->GetEntityId())
+		return;
+
+	// Ensure any firing actions are released when local player exits seat
+	if (IVehicle* pVehicle = pSeat->GetVehicle())
 	{
-		m_bMovementFlagRight=m_bMovementFlagLeft=m_bMovementFlagForward=m_bMovementFlagBack=false;
-	  m_fLeftRight = m_fForwardBackward = 0.f;
+		pVehicle->OnAction(eVAI_Attack1, eAAM_OnRelease, 0.0f, pClientActor->GetEntityId());
+		pVehicle->OnAction(eVAI_Attack2, eAAM_OnRelease, 0.0f, pClientActor->GetEntityId());
+	}
+
+	if (pSeat->IsDriver())
+	{
+		m_bMovementFlagRight = m_bMovementFlagLeft = m_bMovementFlagForward = m_bMovementFlagBack = false;
+		m_fLeftRight = m_fForwardBackward = 0.f;
 	}
   
-  TVehicleViewId viewId = pSeat->GetCurrentView();
-	
-  if (viewId != InvalidVehicleViewId)  
-  {
-    if (IVehicleView* pView = pSeat->GetView(viewId))    
-      m_tp = pView->IsThirdPerson();
+	TVehicleViewId viewId = pSeat->GetCurrentView();
+	if (viewId != InvalidVehicleViewId)  
+	{
+		if (IVehicleView* pView = pSeat->GetView(viewId))    
+			m_tp = pView->IsThirdPerson();
     
-    pSeat->SetView(InvalidVehicleViewId);
-  }
+		pSeat->SetView(InvalidVehicleViewId);
+	}
 }
 
 

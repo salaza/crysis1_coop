@@ -106,16 +106,32 @@ void CVehicleWeapon::StopUse(EntityId userId)
 	if (m_ownerId && userId != m_ownerId)
 		return;
 
+	// Always ensure firing is stopped and looping sounds are halted before unmounting
+	if (IsFiring())
+		StopFire();
+
+	if (m_fm)
+	{
+		m_fm->StopFire();
+		m_fm->NetStopFire();
+	}
+
+	// Stop any lingering or looping sounds on the weapon entity
+	if (IEntitySoundProxy* pSoundProxy = (IEntitySoundProxy*)GetEntity()->GetProxy(ENTITY_PROXY_SOUND))
+	{
+		pSoundProxy->StopAllSounds();
+	}
+
 	SendMusicLogicEvent(eMUSICLOGICEVENT_WEAPON_UNMOUNT);
  
-  Select(false);  	
-  m_stats.used = false;	
+	Select(false);  	
+	m_stats.used = false;	
 
-  UseManualBlending(false);
+	UseManualBlending(false);
 
-  SetOwnerId(0);
+	SetOwnerId(0);
 
-  EnableUpdate(false);
+	EnableUpdate(false);
 
 	if(IsZoomed() || IsZooming())
 	{
@@ -124,7 +140,6 @@ void CVehicleWeapon::StopUse(EntityId userId)
 	}
 
 	LowerWeapon(false);
-
 }
 
 //------------------------------------------------------------------------

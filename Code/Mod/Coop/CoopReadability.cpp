@@ -34,6 +34,25 @@ bool CCoopReadability::SendSoundToClosestActor(ISound* pSound)
 	if (!soundName || !soundName[0])
 		return false;
 
+	// Never broadcast local player suit voice, HUD, or menu sounds to other players
+	if (sem == eSoundSemantic_NanoSuit ||
+	    sem == eSoundSemantic_HUD ||
+	    sem == eSoundSemantic_FlowGraph ||
+	    sem == eSoundSemantic_Weapon)
+	{
+		return false;
+	}
+
+	string sLower = soundName;
+	sLower.MakeLower();
+	if (sLower.find("suit") != string::npos ||
+	    sLower.find("interface") != string::npos ||
+	    sLower.find("menu") != string::npos ||
+	    sLower.find("hud") != string::npos)
+	{
+		return false;
+	}
+
 	bool isVoiceOrDialog = (sem == eSoundSemantic_Dialog ||
 	                        sem == eSoundSemantic_AI_Readability ||
 	                        sem == eSoundSemantic_AI_Readability_Response ||
