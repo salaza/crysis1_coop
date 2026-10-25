@@ -1820,6 +1820,13 @@ IEntity *CPlayer::LinkToEntity(EntityId entityId, bool bKeepTransformOnDetach)
 #endif
 	IEntity *pLinkedEntity = CActor::LinkToEntity(entityId, bKeepTransformOnDetach);
 
+	if (!entityId)
+	{
+		m_stats.downwardsImpactVelocity = 0.0f;
+		m_stats.velocity.z = 0.0f;
+		m_stats.velocityUnconstrained.z = 0.0f;
+	}
+
 	if (pLinkedEntity)
 	{
 		CHECKQNAN_VEC(m_modelOffset);
@@ -2929,6 +2936,13 @@ void CPlayer::UpdateStats(float frameTime)
 	if (GetLinkedVehicle() != NULL)
 		m_stats.downwardsImpactVelocity = 0.0f;
 
+	// In coop, zero out downwards impact velocity during cutscenes or when linked to an entity
+	if (m_linkStats.GetLinked() != 0)
+		m_stats.downwardsImpactVelocity = 0.0f;
+
+	if (CCoopCutsceneSystem::GetInstance() && CCoopCutsceneSystem::GetInstance()->IsCutsceneActiveOrRecent())
+		m_stats.downwardsImpactVelocity = 0.0f;
+
 	// If you land in deep enough water, don't apply damage. 
 	// (In MP the remote ShouldSwim() might lag behind though, so you will get damage unless you have a parachute).
 	if (ShouldSwim())
@@ -2946,6 +2960,12 @@ void CPlayer::UpdateStats(float frameTime)
 		m_stats.downwardsImpactVelocity = 0.0f;
 
 	// Apply Fall Damage
+	if (CCoopCutsceneSystem::GetInstance() && CCoopCutsceneSystem::GetInstance()->IsCutsceneActiveOrRecent())
+	{
+		m_stats.downwardsImpactVelocity = 0.0f;
+		return;
+	}
+
 	assert(NumberValid(m_stats.downwardsImpactVelocity));
 	if (m_stats.downwardsImpactVelocity > 0.0f)
 	{
@@ -2987,7 +3007,15 @@ void CPlayer::UpdateStats(float frameTime)
 			hit.shooterId = GetEntity()->GetId();
 
 			if (m_stats.inFreefall.Value() == 1)
+			{
+				if (CCoopCutsceneSystem::GetInstance() && CCoopCutsceneSystem::GetInstance()->IsCutsceneActiveOrRecent())
+				{
+					m_stats.downwardsImpactVelocity = 0.0f;
+					hit.damage = 0.0f;
+					return;
+				}
 				hit.damage = 1000.0f;
+			}
 
 			// Apply actual damage only on server.
 			if (gEnv->bServer)

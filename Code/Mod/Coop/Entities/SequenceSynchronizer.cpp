@@ -146,8 +146,8 @@ IMPLEMENT_RMI(CSequenceSynchronizer, ClTrackviewSequence)
 
 			pMovieSystem->SetPlayingTime(pSeq, fStartTime);
 
-			int flags = pSeq->GetFlags();
-			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			bool isCutscene = CCoopCutsceneSystem::IsCutsceneSequence(pSeq);
+			if (isCutscene)
 			{
 				CCoopCutsceneSystem::GetInstance()->OnBeginCutScene(pSeq, true);
 				if (g_pGame && g_pGame->GetHUD())
@@ -173,8 +173,8 @@ IMPLEMENT_RMI(CSequenceSynchronizer, ClTrackviewSequence)
 				pMovieSystem->AbortSequence(pSeq, bLeaveTime);
 			}
 
-			int flags = pSeq->GetFlags();
-			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			bool isCutscene = CCoopCutsceneSystem::IsCutsceneSequence(pSeq);
+			if (isCutscene)
 			{
 				CCoopCutsceneSystem::GetInstance()->OnEndCutScene(pSeq);
 				if (g_pGame && g_pGame->GetHUD())

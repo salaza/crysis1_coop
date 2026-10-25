@@ -26,7 +26,8 @@ CCoopCutsceneSystem::CCoopCutsceneSystem() : m_bPlayingCutscene(0),
     m_fHostCamCurrentFOV(0.0f),
     m_fLastCamPacketTime(0.0f),
     m_camSyncTimer(0.0f),
-    m_wasCutsceneActiveOnServer(false)
+    m_wasCutsceneActiveOnServer(false),
+    m_fCutsceneEndedTimer(999.0f)
 {
  
 }
@@ -36,6 +37,25 @@ CCoopCutsceneSystem::~CCoopCutsceneSystem()
  
 }
  
+bool CCoopCutsceneSystem::IsCutsceneSequence(IAnimSequence* pSeq)
+{
+    if (!pSeq)
+        return false;
+
+    int flags = pSeq->GetFlags();
+    if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+        return true;
+
+    const char* sName = pSeq->GetName();
+    if (sName)
+    {
+        if (strnicmp(sName, "cine_", 5) == 0 || strnicmp(sName, "cine.", 5) == 0)
+            return true;
+    }
+
+    return false;
+}
+
 void CCoopCutsceneSystem::Register()
 {
     if (!gEnv->bEditor)
@@ -85,6 +105,11 @@ void CCoopCutsceneSystem::OnHostCameraSync(const Vec3& pos, const Quat& rot, flo
 
 void CCoopCutsceneSystem::Update(float fFrameTime)
 {
+    if (m_bPlayingCutscene)
+        m_fCutsceneEndedTimer = 0.0f;
+    else
+        m_fCutsceneEndedTimer += fFrameTime;
+
     // Client: smooth interpolation of host camera during cutscene
     if (!gEnv->bServer && m_bHostCamActive)
     {
@@ -196,8 +221,7 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
             {
                 for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
                 {
-                    if (gEnv->pMovieSystem->IsPlaying(pSeq) &&
-                        (pSeq->GetFlags() & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER)))
+                    if (gEnv->pMovieSystem->IsPlaying(pSeq) && IsCutsceneSequence(pSeq))
                     {
                         bHostInCutscene = true;
                         break;
@@ -265,7 +289,7 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
         {
             for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
             {
-                if (gEnv->pMovieSystem->IsPlaying(pSeq) && (pSeq->GetFlags() & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER)))
+                if (gEnv->pMovieSystem->IsPlaying(pSeq) && IsCutsceneSequence(pSeq))
                 {
                     anyCutscenePlaying = true;
                     break;
@@ -306,7 +330,7 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
         }
 
         m_seqPollTimer += fFrameTime;
-        if (m_seqPollTimer >= 0.15f)
+        if (m_seqPollTimer >= 0.05f)
         {
             m_seqPollTimer = 0.0f;
             std::set<string> currentPlaying;
@@ -333,6 +357,16 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
                         IAnimSequence* pSeq = gEnv->pMovieSystem->FindSequence(it->c_str());
                         float playTime = pSeq ? gEnv->pMovieSystem->GetPlayingTime(pSeq) : 0.0f;
                         pSync->PlaySequence(*it, playTime, false);
+
+                        if (IsCutsceneSequence(pSeq))
+                        {
+                            CryLogAlways("[CCoopCutsceneSystem] Detected cutscene sequence '%s' started on server", it->c_str());
+                            OnBeginCutScene(pSeq, !m_bPlayingCutscene);
+                            if (g_pGame && g_pGame->GetHUD())
+                            {
+                                g_pGame->GetHUD()->OnBeginCutScene(pSeq, !m_bPlayingCutscene);
+                            }
+                        }
                     }
                 }
                 for (std::set<string>::iterator it = m_serverPlayingSequences.begin(); it != m_serverPlayingSequences.end(); ++it)
@@ -375,6 +409,10 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
                 if (pNode->GetType() == ANODE_CAMERA || (pNode->GetName() && (strstr(pNode->GetName(), "cam") || strstr(pNode->GetName(), "Cam") || strstr(pNode->GetName(), "Camera"))))
                 {
                     IEntity* pEnt = pNode->GetEntity();
+                    if (!pEnt && pNode->GetName() && gEnv->pEntitySystem)
+                    {
+                        pEnt = gEnv->pEntitySystem->FindEntityByName(pNode->GetName());
+                    }
                     if (pEnt)
                     {
                         m_pCameraEntity = pEnt;
@@ -410,6 +448,27 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 
 bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
 {
+    // If another cutscene sequence is still playing in MovieSystem, do not end cutscene mode yet!
+    if (gEnv->pMovieSystem && !gEnv->bEditor)
+    {
+        ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+        if (pIt)
+        {
+            for (IAnimSequence* pOtherSeq = pIt->first(); pOtherSeq; pOtherSeq = pIt->next())
+            {
+                if (pOtherSeq != pSeq && gEnv->pMovieSystem->IsPlaying(pOtherSeq) && IsCutsceneSequence(pOtherSeq))
+                {
+                    CryLogAlways("[CCoopCutsceneSystem] Sequence '%s' ended, but '%s' is still playing - keeping cutscene active",
+                        pSeq ? pSeq->GetName() : "null", pOtherSeq->GetName());
+                    pIt->Release();
+                    m_pActiveSequence = pOtherSeq;
+                    return true;
+                }
+            }
+            pIt->Release();
+        }
+    }
+
     m_bPlayingCutscene = false;
     m_pCameraEntity = NULL;
     m_fCameraFOV = 0.0f;
@@ -446,7 +505,13 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
             Vec3 hostPos = pHostActor->GetEntity()->GetWorldPos();
             Ang3 hostAngles = pHostActor->GetEntity()->GetWorldAngles();
 
-            IActorIteratorPtr pIt = gEnv->pGame->GetIGameFramework()->GetIActorSystem()->CreateActorIterator();
+            // Safety check: Never align clients if host is high up in the air (e.g. falling or flying in plane)
+            // On island, ground level at beach is ~95m. Anything above 200m is in the sky.
+            bool bHostSafeOnGround = (hostPos.z < 200.0f);
+
+            if (bHostSafeOnGround)
+            {
+                IActorIteratorPtr pIt = gEnv->pGame->GetIGameFramework()->GetIActorSystem()->CreateActorIterator();
             while (IActor* pActor = pIt->Next())
             {
                 if (pActor != pHostActor && pActor->IsPlayer())
@@ -469,6 +534,7 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
                         }
                     }
                 }
+            }
             }
         }
     }

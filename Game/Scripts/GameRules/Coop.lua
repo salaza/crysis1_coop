@@ -990,7 +990,11 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 				local spos = g_Vectors.temp_v1;
 				local sangles = g_Vectors.temp_v2;
 				CopyVector(spos, self.spStartPos);
-				CopyVector(sangles, self.spStartAngles);
+				if (self.spStartAngles) then
+					CopyVector(sangles, self.spStartAngles);
+				else
+					sangles.x = 0; sangles.y = 0; sangles.z = 0;
+				end
 				spos.z = spos.z + 0.15;
 				self.game:RevivePlayer(player.id, spos, sangles, teamId, not keepEquip);
 				result = true;
@@ -1043,11 +1047,22 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 			local sp2 = System.GetEntitiesByClass("RespawnPoint");
 			if (sp2) then for _, sp in pairs(sp2) do table.insert(spList, sp); end end
 
+			local isIsland = string.find(string.lower(self.game:GetLevelName() or ""), "island");
 			local chosenSP = nil;
-			for _, sp in ipairs(spList) do
-				if (sp:GetName() == "SpawnPoint1" or sp:GetName() == "Spawnpoint1") then
-					chosenSP = sp;
-					break;
+			if (isIsland) then
+				for _, sp in ipairs(spList) do
+					if (sp:GetName() == "SpawnPoint2" or sp:GetName() == "Spawnpoint2") then
+						chosenSP = sp;
+						break;
+					end
+				end
+			end
+			if (not chosenSP) then
+				for _, sp in ipairs(spList) do
+					if (sp:GetName() == "SpawnPoint1" or sp:GetName() == "Spawnpoint1") then
+						chosenSP = sp;
+						break;
+					end
 				end
 			end
 			if (not chosenSP) then
