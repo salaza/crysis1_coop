@@ -63,6 +63,58 @@ static const SMenuItem s_timeOfDay[] = {
 	{ "Toggle Pause Time",    "Freeze or unfreeze time progression" },
 };
 
+struct SSandboxItem
+{
+	const char* name;
+	const char* desc;
+	const char* archetype;
+	const char* className;
+	const char* cgfModel;
+	bool bStatic;
+	float offsetZ;
+};
+
+static const SSandboxItem s_npcs[] = {
+	{ "KPA Rifleman",        "Standard NK infantry soldier", "Asian.Camper\\Jungle.Heavy_Rifleman_a", "Grunt", NULL, false, 0.0f },
+	{ "KPA Shotgunner",      "Close quarters NK combatant", "Asian.Camper\\Jungle.Heavy_CQB_a", "Grunt", NULL, false, 0.0f },
+	{ "KPA Sniper",          "Long range marksman with scope", "Asian.Cover2\\Jungle.Heavy_CovertOps_a", "Grunt", NULL, false, 0.0f },
+	{ "KPA Grenadier",       "Heavy grenade launcher specialist", "Asian.Camper\\Jungle.Heavy_Grenadier_a", "Grunt", NULL, false, 0.0f },
+	{ "KPA Nanosuit Soldier","Elite Korean nanosuit operative", "Asian.Suit\\Elite.Heavy_SpecOps", "Grunt", NULL, false, 0.0f },
+	{ "US Marine Rifleman",  "Allied US Marine with SCAR", "US.Grunt/Cover.US_Rifleman_1b", "Grunt", NULL, false, 0.0f },
+	{ "US Marine Gauss",     "US Marine armed with Gauss sniper", "US.Grunt/Inaccurate.US_Gauss_1", "Grunt", NULL, false, 0.0f },
+	{ "Squadmate Psycho",    "Sergeant Michael Sykes", "Squad_mates.Squadmate_Sykes", "Grunt", NULL, false, 0.0f },
+	{ "Squadmate Prophet",   "Major Laurence Barnes", "Squad_mates.Squadmate_Barnes", "Grunt", NULL, false, 0.0f },
+	{ "Alien Scout",         "Flying Ceph assault bio-mechanoid", "Aliens.Scouts.Scout_MOAC", "Scout", NULL, false, 2.0f },
+	{ "Alien Trooper",       "Ceph ground trooper with MOAC", "Aliens.Troopers.Trooper_MOAC", "Trooper", NULL, false, 0.0f },
+	{ "Alien Hunter",        "Massive Ceph walking combat tripod", "Aliens.Hunters.Hunter", "Hunter", NULL, false, 0.0f },
+	{ "Great White Shark",   "Lethal oceanic predator", NULL, "Shark", NULL, false, -1.0f },
+	{ "Hostage Civilian",    "Unarmed civilian survivor", "US.Firefighters.US_Firefighter_a", "Civilian", NULL, false, 0.0f },
+};
+
+static const SSandboxItem s_props[] = {
+	{ "US LTV Humvee",       "Armored transport with gun turret", "Vehicles.Land.US_LTV", "US_ltv", NULL, false, 0.5f },
+	{ "Asian LTV Truck",     "NK combat light tactical vehicle", "Vehicles.Land.Asian_LTV", "Asian_ltv", NULL, false, 0.5f },
+	{ "US Battle Tank",      "Heavy main battle tank", "Vehicles.Land.US_Tank", "US_tank", NULL, false, 0.5f },
+	{ "Asian Battle Tank",   "NK armored heavy tank", "Vehicles.Land.Asian_Tank", "Asian_tank", NULL, false, 0.5f },
+	{ "Asian Patrol Boat",   "Armed high speed patrol boat", "Vehicles.Sea.Asian_Patrolboat", "Asian_patrolboat", NULL, false, 0.0f },
+	{ "Civilian Speedboat",  "Fast civilian motorboat", "Vehicles.Sea.Asian_Speedboat", "Civ_speedboat", NULL, false, 0.0f },
+	{ "Civilian Sedan Car",  "Drivable four-door sedan", "Vehicles.Land.Civ_Car", "Civ_car1", NULL, false, 0.5f },
+	{ "Explosive Fuel Barrel","Volatile pressurized fuel drum", NULL, "BasicEntity", "Objects/Library/Storage/Barrels/Barrel_explosive_red.cgf", false, 0.0f },
+	{ "Military Ammo Crate", "Heavy wooden military storage box", NULL, "BasicEntity", "Objects/Library/Storage/military/military_shipping_box_wooden_100_17.cgf", false, 0.0f },
+	{ "Concrete Barrier",    "Heavy fortified roadblock barrier", NULL, "BasicEntity", "Objects/Library/Barriers/Roadblock/concrete_barrier.cgf", true, 0.0f },
+};
+
+static const SSandboxItem s_buildings[] = {
+	{ "Asian Guard Tower",   "Tall military lookout watchtower", NULL, "BasicEntity", "Objects/Library/Architecture/Watchtowers/watchtower_asian.cgf", true, 0.0f },
+	{ "Concrete Tower",      "Fortified concrete observation post", NULL, "BasicEntity", "Objects/Library/Architecture/Watchtowers/watchtower_concrete.cgf", true, 0.0f },
+	{ "Military Bunker",     "Reinforced personal bunker shelter", NULL, "BasicEntity", "Objects/Library/Architecture/Village/personal_bunker.cgf", true, 0.0f },
+	{ "Command Container",   "Deployable military operations barrack", NULL, "BasicEntity", "Objects/Library/Architecture/Mobile_Camp_Structures/Chinese_Barrack_Container/chinese_barrack_container_basic.cgf", true, 0.0f },
+	{ "Hospital Container",  "Medical hospital shelter container", NULL, "BasicEntity", "Objects/Library/Architecture/Container/Military_Hospital_Container/military_hospital_container.cgf", true, 0.0f },
+	{ "Military Tent",       "Large camouflage command shelter tent", NULL, "BasicEntity", "Objects/Library/Architecture/Tents/Asian/tent_asian_middleA.cgf", true, 0.0f },
+	{ "Mobile Radar Dish",   "Long-range rotating radar installation", NULL, "BasicEntity", "Objects/Library/Vehicles/Mobile_Radar_Dish/mobile_radar_dish.cgf", true, 0.0f },
+	{ "Industrial Water Tower","High-capacity water storage tower", NULL, "BasicEntity", "Objects/Library/Architecture/Watchtowers/water_tower.cgf", true, 0.0f },
+};
+
 CCoopAdminMenu& CCoopAdminMenu::GetInstance()
 {
 	static CCoopAdminMenu s_instance;
@@ -93,6 +145,7 @@ void CCoopAdminMenu::Init()
 	{
 		gEnv->pConsole->AddCommand("admin_menu", CmdToggleAdminMenu, 0, "Toggle the Co-op In-Game Admin Menu");
 		gEnv->pConsole->AddCommand("coop_start", CmdStartCampaign, 0, "Start the Co-op Campaign from the Pre-Game Lobby");
+		gEnv->pConsole->AddCommand("coop_spawn", CmdSpawnItem, 0, "Spawn sandbox item: coop_spawn <category: 3=NPC, 4=Prop, 5=Building> <index>");
 	}
 }
 
@@ -102,6 +155,7 @@ void CCoopAdminMenu::Shutdown()
 	{
 		gEnv->pConsole->RemoveCommand("admin_menu");
 		gEnv->pConsole->RemoveCommand("coop_start");
+		gEnv->pConsole->RemoveCommand("coop_spawn");
 	}
 }
 
@@ -113,6 +167,18 @@ void CCoopAdminMenu::CmdToggleAdminMenu(IConsoleCmdArgs* pArgs)
 void CCoopAdminMenu::CmdStartCampaign(IConsoleCmdArgs* pArgs)
 {
 	CCoopAdminMenu::GetInstance().StartCampaignFromLobby();
+}
+
+void CCoopAdminMenu::CmdSpawnItem(IConsoleCmdArgs* pArgs)
+{
+	if (pArgs->GetArgCount() < 3)
+	{
+		CryLogAlways("Usage: coop_spawn <category: 3=NPC, 4=Prop, 5=Building> <index>");
+		return;
+	}
+	int cat = atoi(pArgs->GetArg(1));
+	int idx = atoi(pArgs->GetArg(2));
+	CCoopAdminMenu::GetInstance().SpawnSandboxItem(cat, idx);
 }
 
 void CCoopAdminMenu::OnLoadingStart()
@@ -518,6 +584,12 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 			numItems = (int)(sizeof(s_cheats) / sizeof(s_cheats[0]));
 		else if (m_currentCategory == ECAT_TIMEOFDAY)
 			numItems = (int)(sizeof(s_timeOfDay) / sizeof(s_timeOfDay[0]));
+		else if (m_currentCategory == ECAT_NPCS)
+			numItems = (int)(sizeof(s_npcs) / sizeof(s_npcs[0]));
+		else if (m_currentCategory == ECAT_PROPS)
+			numItems = (int)(sizeof(s_props) / sizeof(s_props[0]));
+		else if (m_currentCategory == ECAT_BUILDINGS)
+			numItems = (int)(sizeof(s_buildings) / sizeof(s_buildings[0]));
 
 		if (event.keyId == eKI_Up || event.keyId == eKI_NP_8)
 		{
@@ -721,6 +793,10 @@ void CCoopAdminMenu::ExecuteSelected()
 			}
 		}
 	}
+	else if (m_currentCategory == ECAT_NPCS || m_currentCategory == ECAT_PROPS || m_currentCategory == ECAT_BUILDINGS)
+	{
+		SpawnSandboxItem(m_currentCategory, sel);
+	}
 }
 
 void CCoopAdminMenu::ChangeMap(const char* mapName)
@@ -888,7 +964,7 @@ void CCoopAdminMenu::Render()
 	curY += lineHeight * 1.4f;
 
 	// Categories row
-	const char* catNames[ECAT_COUNT] = { " [1. MAPS] ", " [2. CHEATS & DEV] ", " [3. TIME OF DAY] " };
+	const char* catNames[ECAT_COUNT] = { " [1. MAPS] ", " [2. CHEATS] ", " [3. TOD] ", " [4. NPCS] ", " [5. PROPS] ", " [6. BUILDINGS] " };
 	string catRow = "Category: ";
 	for (int c = 0; c < ECAT_COUNT; ++c)
 	{
@@ -916,6 +992,12 @@ void CCoopAdminMenu::Render()
 		numItems = (int)(sizeof(s_cheats) / sizeof(s_cheats[0]));
 	else if (m_currentCategory == ECAT_TIMEOFDAY)
 		numItems = (int)(sizeof(s_timeOfDay) / sizeof(s_timeOfDay[0]));
+	else if (m_currentCategory == ECAT_NPCS)
+		numItems = (int)(sizeof(s_npcs) / sizeof(s_npcs[0]));
+	else if (m_currentCategory == ECAT_PROPS)
+		numItems = (int)(sizeof(s_props) / sizeof(s_props[0]));
+	else if (m_currentCategory == ECAT_BUILDINGS)
+		numItems = (int)(sizeof(s_buildings) / sizeof(s_buildings[0]));
 
 	int sel = m_selectedItem[m_currentCategory];
 
@@ -962,6 +1044,21 @@ void CCoopAdminMenu::Render()
 			name = s_timeOfDay[i].name;
 			desc = s_timeOfDay[i].desc;
 		}
+		else if (m_currentCategory == ECAT_NPCS)
+		{
+			name = s_npcs[i].name;
+			desc = s_npcs[i].desc;
+		}
+		else if (m_currentCategory == ECAT_PROPS)
+		{
+			name = s_props[i].name;
+			desc = s_props[i].desc;
+		}
+		else if (m_currentCategory == ECAT_BUILDINGS)
+		{
+			name = s_buildings[i].name;
+			desc = s_buildings[i].desc;
+		}
 
 		if (i == sel)
 		{
@@ -985,5 +1082,131 @@ void CCoopAdminMenu::Render()
 	else
 	{
 		pR->Draw2dLabel(startX, curY, 1.2f, colDim, false, "Press [ENTER] or [SPACE] to activate selected action.");
+	}
+}
+
+
+//------------------------------------------------------------------------
+// Coop: Sandbox Placement and Server Spawning
+//------------------------------------------------------------------------
+void CCoopAdminMenu::SpawnSandboxItem(int category, int index)
+{
+	IActor* pActor = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetClientActor() : NULL;
+	Vec3 eyePos = pActor ? pActor->GetEntity()->GetWorldPos() + Vec3(0, 0, 1.6f) : gEnv->pSystem->GetViewCamera().GetPosition();
+	Vec3 viewDir = gEnv->pSystem->GetViewCamera().GetViewdir();
+	if (viewDir.GetLengthSquared() < 0.01f)
+		viewDir.Set(0, 1, 0);
+	viewDir.Normalize();
+
+	// Raycast forward from camera to find placement point on ground or surface
+	ray_hit hit;
+	static const int rayFlags = rwi_stop_at_pierceable | rwi_colltype_any;
+	Vec3 spawnPos;
+	if (gEnv->pPhysicalWorld && gEnv->pPhysicalWorld->RayWorldIntersection(eyePos, viewDir * 25.0f, ent_all, rayFlags, &hit, 1))
+	{
+		spawnPos = hit.pt;
+	}
+	else
+	{
+		spawnPos = eyePos + viewDir * 8.0f;
+		if (gEnv->p3DEngine)
+		{
+			float terrZ = gEnv->p3DEngine->GetTerrainElevation(spawnPos.x, spawnPos.y);
+			float waterZ = gEnv->p3DEngine->GetWaterLevel();
+			spawnPos.z = max(terrZ, waterZ);
+		}
+	}
+
+	Ang3 angles(0, 0, atan2f(-viewDir.x, viewDir.y));
+
+	if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+	{
+		pGR->RequestSpawnItem(category, index, spawnPos, angles);
+	}
+	else
+	{
+		ServerSpawnItem(category, index, spawnPos, angles);
+	}
+}
+
+void CCoopAdminMenu::ServerSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles)
+{
+	if (!gEnv->bServer)
+		return;
+
+	const SSandboxItem* pItem = NULL;
+	int count = 0;
+	if (category == ECAT_NPCS)
+	{
+		pItem = s_npcs;
+		count = (int)(sizeof(s_npcs) / sizeof(s_npcs[0]));
+	}
+	else if (category == ECAT_PROPS)
+	{
+		pItem = s_props;
+		count = (int)(sizeof(s_props) / sizeof(s_props[0]));
+	}
+	else if (category == ECAT_BUILDINGS)
+	{
+		pItem = s_buildings;
+		count = (int)(sizeof(s_buildings) / sizeof(s_buildings[0]));
+	}
+
+	if (!pItem || index < 0 || index >= count)
+		return;
+
+	const SSandboxItem& item = pItem[index];
+
+	SEntitySpawnParams spawnParams;
+	if (item.archetype && item.archetype[0])
+	{
+		spawnParams.pArchetype = gEnv->pEntitySystem->LoadEntityArchetype(item.archetype);
+	}
+
+	if (!spawnParams.pArchetype && item.className && item.className[0])
+	{
+		spawnParams.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(item.className);
+	}
+	else if (!spawnParams.pArchetype)
+	{
+		spawnParams.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("BasicEntity");
+	}
+
+	Vec3 finalPos = pos;
+	finalPos.z += item.offsetZ;
+	spawnParams.vPosition = finalPos;
+	spawnParams.qRotation = Quat::CreateRotationZ(angles.z);
+	spawnParams.nFlags = ENTITY_FLAG_SPAWNED | ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
+
+	static int s_spawnCounter = 1;
+	string name;
+	name.Format("Sandbox_%s_%d", item.className ? item.className : "Entity", s_spawnCounter++);
+	spawnParams.sName = name.c_str();
+
+	IEntity* pEntity = gEnv->pEntitySystem->SpawnEntity(spawnParams);
+	if (pEntity)
+	{
+		if (item.cgfModel && item.cgfModel[0])
+		{
+			pEntity->LoadGeometry(0, item.cgfModel);
+			SEntityPhysicalizeParams phys;
+			phys.type = item.bStatic ? PE_STATIC : PE_RIGID;
+			phys.mass = item.bStatic ? 0.0f : 120.0f;
+			pEntity->Physicalize(phys);
+		}
+
+		pEntity->Activate(true);
+
+		CryLogAlways("[Sandbox] Spawned '%s' (%s) at (%.1f, %.1f, %.1f)", item.name, pEntity->GetName(), finalPos.x, finalPos.y, finalPos.z);
+		string msg;
+		msg.Format("Spawned: %s", item.name);
+		SetStatus(msg.c_str());
+	}
+	else
+	{
+		CryLogAlways("[Sandbox] Failed to spawn '%s'", item.name);
+		string msg;
+		msg.Format("Failed to spawn: %s", item.name);
+		SetStatus(msg.c_str());
 	}
 }

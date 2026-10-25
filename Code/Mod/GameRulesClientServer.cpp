@@ -12,6 +12,8 @@ History:
 *************************************************************************/
 #include "StdAfx.h"
 #include "Coop/CoopCutsceneSystem.h"
+#include "Coop/CoopAdminMenu.h"
+#include <IMusicSystem.h>
 #include "ScriptBind_GameRules.h"
 #include "GameRules.h"
 #include "Game.h"
@@ -1088,7 +1090,7 @@ IMPLEMENT_RMI(CGameRules, ClTaggedEntity)
 	if (!params.entityId)
 		return true;
 
-	//SAFE_HUD_FUNC(GetRadar()->AddTaggedEntity(params.entityId)); //we have no tagging anymore, just temp and non-temp adding
+	SAFE_HUD_FUNC(GetRadar()->AddTaggedEntity(params.entityId));
 	SAFE_HUD_FUNC(GetRadar()->AddEntityToRadar(params.entityId));
 
 	SEntityEvent scriptEvent( ENTITY_EVENT_SCRIPT_EVENT );
@@ -1544,4 +1546,100 @@ IMPLEMENT_RMI(CGameRules, ClPlayVoiceSound)
 		}
 	}
 	return true;
+}
+
+//------------------------------------------------------------------------
+// Coop: Music & Mood Synchronization
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, ClMusicSync)
+{
+	if (gEnv->pMusicSystem)
+	{
+		switch (params.eventType)
+		{
+		case 0: // SetTheme
+			gEnv->pMusicSystem->SetTheme(params.name.c_str(), params.force, params.keepMood, params.delay);
+			if (!params.secondary.empty())
+				gEnv->pMusicSystem->SetDefaultMood(params.secondary.c_str());
+			break;
+		case 1: // SetMood
+			gEnv->pMusicSystem->SetMood(params.name.c_str(), params.force, params.keepMood);
+			break;
+		case 2: // SetDefaultMood
+			gEnv->pMusicSystem->SetDefaultMood(params.name.c_str());
+			break;
+		case 3: // PlayPattern
+			gEnv->pMusicSystem->PlayPattern(params.name.c_str(), params.force, params.keepMood);
+			break;
+		case 4: // EndTheme
+			gEnv->pMusicSystem->EndTheme((EThemeFadeType)params.fadeType, params.delay, params.force);
+			break;
+		case 5: // PlayStinger
+			gEnv->pMusicSystem->PlayStinger();
+			break;
+		}
+	}
+	return true;
+}
+
+void CGameRules::BroadcastMusicEvent(int eventType, const char* name, const char* secondary, bool force, bool keepMood, int delay, int fadeType)
+{
+	SMusicSyncParams params(eventType, name ? name : "", secondary ? secondary : "", force, keepMood, delay, fadeType);
+
+	if (gEnv->bServer)
+	{
+		GetGameObject()->InvokeRMIWithDependentObject(ClMusicSync(), params, eRMI_ToRemoteClients, GetEntityId());
+	}
+
+	if (gEnv->pMusicSystem)
+	{
+		switch (eventType)
+		{
+		case 0:
+			gEnv->pMusicSystem->SetTheme(params.name.c_str(), force, keepMood, delay);
+			if (!params.secondary.empty())
+				gEnv->pMusicSystem->SetDefaultMood(params.secondary.c_str());
+			break;
+		case 1:
+			gEnv->pMusicSystem->SetMood(params.name.c_str(), force, keepMood);
+			break;
+		case 2:
+			gEnv->pMusicSystem->SetDefaultMood(params.name.c_str());
+			break;
+		case 3:
+			gEnv->pMusicSystem->PlayPattern(params.name.c_str(), force, keepMood);
+			break;
+		case 4:
+			gEnv->pMusicSystem->EndTheme((EThemeFadeType)fadeType, delay, force);
+			break;
+		case 5:
+			gEnv->pMusicSystem->PlayStinger();
+			break;
+		}
+	}
+}
+
+//------------------------------------------------------------------------
+// Coop: Sandbox Item Spawn Request
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, SvRequestSpawn)
+{
+	if (!gEnv->bServer)
+		return true;
+
+	CCoopAdminMenu::GetInstance().ServerSpawnItem(params.category, params.index, params.pos, params.angles);
+	return true;
+}
+
+void CGameRules::RequestSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles)
+{
+	if (gEnv->bServer)
+	{
+		CCoopAdminMenu::GetInstance().ServerSpawnItem(category, index, pos, angles);
+	}
+	else
+	{
+		SSpawnRequestParams params(category, index, pos, angles);
+		GetGameObject()->InvokeRMI(SvRequestSpawn(), params, eRMI_ToServer);
+	}
 }

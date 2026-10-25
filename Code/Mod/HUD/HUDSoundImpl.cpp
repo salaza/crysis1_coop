@@ -144,7 +144,11 @@ void CHUD::PlaySound(ESound eSound, bool play)
 
 	if(play)
 	{
-		_smart_ptr<ISound> pSound = gEnv->pSoundSystem->CreateSound(szSound,0);
+		uint32 soundFlags = 0;
+		if (eSound == ESound_BinocularsAmbience || eSound == ESound_NightVisionAmbience || eSound == ESound_DownloadLoop)
+			soundFlags |= FLAG_SOUND_LOOP | FLAG_SOUND_2D;
+
+		_smart_ptr<ISound> pSound = gEnv->pSoundSystem->CreateSound(szSound, soundFlags);
 		if(pSound)
 		{
 			if(m_soundIDs[eSound])

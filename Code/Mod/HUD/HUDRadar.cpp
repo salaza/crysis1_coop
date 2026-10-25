@@ -3069,7 +3069,8 @@ void CHUDRadar::UpdateBinoculars(CActor *pActor, float fDeltaTime)
 				{
 					m_lookAtTimer=0.0f;
 
-					if(gEnv->bMultiplayer)
+					bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop()) || (g_pGame->GetHUD() && g_pGame->GetHUD()->GetCurrentGameRules() == EHUD_COOP);
+					if(gEnv->bMultiplayer && !isCoop)
 					{
 						bool add = CheckObjectMultiplayer(lookAtObjectID);
 						

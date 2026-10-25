@@ -717,7 +717,7 @@ bool CCoopSystem::OnBeforeSpawn(SEntitySpawnParams &params)
 		const char* entName = params.sName ? params.sName : "";
 
 		// Helper entities spawned by Lua OnInit/OnReset on both Server and Client during LoadEntities
-		if (strcmp(className, "Shark") == 0 || strstr(entName, "_switch") != NULL)
+		if (strstr(entName, "_switch") != NULL)
 		{
 			params.nFlags |= ENTITY_FLAG_CLIENT_ONLY;
 		}

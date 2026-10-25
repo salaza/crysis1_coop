@@ -239,7 +239,8 @@ void CHUDScopes::DisplayBinoculars(CPlayer* pPlayerActor)
 				if(stl::find_in_map(drawnEntities, uiEntityId, false))
 					continue;
 
-				if(!gEnv->bMultiplayer)
+				bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+				if(!gEnv->bMultiplayer || isCoop)
 				{
 					IAIObject *pAIObject = pEntity->GetAI();
 					if(!pAIObject)

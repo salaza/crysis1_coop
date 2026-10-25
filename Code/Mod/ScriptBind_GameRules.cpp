@@ -252,6 +252,7 @@ void CScriptBind_GameRules::RegisterMethods()
 	SCRIPT_REG_TEMPLFUNC(EndGameNear, "entityId");
 
 	SCRIPT_REG_TEMPLFUNC(SPNotifyPlayerKill, "targetId, weaponId, headShot");
+	SCRIPT_REG_TEMPLFUNC(BroadcastMusicEvent, "type, name, secondary, force, keepMood, delay, fadeType");
 
 	SCRIPT_REG_TEMPLFUNC(ProcessEMPEffect, "targetId, timeScale");
 	SCRIPT_REG_TEMPLFUNC(PerformDeadHit, "");
@@ -2379,4 +2380,32 @@ int CScriptBind_GameRules::ProcessEMPEffect(IFunctionHandler* pH, ScriptHandle t
 int CScriptBind_GameRules::PerformDeadHit(IFunctionHandler* pH)
 {
 	return pH->EndFunction(true);
+}
+
+//------------------------------------------------------------------------
+int CScriptBind_GameRules::BroadcastMusicEvent(IFunctionHandler *pH, int type, const char* name)
+{
+	CGameRules *pGameRules = GetGameRules(pH);
+	if (!pGameRules)
+		return pH->EndFunction();
+
+	const char* secondary = "";
+	bool force = true;
+	bool keepMood = false;
+	int delay = 0;
+	int fadeType = 2;
+
+	if (pH->GetParamCount() >= 3 && pH->GetParamType(3) == svtString)
+		pH->GetParam(3, secondary);
+	if (pH->GetParamCount() >= 4 && pH->GetParamType(4) == svtBool)
+		pH->GetParam(4, force);
+	if (pH->GetParamCount() >= 5 && pH->GetParamType(5) == svtBool)
+		pH->GetParam(5, keepMood);
+	if (pH->GetParamCount() >= 6 && pH->GetParamType(6) == svtNumber)
+		pH->GetParam(6, delay);
+	if (pH->GetParamCount() >= 7 && pH->GetParamType(7) == svtNumber)
+		pH->GetParam(7, fadeType);
+
+	pGameRules->BroadcastMusicEvent(type, name, secondary, force, keepMood, delay, fadeType);
+	return pH->EndFunction();
 }

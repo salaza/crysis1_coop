@@ -1,0 +1,88 @@
+--------------------------------------------------------------------------
+--	Crytek Source File.
+-- 	Copyright (C), Crytek Studios, 2001-2005.
+--------------------------------------------------------------------------
+--	Description: Music Play Pattern (Co-op Multiplayer synchronized)
+--------------------------------------------------------------------------
+
+MusicPlayPattern = {
+	type = "MusicPlayPattern",
+
+	Editor = {
+		Icon="Music.bmp",
+	},
+
+	Properties = {
+		sPattern = "",
+		bStopPrevious = 0,
+		bPlaySynched = 0,
+	},
+	InsideArea=0,
+	InsideAreaRefCount=0,
+}
+
+function MusicPlayPattern:OnSave(stm)
+	stm.bStopPrevious = self.Properties.bStopPrevious
+	stm.bPlaySynched = self.Properties.bPlaySynched
+end
+
+function MusicPlayPattern:OnLoad(stm)
+	self.Properties.bStopPrevious = stm.bStopPrevious
+	self.Properties.bPlaySynched = stm.bPlaySynched
+end
+
+function MusicPlayPattern:OnPropertyChange()
+	if (self.InsideArea==1) then
+		Sound.PlayPattern(self.Properties.sPattern, self.Properties.bStopPrevious, self.Properties.bPlaySynched);
+	end
+end
+
+function MusicPlayPattern:CliSrv_OnInit()
+end
+
+function MusicPlayPattern:OnShutDown()
+end
+
+function MusicPlayPattern:Client_OnEnterArea( player,areaId )
+	self.InsideArea=1;
+	Sound.PlayPattern(self.Properties.sPattern, self.Properties.bStopPrevious, self.Properties.bPlaySynched);
+end
+
+function MusicPlayPattern:Event_PlayPattern( )
+	Sound.PlayPattern(self.Properties.sPattern, self.Properties.bStopPrevious, self.Properties.bPlaySynched);
+	if (gEnv.bServer and g_gameRules and g_gameRules.BroadcastMusicEvent) then
+		g_gameRules:BroadcastMusicEvent(3, self.Properties.sPattern, "", self.Properties.bStopPrevious ~= 0, self.Properties.bPlaySynched ~= 0, 0, 0);
+	end
+end
+
+MusicPlayPattern.Server={
+	OnInit=function(self)
+		self:CliSrv_OnInit()
+	end,
+	OnShutDown=function(self)
+	end,
+	Inactive={
+	},
+	Active={
+	},
+}
+
+MusicPlayPattern.Client={
+	OnInit=function(self)
+		self:CliSrv_OnInit()
+	end,
+	OnShutDown=function(self)
+	end,
+	OnEnterArea = MusicPlayPattern.Client_OnEnterArea,
+}
+
+MusicPlayPattern.FlowEvents =
+{
+	Inputs =
+	{
+		PlayPattern = { MusicPlayPattern.Event_PlayPattern, "bool" },
+	},
+	Outputs =
+	{
+	},
+}

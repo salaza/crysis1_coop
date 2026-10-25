@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "CoopPlayer.h"
+#include "HUD/HUD.h"
 #include <IConsole.h>
 #include <IGameFramework.h>
 
@@ -109,12 +110,24 @@ void CCoopPlayer::UpdateMusic(float frameTime)
 	{
 		m_fMusicDelay = 0.f;
 
+		// Do not disrupt music during cinematics/cutscenes
+		if (g_pGame->GetHUD() && g_pGame->GetHUD()->IsInCinematic())
+			return;
+
+		if (m_bMusicForceMood)
+			return;
+
 		const char* mood = gEnv->pMusicSystem->GetMood();
 		if (!mood)
 			return;
 
-		if (!m_bMusicForceMood)
-			m_fMusicIntensity = m_fDetectionValue;
+		// If the level has a custom story/mission mood active, do not overwrite it unless under high combat threat
+		bool isAwarenessMood = (strcmp(mood, "incidental") == 0 || strcmp(mood, "ambient") == 0 ||
+		                        strcmp(mood, "middle") == 0 || strcmp(mood, "action") == 0);
+		if (!isAwarenessMood && m_fDetectionValue < 0.65f)
+			return;
+
+		m_fMusicIntensity = m_fDetectionValue;
 
 		if (m_fMusicIntensity < 0.1f)
 		{
@@ -199,11 +212,8 @@ void CCoopPlayer::UpdateDetectionValue(float frameTime)
 		aiDetectionLevels.vehicleExposure = pAIActorFloat[nDataIndex + 2];
 		aiDetectionLevels.vehicleThreat = pAIActorFloat[nDataIndex + 3];
 
-		// Reset originals
-		pAIActorFloat[nDataIndex + 0] = 0;
-		pAIActorFloat[nDataIndex + 1] = 0;
-		pAIActorFloat[nDataIndex + 2] = 0;
-		pAIActorFloat[nDataIndex + 3] = 0;
+		// Note: Do NOT zero out original pAIActorFloat[0..3]!
+		// Resetting them wiped client threat and exposure, making AI ignore client players.
 
 		m_fDetectionValue = max(max(aiDetectionLevels.puppetExposure, aiDetectionLevels.puppetThreat),
 								max(aiDetectionLevels.vehicleExposure, aiDetectionLevels.vehicleThreat));

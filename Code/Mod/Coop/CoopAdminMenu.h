@@ -42,6 +42,9 @@ public:
 	void RegisterDeferredSequence(ICoopDeferredSequence* pSeq);
 	void UnregisterDeferredSequence(ICoopDeferredSequence* pSeq);
 
+	void SpawnSandboxItem(int category, int index);
+	void ServerSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles);
+
 private:
 	CCoopAdminMenu();
 	~CCoopAdminMenu();
@@ -51,6 +54,9 @@ private:
 		ECAT_MAPS = 0,
 		ECAT_CHEATS,
 		ECAT_TIMEOFDAY,
+		ECAT_NPCS,
+		ECAT_PROPS,
+		ECAT_BUILDINGS,
 		ECAT_COUNT
 	};
 
@@ -86,6 +92,7 @@ private:
 
 	static void CmdToggleAdminMenu(IConsoleCmdArgs* pArgs);
 	static void CmdStartCampaign(IConsoleCmdArgs* pArgs);
+	static void CmdSpawnItem(IConsoleCmdArgs* pArgs);
 };
 
 #endif // __COOPADMINMENU_H__

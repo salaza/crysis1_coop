@@ -897,7 +897,12 @@ void CGameRules::AddTaggedEntity(EntityId shooter, EntityId targetId, bool tempo
 		return;
 
 	EntityParams params(targetId);
-	if(GetTeamCount() > 1)
+	if (IsCoop())
+	{
+		// Broadcast marked targets to all players so radar and PDA map display the tagged entity
+		GetGameObject()->InvokeRMI(ClTaggedEntity(), params, eRMI_ToAllClients);
+	}
+	else if(GetTeamCount() > 1)
 	{
 		EntityId teamId = GetTeam(shooter);
 		TPlayerTeamIdMap::const_iterator tit=m_playerteams.find(teamId);
@@ -4407,6 +4412,8 @@ void CGameRules::UpdateCoopGameSession(float frameTime)
 		return;
 	}
 
+	UpdateCoopSharks(frameTime);
+
 	IActorSystem* pActorSystem = m_pGameFramework->GetIActorSystem();
 	if (!pActorSystem)
 		return;
@@ -4621,5 +4628,85 @@ void CGameRules::RestartCurrentLevel()
 	{
 		CryLogAlways("[Co-op] Level name unavailable, falling back to CGameRules::Restart()");
 		Restart();
+	}
+}
+
+
+//------------------------------------------------------------------------
+// Coop: Deep Ocean Water Shark Spawning
+//------------------------------------------------------------------------
+void CGameRules::UpdateCoopSharks(float frameTime)
+{
+	static float s_sharkCheckTimer = 0.0f;
+	s_sharkCheckTimer += frameTime;
+	if (s_sharkCheckTimer < 4.0f)
+		return;
+	s_sharkCheckTimer = 0.0f;
+
+	IActorSystem* pActorSystem = m_pGameFramework->GetIActorSystem();
+	if (!pActorSystem || !gEnv->p3DEngine)
+		return;
+
+	float oceanLevel = gEnv->p3DEngine->GetWaterLevel();
+
+	IActorIteratorPtr it = pActorSystem->CreateActorIterator();
+	while (CActor* pActor = static_cast<CActor*>(it->Next()))
+	{
+		if (pActor && pActor->IsPlayer() && pActor->GetHealth() > 0 && pActor->GetSpectatorMode() == CActor::eASM_None)
+		{
+			Vec3 pos = pActor->GetEntity()->GetWorldPos();
+			float terrainZ = gEnv->p3DEngine->GetTerrainElevation(pos.x, pos.y);
+			float waterDepth = oceanLevel - terrainZ;
+
+			// If player is in deep ocean water (> 6m water depth and near or below ocean surface)
+			if (waterDepth > 6.0f && pos.z <= oceanLevel + 0.5f)
+			{
+				bool hasSharkNearby = false;
+				IEntityIt* pEntIt = gEnv->pEntitySystem->GetEntityIterator();
+				while (!pEntIt->IsEnd())
+				{
+					IEntity* pE = pEntIt->Next();
+					if (pE && pE->GetClass() && strcmp(pE->GetClass()->GetName(), "Shark") == 0)
+					{
+						if ((pE->GetWorldPos() - pos).GetLengthSquared() < 80.0f * 80.0f)
+						{
+							hasSharkNearby = true;
+							break;
+						}
+					}
+				}
+
+				if (!hasSharkNearby)
+				{
+					Vec3 forw = pActor->GetEntity()->GetRotation().GetColumn1();
+					forw.z = 0;
+					if (forw.GetLengthSquared() > 0.01f)
+						forw.Normalize();
+					else
+						forw.Set(0, 1, 0);
+
+					Vec3 spawnPos = pos - forw * 25.0f;
+					spawnPos.z = oceanLevel - 2.5f;
+
+					SEntitySpawnParams params;
+					params.pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("Shark");
+					params.vPosition = spawnPos;
+					params.sName = "OceanShark";
+					params.nFlags = ENTITY_FLAG_SPAWNED | ENTITY_FLAG_NET_PRESENT | ENTITY_FLAG_CASTSHADOW;
+					IEntity* pShark = gEnv->pEntitySystem->SpawnEntity(params);
+					if (pShark)
+					{
+						IScriptTable* pTbl = pShark->GetScriptTable();
+						if (pTbl)
+						{
+							Script::CallMethod(pTbl, "Chase", pActor->GetEntity()->GetScriptTable());
+							Script::CallMethod(pTbl, "Event_Spawn");
+						}
+						CryLogAlways("[Co-op] Spawned Ocean Shark targeting swimming player %s at (%.1f, %.1f, %.1f)",
+							pActor->GetEntity()->GetName(), spawnPos.x, spawnPos.y, spawnPos.z);
+					}
+				}
+			}
+		}
 	}
 }

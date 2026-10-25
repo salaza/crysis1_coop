@@ -304,7 +304,8 @@ void CPlayer::InitLocalPlayer()
 
 	pVehicleSystem->RegisterVehicleClient(m_pVehicleClient);
 
-	if (gEnv->pSoundSystem && IsClient() && !gEnv->bMultiplayer)
+	bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+	if (gEnv->pSoundSystem && IsClient() && (!gEnv->bMultiplayer || isCoop))
 		gEnv->pSoundSystem->AddEventListener(this, true);
 }
 
@@ -2273,7 +2274,8 @@ void CPlayer::UpdateSwimStats(float frameTime)
 	if (ShouldSwim())
 	{
 		//by design : AI cannot swim and drowns no matter what
-		if((GetHealth() > 0) && !isClient && !gEnv->bMultiplayer)
+		bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+		if((GetHealth() > 0) && !isClient && (!gEnv->bMultiplayer || isCoop))
 		{
 			// apply damage same way as all the other kinds
 			HitInfo hitInfo;
@@ -5059,7 +5061,8 @@ void CPlayer::UpdateFootSteps(float frameTime)
 		//switch foot
 		m_currentFootID = footID;	
 
-		if (!gEnv->bMultiplayer && gEnv->pAISystem)
+		bool isCoopFootsteps = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+		if ((!gEnv->bMultiplayer || isCoopFootsteps) && gEnv->pAISystem)
 		{
 			float pseudoSpeed = 0.0f;
 			if (m_stats.velocity.GetLengthSquared() > sqr(0.01f))

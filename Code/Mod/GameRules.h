@@ -1069,6 +1069,60 @@ public:
 	};
 	DECLARE_CLIENT_RMI_NOATTACH(ClPlayVoiceSound, SPlayVoiceSoundParams, eNRT_ReliableOrdered);
 
+	// Coop: Music and Sound mood synchronization
+	struct SMusicSyncParams
+	{
+		SMusicSyncParams() : eventType(0), name(""), secondary(""), force(true), keepMood(false), delay(0), fadeType(2) {}
+		SMusicSyncParams(int type, const string& nm, const string& sec, bool f, bool km, int d, int ft)
+			: eventType(type), name(nm), secondary(sec), force(f), keepMood(km), delay(d), fadeType(ft) {}
+
+		int eventType; // 0=SetTheme, 1=SetMood, 2=SetDefaultMood, 3=PlayPattern, 4=EndTheme, 5=PlayStinger
+		string name;
+		string secondary;
+		bool force;
+		bool keepMood;
+		int delay;
+		int fadeType;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("eventType", eventType);
+			ser.Value("name", name);
+			ser.Value("secondary", secondary);
+			ser.Value("force", force);
+			ser.Value("keepMood", keepMood);
+			ser.Value("delay", delay);
+			ser.Value("fadeType", fadeType);
+		}
+	};
+	DECLARE_CLIENT_RMI_NOATTACH(ClMusicSync, SMusicSyncParams, eNRT_ReliableOrdered);
+	void BroadcastMusicEvent(int eventType, const char* name, const char* secondary = "", bool force = true, bool keepMood = false, int delay = 0, int fadeType = 2);
+
+	// Coop: Sandbox item spawn request
+	struct SSpawnRequestParams
+	{
+		SSpawnRequestParams() : category(0), index(0), pos(ZERO), angles(ZERO) {}
+		SSpawnRequestParams(int cat, int idx, const Vec3& p, const Ang3& a)
+			: category(cat), index(idx), pos(p), angles(a) {}
+
+		int category;
+		int index;
+		Vec3 pos;
+		Ang3 angles;
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("category", category);
+			ser.Value("index", index);
+			ser.Value("pos", pos);
+			ser.Value("angles", angles);
+		}
+	};
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestSpawn, SSpawnRequestParams, eNRT_ReliableOrdered);
+	void RequestSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles);
+
+	void UpdateCoopSharks(float frameTime);
+
 	// Coop: 3 Lives System & Session Management
 	static const TSynchedKey COOP_PLAYER_LIVES_KEY = 960;
 	int  GetPlayerLives(EntityId playerId) const;

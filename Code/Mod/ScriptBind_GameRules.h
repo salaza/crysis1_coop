@@ -214,6 +214,8 @@ public:
 
 	int SPNotifyPlayerKill(IFunctionHandler* pH, ScriptHandle targetId, ScriptHandle weaponId, bool bHeadShot);
 
+	int BroadcastMusicEvent(IFunctionHandler *pH, int type, const char* name);
+
 	// EMP Grenade
 	int ProcessEMPEffect(IFunctionHandler* pH, ScriptHandle targetId, float timeScale);
 	int PerformDeadHit(IFunctionHandler* pH);
