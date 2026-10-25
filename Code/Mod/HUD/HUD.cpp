@@ -3277,7 +3277,7 @@ void CHUD::OnPostUpdate(float frameTime)
 			if(g_pGame && g_pGame->GetIGameFramework())
 			{
 				bool isDead = pGameRules->IsDead(g_pGame->GetIGameFramework()->GetClientActorId());
-				m_animPDA.Invoke("setPlayerIsDead",isDead);
+				m_animPDA.CheckedInvoke("setPlayerIsDead",isDead);
 			}
 		}
 	}
@@ -3793,7 +3793,7 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		float color[4] = { 0.55f, 0.75f, 0.95f, 0.75f };
 		float screenHeight = (float)gEnv->pRenderer->GetHeight();
-		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.5");
+		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.6");
 	}
 }
 

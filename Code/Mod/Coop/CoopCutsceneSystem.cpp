@@ -311,7 +311,10 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
 
 void CCoopCutsceneSystem::OnPlayCutSceneSound(IAnimSequence* pSeq, ISound* pSound)
 {
- 
+    if (pSound && CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+    {
+        pSound->SetPaused(true);
+    }
 }
 
 bool CCoopCutsceneSystem::OnCameraChange(const SCameraParams& cameraParams)

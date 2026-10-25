@@ -70,7 +70,11 @@ private:
 
 	// Lobby state
 	bool m_bLobbyWaiting;
+	bool m_bWasLobbyWaiting;
 	float m_lobbySyncTimer;
+	float m_lobbyTimeSinceLoad;
+	float m_lobbyInitialTOD;
+	string m_pendingMapChange;
 	std::map<int, SLobbyPlayerInfo> m_lobbyPlayers;
 	std::vector<ICoopDeferredSequence*> m_deferredSequences;
 

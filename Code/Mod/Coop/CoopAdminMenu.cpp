@@ -8,10 +8,13 @@
 #include <ILevelSystem.h>
 #include <IActorSystem.h>
 #include <IMovieSystem.h>
+#include <IMusicSystem.h>
+#include <ISound.h>
 #include <algorithm>
 #include "Game.h"
 #include "GameRules.h"
 #include "SynchedStorage.h"
+#include "Entities/SequenceSynchronizer.h"
 
 static const TSynchedKey COOP_LOBBY_WAITING_KEY = 950;
 static const TSynchedKey COOP_LOBBY_ROSTER_KEY  = 951;
@@ -71,7 +74,10 @@ CCoopAdminMenu::CCoopAdminMenu()
 	, m_currentCategory(0)
 	, m_statusTimer(0.0f)
 	, m_bLobbyWaiting(false)
+	, m_bWasLobbyWaiting(false)
 	, m_lobbySyncTimer(0.0f)
+	, m_lobbyTimeSinceLoad(0.0f)
+	, m_lobbyInitialTOD(-1.0f)
 {
 	for (int i = 0; i < ECAT_COUNT; ++i)
 		m_selectedItem[i] = 0;
@@ -112,6 +118,8 @@ void CCoopAdminMenu::CmdStartCampaign(IConsoleCmdArgs* pArgs)
 void CCoopAdminMenu::OnLoadingStart()
 {
 	m_deferredSequences.clear();
+	m_lobbyTimeSinceLoad = 0.0f;
+	m_lobbyInitialTOD = -1.0f;
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
 		m_bLobbyWaiting = true;
@@ -128,9 +136,21 @@ void CCoopAdminMenu::OnLoadingStart()
 
 void CCoopAdminMenu::OnLoadingComplete()
 {
+	m_lobbyTimeSinceLoad = 0.0f;
+	if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+	{
+		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+		m_lobbyInitialTOD = pTOD->GetTime();
+	}
+
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
 		m_bLobbyWaiting = true;
+		m_bWasLobbyWaiting = true;
+		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+			gEnv->p3DEngine->GetTimeOfDay()->SetPaused(true);
+		if (gEnv->pMusicSystem)
+			gEnv->pMusicSystem->Pause(true);
 		SyncLobbyToClients();
 	}
 }
@@ -280,7 +300,23 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 		return;
 
 	m_bLobbyWaiting = false;
+	m_bWasLobbyWaiting = false;
 	SyncLobbyToClients();
+
+	if (gEnv->pMusicSystem)
+		gEnv->pMusicSystem->Pause(false);
+	if (gEnv->pSoundSystem)
+		gEnv->pSoundSystem->Pause(false);
+	if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+	{
+		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+		if (m_lobbyInitialTOD >= 0.0f)
+		{
+			pTOD->SetTime(m_lobbyInitialTOD, true);
+			pTOD->Update(true, true);
+		}
+		pTOD->SetPaused(false);
+	}
 
 	CryLogAlways("[CoopLobby] Starting Co-op Campaign! Releasing %d held sequences...", (int)m_deferredSequences.size());
 
@@ -299,6 +335,26 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 		if (toStart[i])
 		{
 			toStart[i]->OnCoopLobbyStart();
+		}
+	}
+
+	// Also broadcast any MovieSystem sequences that were held at 0.0f during the lobby
+	if (gEnv->pMovieSystem)
+	{
+		CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
+		ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+		if (pIt)
+		{
+			for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
+			{
+				if (gEnv->pMovieSystem->IsPlaying(pSeq))
+				{
+					gEnv->pMovieSystem->SetPlayingTime(pSeq, pSeq->GetTimeRange().start);
+					if (pSync)
+						pSync->PlaySequence(pSeq->GetName(), 0.0f, false);
+				}
+			}
+			pIt->Release();
 		}
 	}
 
@@ -334,6 +390,74 @@ void CCoopAdminMenu::Update(float frameTime)
 			m_statusMessage.clear();
 	}
 
+	// Execute any deferred map switch outside of input event dispatch
+	if (!m_pendingMapChange.empty())
+	{
+		string nextMap = m_pendingMapChange;
+		m_pendingMapChange.clear();
+
+		if (gEnv->pConsole)
+		{
+			if (ICVar* pRules = gEnv->pConsole->GetCVar("sv_gamerules"))
+				pRules->ForceSet("Coop");
+		}
+
+		IGameFramework* pFW = gEnv->pGame ? gEnv->pGame->GetIGameFramework() : NULL;
+		bool bSwitched = false;
+		if (pFW && gEnv->bServer && gEnv->bMultiplayer && pFW->StartedGameContext() && pFW->GetServerNetNub() != NULL)
+		{
+			SGameContextParams ctx;
+			ctx.levelName = nextMap.c_str();
+			ctx.gameRules = "Coop";
+			CryLogAlways("[CoopAdmin] Switching server game context to map '%s' (Coop)...", nextMap.c_str());
+			bSwitched = pFW->ChangeGameContext(&ctx);
+		}
+
+		if (!bSwitched && pFW)
+		{
+			string cmd;
+			cmd.Format("map %s s x", nextMap.c_str());
+			CryLogAlways("[CoopAdmin] Executing map command next frame: %s", cmd.c_str());
+			pFW->ExecuteCommandNextFrame(cmd.c_str());
+		}
+		return;
+	}
+
+	bool bWaitingNow = IsLobbyWaiting();
+	if (bWaitingNow)
+	{
+		m_bWasLobbyWaiting = true;
+		m_lobbyTimeSinceLoad += frameTime;
+
+		// Pause cutscene music and freeze Time of Day while waiting in the pre-game lobby
+		if (gEnv->pMusicSystem)
+			gEnv->pMusicSystem->Pause(true);
+
+		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+		{
+			ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+			if (m_lobbyInitialTOD < 0.0f)
+				m_lobbyInitialTOD = pTOD->GetTime();
+			pTOD->SetPaused(true);
+			pTOD->SetTime(m_lobbyInitialTOD, false);
+		}
+	}
+	else if (m_bWasLobbyWaiting)
+	{
+		m_bWasLobbyWaiting = false;
+		if (gEnv->pMusicSystem)
+			gEnv->pMusicSystem->Pause(false);
+		if (gEnv->pSoundSystem)
+			gEnv->pSoundSystem->Pause(false);
+		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+		{
+			ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+			if (m_lobbyInitialTOD >= 0.0f)
+				pTOD->SetTime(m_lobbyInitialTOD, true);
+			pTOD->SetPaused(false);
+		}
+	}
+
 	if (gEnv->bServer && m_bLobbyWaiting)
 	{
 		m_lobbySyncTimer += frameTime;
@@ -348,6 +472,10 @@ void CCoopAdminMenu::Update(float frameTime)
 bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 {
 	if (event.deviceId != eDI_Keyboard)
+		return false;
+
+	// Do not intercept keys while the tilde console is open
+	if (gEnv->pConsole && gEnv->pConsole->GetStatus())
 		return false;
 
 	if (event.state == eIS_Pressed)
@@ -366,7 +494,7 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 				StartCampaignFromLobby();
 				return true;
 			}
-			else if (event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter)
+			else if ((event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter) && m_lobbyTimeSinceLoad >= 2.5f)
 			{
 				int loadingCount = 0;
 				for (std::map<int, SLobbyPlayerInfo>::const_iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it)
@@ -616,28 +744,8 @@ void CCoopAdminMenu::ChangeMap(const char* mapName)
 	string status;
 	status.Format("Switching server map to: %s...", mapName);
 	SetStatus(status.c_str());
-
-	ILevelSystem* pLevelSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetILevelSystem() : NULL;
-	if (pLevelSystem)
-	{
-		ILevelRotation* pRotation = pLevelSystem->GetLevelRotation();
-		if (pRotation)
-		{
-			pRotation->Reset();
-			pRotation->AddLevel(mapName, "Coop");
-			pRotation->First();
-			pRotation->ChangeLevel();
-			return;
-		}
-	}
-
-	// Fallback only if level rotation fails
-	if (gEnv->pConsole)
-	{
-		string cmd;
-		cmd.Format("map %s s x", mapName);
-		gEnv->pConsole->ExecuteString(cmd.c_str());
-	}
+	SetOpen(false);
+	m_pendingMapChange = mapName;
 }
 
 void CCoopAdminMenu::RenderLobbyOverlay()

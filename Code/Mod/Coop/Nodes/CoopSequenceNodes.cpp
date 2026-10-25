@@ -190,6 +190,13 @@ public:
 				}
 				else
 				{
+					IMovieSystem *movieSys = gEnv->pMovieSystem;
+					IAnimSequence *pTargetSeq = movieSys ? movieSys->FindSequence(GetPortString(pActInfo, EIP_Sequence)) : NULL;
+					if (m_bPlaying && m_pSeq && m_pSeq == pTargetSeq && movieSys && movieSys->IsPlaying(m_pSeq))
+					{
+						// Already playing this sequence (e.g. SpawnPoint fired after Start node) - do not abort/restart
+						return;
+					}
 					StartSequence(pActInfo, GetPortFloat(pActInfo, EIP_StartTime));
 				}
 			}
@@ -338,3 +345,4 @@ protected:
 };
 
 REGISTER_FLOW_NODE("Coop:PlaySequence", CFlowPlaySequence);
+REGISTER_FLOW_NODE_EX("Animations:PlaySequence", CFlowPlaySequence, AnimationsPlaySequence);

@@ -172,8 +172,8 @@ static void UnlockCryActionImmersiveMP()
 
 	uint8* base = (uint8*)hCryAction;
 #ifdef WIN64
-	// 1. CGameContext::SetImmersive(bool): RVA 0x2b395c (83 F8 03 74 08 -> 83 F8 03 EB 08)
-	uint8* pSetImmersive = base + 0x2b395c;
+	// 1. CGameContext::SetImmersive(bool): RVA 0x2b395e (83 F8 03 74 08 -> 83 F8 03 EB 08)
+	uint8* pSetImmersive = base + 0x2b395e;
 	if (pSetImmersive[0] == 0x83 && pSetImmersive[1] == 0xF8 && pSetImmersive[2] == 0x03 && pSetImmersive[3] == 0x74 && pSetImmersive[4] == 0x08)
 	{
 		DWORD oldProt = 0;
@@ -197,9 +197,32 @@ static void UnlockCryActionImmersiveMP()
 			CryLogAlways("[Co-op] Bypassed DX10 client capability check in 64-bit CryAction.dll");
 		}
 	}
+	// 3. Client DX10 'X' capability string flag: RVA 0x2b6871 (83 F8 03 0F 85 DD 00 00 00 -> NOP 6 bytes at +3)
+	uint8* pClientCapX = base + 0x2b6871;
+	if (pClientCapX[0] == 0x83 && pClientCapX[1] == 0xF8 && pClientCapX[2] == 0x03 && pClientCapX[3] == 0x0F && pClientCapX[4] == 0x85)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pClientCapX, 12, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			memset(pClientCapX + 3, 0x90, 6);
+			VirtualProtect(pClientCapX, 12, oldProt, &oldProt);
+		}
+	}
+	// 4. CGameContext::ChangeContext SupportsGameType / DevMode check: RVA 0x2b9860 (85 C0 0F 8E 8F 00 00 00 -> 85 C0 90 E9 8F 00 00 00)
+	uint8* pSupportsGameType = base + 0x2b9860;
+	if (pSupportsGameType[0] == 0x85 && pSupportsGameType[1] == 0xC0 && pSupportsGameType[2] == 0x0F && pSupportsGameType[3] == 0x8E)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pSupportsGameType, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pSupportsGameType[2] = 0x90;
+			pSupportsGameType[3] = 0xE9;
+			VirtualProtect(pSupportsGameType, 8, oldProt, &oldProt);
+		}
+	}
 #else
-	// 1. CGameContext::SetImmersive(bool): RVA 0x1d699b (83 F8 03 74 06 -> 83 F8 03 EB 06)
-	uint8* pSetImmersive = base + 0x1d699b;
+	// 1. CGameContext::SetImmersive(bool): RVA 0x1d6999 (83 F8 03 74 06 -> 83 F8 03 EB 06)
+	uint8* pSetImmersive = base + 0x1d6999;
 	if (pSetImmersive[0] == 0x83 && pSetImmersive[1] == 0xF8 && pSetImmersive[2] == 0x03 && pSetImmersive[3] == 0x74 && pSetImmersive[4] == 0x06)
 	{
 		DWORD oldProt = 0;
@@ -222,7 +245,159 @@ static void UnlockCryActionImmersiveMP()
 			CryLogAlways("[Co-op] Bypassed DX10 client capability check in 32-bit CryAction.dll");
 		}
 	}
+	// 3. Client DX10 'X' capability string flag: RVA 0x1d8a0c (83 F8 03 75 19 -> NOP 2 bytes at +3)
+	uint8* pClientCapX = base + 0x1d8a0c;
+	if (pClientCapX[0] == 0x83 && pClientCapX[1] == 0xF8 && pClientCapX[2] == 0x03 && pClientCapX[3] == 0x75 && pClientCapX[4] == 0x19)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pClientCapX, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pClientCapX[3] = 0x90;
+			pClientCapX[4] = 0x90;
+			VirtualProtect(pClientCapX, 8, oldProt, &oldProt);
+		}
+	}
+	// 4. CGameContext::ChangeContext SupportsGameType / DevMode check: RVA 0x1da351 (85 C0 7E 75 -> 85 C0 EB 75)
+	uint8* pSupportsGameType = base + 0x1da351;
+	if (pSupportsGameType[0] == 0x85 && pSupportsGameType[1] == 0xC0 && pSupportsGameType[2] == 0x7E && pSupportsGameType[3] == 0x75)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pSupportsGameType, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pSupportsGameType[2] = 0xEB;
+			VirtualProtect(pSupportsGameType, 8, oldProt, &oldProt);
+		}
+	}
 #endif
+}
+
+static void EnforceCoopMaxGraphicsSettings()
+{
+	if (!gEnv || !gEnv->pConsole || (gEnv->pSystem && gEnv->pSystem->IsDedicated()))
+		return;
+
+	static bool s_appliedOnce = false;
+
+	auto SetIntCVar = [](const char* name, int val) {
+		if (ICVar* pVar = gEnv->pConsole->GetCVar(name))
+			pVar->ForceSet( string().Format("%d", val).c_str() );
+	};
+	auto SetFloatCVar = [](const char* name, float val) {
+		if (ICVar* pVar = gEnv->pConsole->GetCVar(name))
+			pVar->ForceSet( string().Format("%g", val).c_str() );
+	};
+
+	if (!s_appliedOnce)
+	{
+		s_appliedOnce = true;
+
+		// 1. Force Very High System Specs (4) & Shader Quality (3)
+		SetIntCVar("sys_spec_ObjectDetail", 4);
+		SetIntCVar("sys_spec_Shading", 4);
+		SetIntCVar("sys_spec_VolumetricEffects", 4);
+		SetIntCVar("sys_spec_Shadows", 4);
+		SetIntCVar("sys_spec_Texture", 4);
+		SetIntCVar("sys_spec_Physics", 4);
+		SetIntCVar("sys_spec_PostProcessing", 4);
+		SetIntCVar("sys_spec_Particles", 4);
+		SetIntCVar("sys_spec_Sound", 4);
+		SetIntCVar("sys_spec_Water", 4);
+		SetIntCVar("sys_spec_GameEffects", 4);
+		SetIntCVar("sys_spec_Full", 4);
+		SetIntCVar("sys_spec", 4);
+
+		SetIntCVar("q_ShaderGeneral", 3);
+		SetIntCVar("q_ShaderMetal", 3);
+		SetIntCVar("q_ShaderGlass", 3);
+		SetIntCVar("q_ShaderVegetation", 3);
+		SetIntCVar("q_ShaderIce", 3);
+		SetIntCVar("q_ShaderTerrain", 3);
+		SetIntCVar("q_ShaderShadow", 3);
+		SetIntCVar("q_ShaderFX", 3);
+		SetIntCVar("q_ShaderPostProcess", 3);
+		SetIntCVar("q_ShaderHDR", 3);
+		SetIntCVar("q_ShaderSky", 3);
+		SetIntCVar("q_ShaderWater", 2); // 2 is max compatible in DX9 without black-ocean shader bug
+		SetIntCVar("q_Renderer", 3);
+
+		CryLogAlways("[Co-op] Enabled Maximum & Experimental CryEngine 2 Graphics Settings");
+	}
+
+	// 2. Experimental & Extreme CryEngine 2 Renderer / 3DEngine Features
+	SetIntCVar("e_obj_quality", 4);
+	SetIntCVar("r_UsePOM", 1);                      // Parallax Occlusion Mapping
+	SetIntCVar("r_SunShafts", 2);                   // High quality volumetric sun rays / godrays
+	SetIntCVar("r_SSAO", 1);                        // Screen-Space Ambient Occlusion
+	SetIntCVar("r_SSAO_quality", 3);                // Maximum SSAO quality
+	SetFloatCVar("r_SSAO_radius", 2.0f);
+	SetIntCVar("r_SSAO_blur", 4);
+	SetIntCVar("r_UseEdgeAA", 2);                   // Maximum Foliage & Edge Anti-Aliasing
+	SetIntCVar("r_HDRRendering", 2);                // Full HDR rendering pipeline
+	SetIntCVar("r_PostProcessEffects", 2);
+	SetIntCVar("r_ColorGrading", 1);                // Experimental CryEngine 2 color grading
+	SetIntCVar("r_DepthOfField", 2);                // Bokeh / cinematic depth of field
+	SetIntCVar("r_MotionBlur", 1);                  // Camera & object motion blur
+	SetIntCVar("r_UseSoftParticles", 1);            // Soft depth-blended particles
+	SetIntCVar("r_Beams", 3);                       // Full volumetric light beams
+	SetFloatCVar("r_BeamsDistFactor", 0.05f);
+	SetIntCVar("r_BeamsMaxSlices", 200);
+	SetIntCVar("r_Flares", 1);
+	SetIntCVar("r_Glow", 1);
+	SetIntCVar("r_Coronas", 1);
+	SetIntCVar("r_Reflections", 1);
+	SetIntCVar("r_ReflectionsQuality", 3);
+	SetIntCVar("r_Refraction", 1);
+
+	// 3. Textures, Anisotropy & Environment Probes
+	SetIntCVar("r_TexMaxAnisotropy", 16);           // 16x Anisotropic Filtering
+	SetIntCVar("r_TexturesStreaming", 0);           // Disable streaming pop-in: keep full-res textures in VRAM
+	SetIntCVar("r_DetailTextures", 1);
+	SetIntCVar("r_DetailNumLayers", 2);
+	SetFloatCVar("r_DetailDistance", 20.0f);
+	SetIntCVar("r_EnvCMResolution", 2);
+	SetIntCVar("r_EnvTexResolution", 3);
+	SetFloatCVar("r_EnvTexUpdateInterval", 0.01f);
+
+	// 4. Water & Experimental FFT Ocean Simulation
+	SetIntCVar("e_water_ocean_fft", 1);             // Experimental FFT ocean wave simulation
+	SetIntCVar("e_water_ocean_soft_particles", 1);
+	SetIntCVar("e_water_tesselation_amount", 10);   // Maximum ocean mesh tessellation
+	SetIntCVar("e_water_tesselation_swath_width", 12);
+	SetIntCVar("r_WaterReflections", 1);
+	SetIntCVar("r_WaterReflectionsQuality", 3);
+	SetFloatCVar("r_WaterUpdateFactor", 0.005f);
+	SetIntCVar("r_WaterCaustics", 1);
+	SetIntCVar("r_WaterGodRays", 1);
+
+	// 5. High-Resolution Cascaded Shadows & Experimental Terrain AO / RAM Maps
+	SetIntCVar("e_shadows", 1);
+	SetIntCVar("e_shadows_max_texture_size", 2048); // High-res 2048x2048 shadow map cascades
+	SetFloatCVar("e_shadows_cast_view_dist_ratio", 1.0f);
+	SetIntCVar("e_shadows_from_terrain_in_all_dirs", 1); // Experimental sun-to-terrain shadows
+	SetIntCVar("e_gsm_lods_num", 5);
+	SetFloatCVar("e_gsm_range", 3.0f);
+	SetFloatCVar("e_gsm_range_step", 3.0f);
+	SetFloatCVar("r_ShadowJittering", 2.5f);
+	SetIntCVar("r_ShadowBlur", 3);
+	SetIntCVar("e_ram_maps", 1);                    // Experimental Realtime Ambient Maps
+	SetIntCVar("e_terrain_ao", 1);                  // Terrain Ambient Occlusion
+	SetIntCVar("e_terrain_normal_map", 1);
+	SetFloatCVar("e_sky_update_rate", 1.0f);
+
+	// 6. Extreme Draw Distances, Vegetation Density, LODs & Particles
+	SetFloatCVar("e_view_dist_ratio", 100.0f);
+	SetFloatCVar("e_view_dist_ratio_detail", 100.0f);
+	SetFloatCVar("e_view_dist_ratio_vegetation", 100.0f);
+	SetFloatCVar("e_lod_ratio", 20.0f);
+	SetIntCVar("e_lod_min", 0);
+	SetFloatCVar("e_vegetation_sprites_distance_ratio", 4.0f);
+	SetFloatCVar("e_vegetation_min_size", 0.0f);
+	SetIntCVar("e_particles_quality", 4);
+	SetIntCVar("e_particles_max_emitter_draw_screen", 64);
+	SetIntCVar("e_particles_object_collisions", 1);
+	SetIntCVar("e_decals_allow_game_decals", 1);
+	SetFloatCVar("e_decals_life_time_scale", 4.0f);
+	SetFloatCVar("ca_AttachmentCullingRation", 300.0f);
 }
 
 static void EnforceCoopLuaPhysics()
@@ -366,6 +541,7 @@ bool CCoopSystem::Initialize()
 		pObjQuality->ForceSet("4");
 
 	// Enable full SinglePlayer physics simulation, destruction, tree cutting and foliage bending in Co-op
+	EnforceCoopMaxGraphicsSettings();
 	EnforceCoopPhysicsSettings();
 	EnforceCoopLuaPhysics();
 
@@ -493,6 +669,7 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 		pObjQuality->ForceSet("4");
 
 	// Ensure physics destruction and Lua immersive mode are fully enabled on both Host and Client before entities load
+	EnforceCoopMaxGraphicsSettings();
 	EnforceCoopPhysicsSettings();
 	EnforceCoopLuaPhysics();
 
@@ -503,6 +680,7 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 	m_nInitialized = 0;
 	CryLogAlways("[CCoopSystem] Initializing AI System...");
 
+	bool savedMP = gEnv->bMultiplayer;
 	gEnv->bMultiplayer = false;
 	if (!gEnv->pAISystem->Init())
 		CryLogAlways("[CCoopSystem] AI System Initialization Failed");
@@ -511,7 +689,7 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 	gEnv->pAISystem->Enable();
 
 	gEnv->pAISystem->LoadNavigationData(pLevel->GetPath(), "mission0");
-	gEnv->bMultiplayer = true;
+	gEnv->bMultiplayer = savedMP;
 
 	ICVar* pSystemUpdate = gEnv->pConsole->GetCVar("ai_systemupdate");
 	if (gEnv->bServer)
@@ -567,6 +745,22 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 
 	if (gEnv->bEditor) return;
 
+	// If the user started a map via 'map <name>' in console (SinglePlayer without 's x'),
+	// automatically relaunch it as an Immersive Multiplayer Co-op Server so clients can connect!
+	if (gEnv->bServer && (!gEnv->bMultiplayer || !gEnv->pGame->GetIGameFramework()->GetServerNetNub()))
+	{
+		if (pLevel && pLevel->GetLevelInfo())
+		{
+			if (ICVar* pRules = gEnv->pConsole->GetCVar("sv_gamerules"))
+				pRules->ForceSet("Coop");
+			string cmd;
+			cmd.Format("map %s s x", pLevel->GetLevelInfo()->GetName());
+			CryLogAlways("[Co-op] SinglePlayer map launch detected - relaunching as Co-op Multiplayer Server: %s", cmd.c_str());
+			gEnv->pGame->GetIGameFramework()->ExecuteCommandNextFrame(cmd.c_str());
+			return;
+		}
+	}
+
 	// Crysis Co-op: internet hosting without GameSpy
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
@@ -577,12 +771,14 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 	}
 
 	int nInitialized = 0;
+	bool savedMP = gEnv->bMultiplayer;
 	gEnv->bMultiplayer = false;
 	m_nInitialized = 1;
 	
 	gEnv->pAISystem->Reset(IAISystem::RESET_ENTER_GAME);
-	gEnv->bMultiplayer = true;
+	gEnv->bMultiplayer = savedMP;
 
+	EnforceCoopMaxGraphicsSettings();
 	EnforceCoopPhysicsSettings();
 	EnforceCoopLuaPhysics();
 

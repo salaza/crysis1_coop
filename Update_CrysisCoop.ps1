@@ -202,9 +202,16 @@ Remove-Item -Force $tempZip
 # Write updated version.txt
 Set-Content -Path $versionFile -Value $remoteTag -Force -NoNewline
 
+# Remove legacy IP connect bat if present
+$oldBatMod = Join-Path $TargetModDir "Connect_78.132.76.234.bat"
+if (Test-Path $oldBatMod) { Remove-Item -Force $oldBatMod -ErrorAction SilentlyContinue }
+
 # Also copy convenience launcher bats to Crysis root if CrysisDir is set and different from TargetModDir
 if ($CrysisDir -and (Test-Path $CrysisDir) -and ($CrysisDir -ne $TargetModDir)) {
-    $batsToCopy = @("Connect_78.132.76.234.bat", "Join_Coop_Client.bat", "Host_Coop_Server.bat")
+    $oldBatRoot = Join-Path $CrysisDir "Connect_78.132.76.234.bat"
+    if (Test-Path $oldBatRoot) { Remove-Item -Force $oldBatRoot -ErrorAction SilentlyContinue }
+
+    $batsToCopy = @("Join_Coop_Client.bat", "Host_Coop_Server.bat")
     foreach ($bat in $batsToCopy) {
         $srcBat = Join-Path $TargetModDir $bat
         if (Test-Path $srcBat) {
