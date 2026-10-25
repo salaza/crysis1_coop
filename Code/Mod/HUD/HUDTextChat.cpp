@@ -80,7 +80,8 @@ void CHUDTextChat::Update(float fDeltaTime)
 		}
 	}
 
-	if (gEnv->pRenderer)
+	// Only render 2D label fallback if Flash HUD chat animation is not loaded
+	if (!m_flashChat && gEnv->pRenderer)
 	{
 		float y = 280.0f;
 		for (size_t i = 0; i < m_history.size(); ++i)

@@ -2904,20 +2904,54 @@ void CHUD::OnHardwareMouseEvent(int iX,int iY,EHARDWAREMOUSEEVENT eHardwareMouse
 	if (m_pModalHUD == &m_animPDA && m_animPDA.GetVisible() && m_animPDA.GetFlashPlayer())
 	{
 		SFlashVarValue vMouseX(0.0), vMouseY(0.0);
-		if (m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._xmouse", &vMouseX) &&
-			m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._ymouse", &vMouseY))
+		bool bGotMouse = m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._xmouse", &vMouseX) &&
+		                 m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea._ymouse", &vMouseY);
+		if (!bGotMouse)
+		{
+			bGotMouse = m_animPDA.GetFlashPlayer()->GetVariable("_root.Root.PDAArea.Map_M.MapArea._xmouse", &vMouseX) &&
+			            m_animPDA.GetFlashPlayer()->GetVariable("_root.Root.PDAArea.Map_M.MapArea._ymouse", &vMouseY);
+		}
+		if (!bGotMouse)
+		{
+			bGotMouse = m_animPDA.GetFlashPlayer()->GetVariable("_root.PDAArea.Map_M.MapArea._xmouse", &vMouseX) &&
+			            m_animPDA.GetFlashPlayer()->GetVariable("_root.PDAArea.Map_M.MapArea._ymouse", &vMouseY);
+		}
+
+		if (bGotMouse)
 		{
 			double localX = vMouseX.GetDouble();
 			double localY = vMouseY.GetDouble();
-			bool bOverMap = (localX >= 0.0 && localX <= 508.0 && localY >= 0.0 && localY <= 508.0);
+			bool bOverMap = (localX >= -20.0 && localX <= 528.0 && localY >= -20.0 && localY <= 528.0);
+
+			auto GetMapGPos = [this](Vec2& outPos) -> bool
+			{
+				SFlashVarValue gx(0.0), gy(0.0);
+				bool ok = m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx) &&
+				          m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
+				if (!ok)
+				{
+					ok = m_animPDA.GetFlashPlayer()->GetVariable("_root.Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx) &&
+					     m_animPDA.GetFlashPlayer()->GetVariable("_root.Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
+				}
+				if (!ok)
+				{
+					ok = m_animPDA.GetFlashPlayer()->GetVariable("_root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx) &&
+					     m_animPDA.GetFlashPlayer()->GetVariable("_root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
+				}
+				if (ok)
+					outPos = Vec2((float)gx.GetDouble(), (float)gy.GetDouble());
+				return ok;
+			};
 
 			if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_LBUTTONDOWN && bOverMap)
 			{
 				m_bMapDrawing = true;
-				SFlashVarValue gx(0.0), gy(0.0);
-				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx);
-				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
-				m_lastMapDrawPos = Vec2((float)gx.GetDouble(), (float)gy.GetDouble());
+				Vec2 gPos(0.0f, 0.0f);
+				if (GetMapGPos(gPos))
+				{
+					m_lastMapDrawPos = gPos;
+					CryLogAlways("[HUD MapDraw] Started drawing on map at (%.1f, %.1f)", gPos.x, gPos.y);
+				}
 			}
 			else if (eHardwareMouseEvent == HARDWAREMOUSEEVENT_LBUTTONUP)
 			{
@@ -2931,33 +2965,32 @@ void CHUD::OnHardwareMouseEvent(int iX,int iY,EHARDWAREMOUSEEVENT eHardwareMouse
 			}
 			else if (m_bMapDrawing && bOverMap)
 			{
-				SFlashVarValue gx(0.0), gy(0.0);
-				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._xmouse", &gx);
-				m_animPDA.GetFlashPlayer()->GetVariable("Root.PDAArea.Map_M.MapArea.Map.Map_G._ymouse", &gy);
-				Vec2 currentPos((float)gx.GetDouble(), (float)gy.GetDouble());
-
-				if ((currentPos - m_lastMapDrawPos).GetLength() >= 3.0f)
+				Vec2 currentPos(0.0f, 0.0f);
+				if (GetMapGPos(currentPos))
 				{
-					static const uint32 s_tacticalColors[] = {
-						0x00E5FF, // Neon Cyan
-						0xFF9100, // Neon Orange
-						0x76FF03, // Neon Lime
-						0xFF1744, // Neon Red
-						0xE040FB, // Neon Magenta
-						0xFFEA00  // Neon Yellow
-					};
-					uint32 color = s_tacticalColors[0];
-					if (CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor()))
+					if ((currentPos - m_lastMapDrawPos).GetLength() >= 3.0f)
 					{
-						int idx = (pActor->GetEntityId() & 0xFF) % 6;
-						color = s_tacticalColors[idx];
-					}
+						static const uint32 s_tacticalColors[] = {
+							0x00E5FF, // Neon Cyan
+							0xFF9100, // Neon Orange
+							0x76FF03, // Neon Lime
+							0xFF1744, // Neon Red
+							0xE040FB, // Neon Magenta
+							0xFFEA00  // Neon Yellow
+						};
+						uint32 color = s_tacticalColors[0];
+						if (CActor* pActor = static_cast<CActor*>(gEnv->pGame->GetIGameFramework()->GetClientActor()))
+						{
+							int idx = (pActor->GetEntityId() & 0xFF) % 6;
+							color = s_tacticalColors[idx];
+						}
 
-					if (CGameRules* pGameRules = g_pGame->GetGameRules())
-					{
-						pGameRules->SendMapDrawStroke(m_lastMapDrawPos.x, m_lastMapDrawPos.y, currentPos.x, currentPos.y, color, 3.0f);
+						if (CGameRules* pGameRules = g_pGame->GetGameRules())
+						{
+							pGameRules->SendMapDrawStroke(m_lastMapDrawPos.x, m_lastMapDrawPos.y, currentPos.x, currentPos.y, color, 3.0f);
+						}
+						m_lastMapDrawPos = currentPos;
 					}
-					m_lastMapDrawPos = currentPos;
 				}
 			}
 		}
@@ -2972,6 +3005,7 @@ void CHUD::OnReceiveMapDrawStroke(float x0, float y0, float x1, float y1, uint32
 	{
 		SFlashVarValue args[6] = { x0, y0, x1, y1, (double)color, width };
 		m_animPDA.Invoke("drawTacticalStroke", args, 6);
+		m_animPDA.Invoke("_root.drawTacticalStroke", args, 6);
 	}
 }
 
@@ -2982,6 +3016,7 @@ void CHUD::OnReceiveMapClearDrawings()
 	if (m_animPDA.IsLoaded())
 	{
 		m_animPDA.Invoke("clearTacticalDrawings");
+		m_animPDA.Invoke("_root.clearTacticalDrawings");
 	}
 }
 
@@ -3813,9 +3848,9 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 		string watermark;
 		if (lives > 0)
-			watermark.Format("Crysis Co-op v1.6.6 | Lives: %d", lives);
+			watermark.Format("Crysis Co-op v1.6.7 | Lives: %d", lives);
 		else
-			watermark = "Crysis Co-op v1.6.6 | Spectating";
+			watermark = "Crysis Co-op v1.6.7 | Spectating";
 		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "%s", watermark.c_str());
 	}
 }
