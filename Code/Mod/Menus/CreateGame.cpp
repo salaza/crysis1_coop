@@ -103,6 +103,22 @@ gMapOptions[] = {
 static const float  TOD_SPEED_MIN = 0.5f;
 static const float  TOD_SPEED_MAX = 6.0f;
 
+struct SCampaignMap { const char* name; const char* label; };
+static const SCampaignMap s_campaignMaps[] = {
+  { "island",    "Co-op 01: Contact (island)" },
+  { "village",   "Co-op 02: Recovery (village)" },
+  { "rescue",    "Co-op 03: Relic (rescue)" },
+  { "harbor",    "Co-op 04: Assault (harbor)" },
+  { "tank",      "Co-op 05: Onslaught (tank)" },
+  { "mine",      "Co-op 06: Awakening (mine)" },
+  { "core",      "Co-op 07: Core (core)" },
+  { "ice",       "Co-op 08: Paradise Lost (ice)" },
+  { "sphere",    "Co-op 09: Exodus (sphere)" },
+  { "ascension", "Co-op 10: Ascension (ascension)" },
+  { "fleet",     "Co-op 11: Reckoning (fleet)" }
+};
+static const size_t s_numCampaignMaps = sizeof(s_campaignMaps) / sizeof(s_campaignMaps[0]);
+
 
 CMultiPlayerMenu::SCreateGame::SCreateGame(IFlashPlayer* plr, CMPHub* hub, bool lan):
 m_maxplayers(0),
@@ -220,10 +236,23 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
   string nextRules = "Coop";
   string nextLevel;
 
-  // 1. If user has levels in rotation, pick the first
+  // 1. If user has levels in rotation, pick the selected level or the first
   if (rotation && rotation->GetLength() > 0)
   {
     rotation->First();
+    SFlashVarValue selIdxVal(-1.0);
+    int selIdx = -1;
+    if (m_player && m_player->GetVariable("mp_selectedIndex", &selIdxVal))
+    {
+      selIdx = (int)selIdxVal.GetDouble();
+    }
+    if (selIdx > 0 && selIdx < rotation->GetLength())
+    {
+      for (int s = 0; s < selIdx; ++s)
+      {
+        rotation->Advance();
+      }
+    }
     nextRules = rotation->GetNextGameRules();
     nextLevel = rotation->GetNextLevel();
   }
@@ -634,16 +663,45 @@ void CMultiPlayerMenu::SCreateGame::SetGlobalSettings()
 	m_player->SetVariableArray(FVAT_ConstStrPtr, "m_backValues", 0, &valueArray[0], keyArray.size());
 	m_player->Invoke0("_root.Root.MainMenu.MultiPlayer.CreateGame_M.CreateGame.CreateGame_Controls.retrieveGlobalSettings");
 
+	// Ensure Coop game mode is registered and selected in Flash UI
+	SFlashVarValue modeArgs[2] = { "Co-op Campaign", "Coop" };
+	m_player->Invoke("AddGameMode", modeArgs, 2);
+	SFlashVarValue optArgs[2] = { "Coop", "Co-op Campaign" };
+	m_player->Invoke("_root.Root.MainMenu.MultiPlayer.CreateGame_M.CreateGame.CreateGame_Controls.POWERSTRUGGLE.addOption", optArgs, 2);
+	m_player->Invoke1("_root.Root.MainMenu.MultiPlayer.CreateGame_M.CreateGame.CreateGame_Controls.POWERSTRUGGLE.selectOption", "Coop");
+	m_player->SetVariable("_root.SelectedCreateGameMode", SFlashVarValue("Coop"));
+
 	//reset
 	m_player->Invoke0("resetRotationLevels");
 	ILevelSystem *pLevelSystem = gEnv->pGame->GetIGameFramework()->GetILevelSystem();
 	if(pLevelSystem)
 	{
 		ILevelRotation* rot = pLevelSystem->GetLevelRotation();
-		if(rot && rot->GetLength() == 0)
+		bool hasCoop = false;
+		bool hasNonCoop = false;
+		if(rot && rot->GetLength() > 0)
 		{
-			rot->AddLevel("island", "Coop");
+			rot->First();
+			do {
+				string r = rot->GetNextGameRules();
+				if(r.compareNoCase("Coop") == 0)
+					hasCoop = true;
+				else
+					hasNonCoop = true;
+			} while(rot->Advance());
 		}
+
+		// If rotation is empty or contains non-Coop (vanilla MP) maps, initialize with the full campaign
+		if(rot && (!hasCoop || hasNonCoop || rot->GetLength() == 0))
+		{
+			rot->Reset();
+			for (size_t i = 0; i < s_numCampaignMaps; ++i)
+			{
+				if (pLevelSystem->GetLevelInfo(s_campaignMaps[i].name))
+					rot->AddLevel(s_campaignMaps[i].name, "Coop");
+			}
+		}
+
 		if(rot && rot->GetLength()>0)
 		{
 			if(m_randomize)
@@ -659,10 +717,22 @@ void CMultiPlayerMenu::SCreateGame::SetGlobalSettings()
 				string rules = rot->GetNextGameRules();
 				string desc = level;
 
-				ILevelInfo *pLevelInfo = pLevelSystem->GetLevelInfo(level);
-				if(pLevelInfo && pLevelInfo->SupportsGameType(rules))
+				// Format campaign map display name nicely
+				for (size_t i = 0; i < s_numCampaignMaps; ++i)
 				{
-					desc = pLevelInfo->GetDisplayName();
+					if (stricmp(level.c_str(), s_campaignMaps[i].name) == 0)
+					{
+						desc = s_campaignMaps[i].label;
+						break;
+					}
+				}
+				if (desc == level)
+				{
+					ILevelInfo *pLevelInfo = pLevelSystem->GetLevelInfo(level);
+					if(pLevelInfo && pLevelInfo->SupportsGameType(rules))
+					{
+						desc = pLevelInfo->GetDisplayName();
+					}
 				}
 
 				for(int i=0;i<rot->GetNextSettingsNum();++i)
@@ -726,6 +796,8 @@ void CMultiPlayerMenu::SCreateGame::SetGlobalSettings()
 	 }
   //assert(cache.size()<=CACHE_SIZE);
 
+	// Update available levels for Coop mode on the left list
+	UpdateLevels("Coop");
 }
 
 void CMultiPlayerMenu::SCreateGame::UpdateLevels(const char* gamemode)
@@ -734,22 +806,7 @@ void CMultiPlayerMenu::SCreateGame::UpdateLevels(const char* gamemode)
   ILevelSystem *pLevelSystem = gEnv->pGame->GetIGameFramework()->GetILevelSystem();
   if(pLevelSystem)
   {
-    struct SCampaignMap { const char* name; const char* label; };
-    static const SCampaignMap s_campaignMaps[] = {
-      { "island",    "Co-op 01: Contact (island)" },
-      { "village",   "Co-op 02: Recovery (village)" },
-      { "rescue",    "Co-op 03: Relic (rescue)" },
-      { "harbor",    "Co-op 04: Assault (harbor)" },
-      { "tank",      "Co-op 05: Onslaught (tank)" },
-      { "mine",      "Co-op 06: Awakening (mine)" },
-      { "core",      "Co-op 07: Core (core)" },
-      { "ice",       "Co-op 08: Paradise Lost (ice)" },
-      { "sphere",    "Co-op 09: Exodus (sphere)" },
-      { "ascension", "Co-op 10: Ascension (ascension)" },
-      { "fleet",     "Co-op 11: Reckoning (fleet)" }
-    };
-
-    for (size_t i = 0; i < sizeof(s_campaignMaps) / sizeof(s_campaignMaps[0]); ++i)
+    for (size_t i = 0; i < s_numCampaignMaps; ++i)
     {
       if (pLevelSystem->GetLevelInfo(s_campaignMaps[i].name))
       {
@@ -766,7 +823,7 @@ void CMultiPlayerMenu::SCreateGame::UpdateLevels(const char* gamemode)
 
       const char* lvlName = pLevelInfo->GetName();
       bool isListedCampaign = false;
-      for (size_t i = 0; i < sizeof(s_campaignMaps) / sizeof(s_campaignMaps[0]); ++i)
+      for (size_t i = 0; i < s_numCampaignMaps; ++i)
       {
         if (stricmp(lvlName, s_campaignMaps[i].name) == 0)
         {
