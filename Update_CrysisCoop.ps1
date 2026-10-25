@@ -220,5 +220,34 @@ if ($CrysisDir -and (Test-Path $CrysisDir) -and ($CrysisDir -ne $TargetModDir)) 
     }
 }
 
+# Ensure C1-Launcher fixed executables are installed for raw/unmodded clients
+if ($CrysisDir -and (Test-Path $CrysisDir)) {
+    # Bin32
+    $launcher32 = Join-Path $TargetModDir "Launcher\Bin32\Crysis.exe"
+    $gameExe32 = Join-Path $CrysisDir "Bin32\Crysis.exe"
+    if ((Test-Path $launcher32) -and (Test-Path $gameExe32)) {
+        $size32 = (Get-Item $gameExe32).Length
+        if ($size32 -gt 500000) {
+            Write-Host "[Updater] Installing fixed C1-Launcher into Bin32..." -ForegroundColor Cyan
+            Copy-Item $gameExe32 (Join-Path $CrysisDir "Bin32\Crysis_backup.exe") -Force
+            Copy-Item $launcher32 $gameExe32 -Force
+        }
+    }
+    # Bin64
+    $launcher64 = Join-Path $TargetModDir "Launcher\Bin64\Crysis.exe"
+    $bin64Dir = Join-Path $CrysisDir "Bin64"
+    $crySys64 = Join-Path $bin64Dir "CrySystem.dll"
+    if ((Test-Path $launcher64) -and (Test-Path $crySys64)) {
+        $gameExe64 = Join-Path $bin64Dir "Crysis.exe"
+        if (-not (Test-Path $gameExe64) -or ((Get-Item $gameExe64).Length -gt 500000)) {
+            Write-Host "[Updater] Installing fixed C1-Launcher into Bin64..." -ForegroundColor Cyan
+            if (Test-Path $gameExe64) {
+                Copy-Item $gameExe64 (Join-Path $bin64Dir "Crysis_backup.exe") -Force
+            }
+            Copy-Item $launcher64 $gameExe64 -Force
+        }
+    }
+}
+
 Write-Host "[Updater] Successfully updated Crysis Co-op to $remoteTag!" -ForegroundColor Green
 exit 0
