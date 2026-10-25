@@ -3793,7 +3793,7 @@ void CHUD::OnPostUpdate(float frameTime)
 	{
 		float color[4] = { 0.55f, 0.75f, 0.95f, 0.75f };
 		float screenHeight = (float)gEnv->pRenderer->GetHeight();
-		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.3");
+		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "Crysis Co-op v1.5.4");
 	}
 }
 

@@ -308,24 +308,8 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
     if(m_hub)
       m_hub->ShowLoadingDlg("@ui_connecting_to", nextLevel.c_str());
 
-    CryLogAlways("[Coop] StartServer() starting game context for level '%s' with rules '%s'", nextLevel.c_str(), nextRules.c_str());
-
-    SGameStartParams params;
-    params.flags = eGSF_Server | eGSF_Client;
-    params.port = 64087;
-    params.maxPlayers = m_maxplayers > 0 ? m_maxplayers : 32;
-
-    SGameContextParams ctx;
-    ctx.levelName = nextLevel.c_str();
-    ctx.gameRules = nextRules.c_str();
-    params.pContextParams = &ctx;
-
-    bool started = gEnv->pGame->GetIGameFramework()->StartGameContext(&params);
-    if (!started)
-    {
-      CryLogAlways("[Coop] StartGameContext failed, falling back to ExecuteCommandNextFrame: %s", command.c_str());
-      gEnv->pGame->GetIGameFramework()->ExecuteCommandNextFrame(command.c_str());
-    }
+    CryLogAlways("[Coop] StartServer() executing next frame: %s (rules: %s)", command.c_str(), nextRules.c_str());
+    gEnv->pGame->GetIGameFramework()->ExecuteCommandNextFrame(command.c_str());
   }
 }
 
