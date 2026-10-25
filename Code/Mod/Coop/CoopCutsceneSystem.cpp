@@ -1,5 +1,6 @@
 #include <StdAfx.h>
 #include "CoopCutsceneSystem.h"
+#include "CoopAdminMenu.h"
 #include <IGameFramework.h>
 #include <IEntitySystem.h>
 #include <IActorSystem.h>
@@ -119,6 +120,24 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
     // Server: Poll playing sequences to broadcast non-camera dialogues and animations (e.g. Prophet talking on beach)
     if (gEnv->bServer && gEnv->bMultiplayer && gEnv->pMovieSystem && !gEnv->bEditor)
     {
+        if (CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+        {
+            // Hold any auto-started sequences at 0.0f while waiting in the pre-game squad lobby
+            ISequenceIt* pIt = gEnv->pMovieSystem->GetSequences(true, false);
+            if (pIt)
+            {
+                for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
+                {
+                    if (gEnv->pMovieSystem->IsPlaying(pSeq))
+                    {
+                        gEnv->pMovieSystem->SetPlayingTime(pSeq, pSeq->GetTimeRange().start);
+                    }
+                }
+                pIt->Release();
+            }
+            return;
+        }
+
         m_seqPollTimer += fFrameTime;
         if (m_seqPollTimer >= 0.15f)
         {
@@ -210,7 +229,7 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
         }
     }
 
-    if (gEnv->bServer && gEnv->bMultiplayer && pSeq)
+    if (gEnv->bServer && gEnv->bMultiplayer && pSeq && !CCoopAdminMenu::GetInstance().IsLobbyWaiting())
     {
         CSequenceSynchronizer* pSync = GetSequenceSynchronizer();
         if (pSync)

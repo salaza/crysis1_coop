@@ -18,6 +18,7 @@
 #include "HUD/HUD.h"
 #include "CoopNetPlatform.h"
 #include "CoopAdminMenu.h"
+#include <windows.h>
 
 // Static CCoopSystem class instance forward declaration.
 CCoopSystem CCoopSystem::s_instance = CCoopSystem();
@@ -158,8 +159,137 @@ static void CmdCoopClearMap(IConsoleCmdArgs* pArgs)
 	}
 }
 
+static void UnlockCryActionImmersiveMP()
+{
+	static bool s_patched = false;
+	if (s_patched)
+		return;
+	s_patched = true;
+
+	HMODULE hCryAction = GetModuleHandleA("CryAction.dll");
+	if (!hCryAction)
+		return;
+
+	uint8* base = (uint8*)hCryAction;
+#ifdef WIN64
+	// 1. CGameContext::SetImmersive(bool): RVA 0x2b395c (83 F8 03 74 08 -> 83 F8 03 EB 08)
+	uint8* pSetImmersive = base + 0x2b395c;
+	if (pSetImmersive[0] == 0x83 && pSetImmersive[1] == 0xF8 && pSetImmersive[2] == 0x03 && pSetImmersive[3] == 0x74 && pSetImmersive[4] == 0x08)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pSetImmersive, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pSetImmersive[3] = 0xEB;
+			VirtualProtect(pSetImmersive, 8, oldProt, &oldProt);
+			CryLogAlways("[Co-op] Unlocked DX9 Immersive Multiplayer Physics in 64-bit CryAction.dll (SetImmersive)");
+		}
+	}
+	// 2. Server DX10 client capability check: RVA 0x2b90fd (0F 84 C0 00 00 00 -> 90 E9 C0 00 00 00)
+	uint8* pClientCheck = base + 0x2b90fd;
+	if (pClientCheck[0] == 0x0F && pClientCheck[1] == 0x84 && pClientCheck[2] == 0xC0 && pClientCheck[3] == 0x00)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pClientCheck, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pClientCheck[0] = 0x90;
+			pClientCheck[1] = 0xE9;
+			VirtualProtect(pClientCheck, 8, oldProt, &oldProt);
+			CryLogAlways("[Co-op] Bypassed DX10 client capability check in 64-bit CryAction.dll");
+		}
+	}
+#else
+	// 1. CGameContext::SetImmersive(bool): RVA 0x1d699b (83 F8 03 74 06 -> 83 F8 03 EB 06)
+	uint8* pSetImmersive = base + 0x1d699b;
+	if (pSetImmersive[0] == 0x83 && pSetImmersive[1] == 0xF8 && pSetImmersive[2] == 0x03 && pSetImmersive[3] == 0x74 && pSetImmersive[4] == 0x06)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pSetImmersive, 8, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pSetImmersive[3] = 0xEB;
+			VirtualProtect(pSetImmersive, 8, oldProt, &oldProt);
+			CryLogAlways("[Co-op] Unlocked DX9 Immersive Multiplayer Physics in 32-bit CryAction.dll (SetImmersive)");
+		}
+	}
+	// 2. Server DX10 client capability check: RVA 0x1da0fc (74 27 -> EB 27)
+	uint8* pClientCheck = base + 0x1da0fc;
+	if (pClientCheck[0] == 0x74 && pClientCheck[1] == 0x27)
+	{
+		DWORD oldProt = 0;
+		if (VirtualProtect(pClientCheck, 4, PAGE_EXECUTE_READWRITE, &oldProt))
+		{
+			pClientCheck[0] = 0xEB;
+			VirtualProtect(pClientCheck, 4, oldProt, &oldProt);
+			CryLogAlways("[Co-op] Bypassed DX10 client capability check in 32-bit CryAction.dll");
+		}
+	}
+#endif
+}
+
+static void EnforceCoopLuaPhysics()
+{
+	if (!gEnv || !gEnv->pScriptSystem)
+		return;
+
+	const char* luaPatch =
+		"if CryAction then CryAction.IsImmersivenessEnabled = function() return 1 end end "
+		"local function _CoopPatchUsable(t) "
+		"  if t and t.IsUsable and not t._coopUsablePatched then "
+		"    local orig = t.IsUsable "
+		"    t._coopUsablePatched = true "
+		"    t.IsUsable = function(self, user, idx) "
+		"      local oldMP = System.IsMultiplayer "
+		"      System.IsMultiplayer = function() return nil end "
+		"      local ok, res = pcall(orig, self, user, idx) "
+		"      System.IsMultiplayer = oldMP "
+		"      if ok and res then return res end "
+		"      return 0 "
+		"    end "
+		"  end "
+		"end "
+		"_CoopPatchUsable(BasicEntity) "
+		"_CoopPatchUsable(InteractiveEntity) "
+		"_CoopPatchUsable(ExplosiveObject) "
+		"_CoopPatchUsable(PressurizedObject) "
+		"_CoopPatchUsable(DestroyableObject)";
+	gEnv->pScriptSystem->ExecuteBuffer(luaPatch, strlen(luaPatch));
+}
+
 static void EnforceCoopPhysicsSettings()
 {
+	UnlockCryActionImmersiveMP();
+
+	if (gEnv->pGame && gEnv->pGame->GetIGameFramework())
+	{
+		uintptr_t pFW = (uintptr_t)gEnv->pGame->GetIGameFramework();
+#ifdef WIN64
+		uintptr_t pActionGame = *(uintptr_t*)(pFW + 0x50);
+		if (pActionGame)
+		{
+			uint8* pBreakFlags = (uint8*)(pActionGame + 0x18);
+			*pBreakFlags = (*pBreakFlags & ~0x08) | 0x01;
+			uintptr_t pGameContext = *(uintptr_t*)(pActionGame + 0x50);
+			if (pGameContext)
+			{
+				uint32* pCtxFlags = (uint32*)(pGameContext + 0x140);
+				*pCtxFlags |= 0x1000; // eGSF_ImmersiveMultiplayer
+			}
+		}
+#else
+		uintptr_t pActionGame = *(uintptr_t*)(pFW + 0x28);
+		if (pActionGame)
+		{
+			uint8* pBreakFlags = (uint8*)(pActionGame + 0x0C);
+			*pBreakFlags = (*pBreakFlags & ~0x08) | 0x01;
+			uintptr_t pGameContext = *(uintptr_t*)(pActionGame + 0x28);
+			if (pGameContext)
+			{
+				uint32* pCtxFlags = (uint32*)(pGameContext + 0xA8);
+				*pCtxFlags |= 0x1000; // eGSF_ImmersiveMultiplayer
+			}
+		}
+#endif
+	}
+
 	if (gEnv->pPhysicalWorld)
 	{
 		if (PhysicsVars *pPV = gEnv->pPhysicalWorld->GetPhysVars())
@@ -237,6 +367,7 @@ bool CCoopSystem::Initialize()
 
 	// Enable full SinglePlayer physics simulation, destruction, tree cutting and foliage bending in Co-op
 	EnforceCoopPhysicsSettings();
+	EnforceCoopLuaPhysics();
 
 	// Crysis Co-op: GameSpy is offline - use direct connections only
 	if (ICVar* pLan = gEnv->pConsole->GetCVar("sv_lanonly"))
@@ -305,8 +436,8 @@ void CCoopSystem::Update(float fFrameTime)
 
 	CCoopAdminMenu::GetInstance().Update(fFrameTime);
 
-	// Ensure server AI ticks animations, dialogues and goal pipes (e.g. Prophet, enemy AI)
-	if (gEnv->bServer && gEnv->pAISystem)
+	// Ensure server AI ticks animations, dialogues and goal pipes (paused while waiting in pre-game lobby)
+	if (gEnv->bServer && gEnv->pAISystem && !CCoopAdminMenu::GetInstance().IsLobbyWaiting())
 	{
 		bool savedMP = gEnv->bMultiplayer;
 		gEnv->bMultiplayer = false;
@@ -361,8 +492,11 @@ void CCoopSystem::OnLoadingStart(ILevelInfo *pLevel)
 	if (ICVar* pObjQuality = gEnv->pConsole->GetCVar("e_obj_quality"))
 		pObjQuality->ForceSet("4");
 
-	// Ensure physics destruction is fully enabled on both Host and Client
+	// Ensure physics destruction and Lua immersive mode are fully enabled on both Host and Client before entities load
 	EnforceCoopPhysicsSettings();
+	EnforceCoopLuaPhysics();
+
+	CCoopAdminMenu::GetInstance().OnLoadingStart();
 
 	if (!gEnv->bServer) return;
 
@@ -431,25 +565,6 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 	if (CDialogSystem::sAutoReloadScripts != 0)
 		m_pDialogSystem->ReloadScripts();
 
-
-
-	/*std::set<IEntityClass*> classNames;
-
-	IEntityIt* iter = gEnv->pEntitySystem->GetEntityIterator();
-	while (!iter->IsEnd())
-	{
-		if (IEntity * pEnt = iter->Next())
-		{
-			string classname = pEnt->GetClass()->GetName();
-
-			if (classNames.find(pEnt->GetClass()) == classNames.end())
-			{
-				classNames.insert(pEnt->GetClass());
-				CryLogAlways("Class: %s", classname);
-			}
-		}
-	}*/
-
 	if (gEnv->bEditor) return;
 
 	// Crysis Co-op: internet hosting without GameSpy
@@ -469,4 +584,7 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 	gEnv->bMultiplayer = true;
 
 	EnforceCoopPhysicsSettings();
+	EnforceCoopLuaPhysics();
+
+	CCoopAdminMenu::GetInstance().OnLoadingComplete();
 }

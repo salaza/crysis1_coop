@@ -270,8 +270,7 @@ void CMultiPlayerMenu::SCreateGame::StartServer()
   command = "map ";
   command.append(nextLevel);
   command.append(" s");
-  if (m_dx10)
-    command.append(" x");
+  command.append(" x");
 
   ICVar* rot = gEnv->pConsole->GetCVar("sv_levelrotation");
   if(rot)

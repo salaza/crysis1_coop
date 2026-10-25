@@ -1,12 +1,22 @@
 #include "StdAfx.h"
 #include "CoopAdminMenu.h"
+#include "CoopNetPlatform.h"
 #include <IConsole.h>
 #include <IRenderer.h>
 #include <I3DEngine.h>
 #include <IGameFramework.h>
 #include <ILevelSystem.h>
+#include <IActorSystem.h>
+#include <IMovieSystem.h>
+#include <algorithm>
 #include "Game.h"
 #include "GameRules.h"
+#include "SynchedStorage.h"
+
+static const TSynchedKey COOP_LOBBY_WAITING_KEY = 950;
+static const TSynchedKey COOP_LOBBY_ROSTER_KEY  = 951;
+static const TSynchedKey COOP_LOBBY_LOADING_KEY = 952;
+static const TSynchedKey COOP_LOBBY_READY_KEY   = 953;
 
 struct SMenuItem
 {
@@ -60,6 +70,8 @@ CCoopAdminMenu::CCoopAdminMenu()
 	: m_bOpen(false)
 	, m_currentCategory(0)
 	, m_statusTimer(0.0f)
+	, m_bLobbyWaiting(false)
+	, m_lobbySyncTimer(0.0f)
 {
 	for (int i = 0; i < ECAT_COUNT; ++i)
 		m_selectedItem[i] = 0;
@@ -74,6 +86,7 @@ void CCoopAdminMenu::Init()
 	if (gEnv->pConsole)
 	{
 		gEnv->pConsole->AddCommand("admin_menu", CmdToggleAdminMenu, 0, "Toggle the Co-op In-Game Admin Menu");
+		gEnv->pConsole->AddCommand("coop_start", CmdStartCampaign, 0, "Start the Co-op Campaign from the Pre-Game Lobby");
 	}
 }
 
@@ -82,12 +95,214 @@ void CCoopAdminMenu::Shutdown()
 	if (gEnv->pConsole)
 	{
 		gEnv->pConsole->RemoveCommand("admin_menu");
+		gEnv->pConsole->RemoveCommand("coop_start");
 	}
 }
 
 void CCoopAdminMenu::CmdToggleAdminMenu(IConsoleCmdArgs* pArgs)
 {
 	CCoopAdminMenu::GetInstance().Toggle();
+}
+
+void CCoopAdminMenu::CmdStartCampaign(IConsoleCmdArgs* pArgs)
+{
+	CCoopAdminMenu::GetInstance().StartCampaignFromLobby();
+}
+
+void CCoopAdminMenu::OnLoadingStart()
+{
+	m_deferredSequences.clear();
+	if (gEnv->bServer && gEnv->bMultiplayer)
+	{
+		m_bLobbyWaiting = true;
+		for (std::map<int, SLobbyPlayerInfo>::iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it)
+		{
+			it->second.bLoaded = false;
+		}
+	}
+	else
+	{
+		m_bLobbyWaiting = false;
+	}
+}
+
+void CCoopAdminMenu::OnLoadingComplete()
+{
+	if (gEnv->bServer && gEnv->bMultiplayer)
+	{
+		m_bLobbyWaiting = true;
+		SyncLobbyToClients();
+	}
+}
+
+void CCoopAdminMenu::OnPlayerConnecting(int channelId, const char* playerName)
+{
+	if (!gEnv->bServer)
+		return;
+
+	SLobbyPlayerInfo& info = m_lobbyPlayers[channelId];
+	if (playerName && playerName[0])
+		info.name = playerName;
+	else if (info.name.empty())
+		info.name.Format("Player #%d", channelId);
+
+	info.bLoaded = false;
+	SyncLobbyToClients();
+}
+
+void CCoopAdminMenu::OnPlayerEnteredGame(int channelId, const char* playerName)
+{
+	if (!gEnv->bServer)
+		return;
+
+	SLobbyPlayerInfo& info = m_lobbyPlayers[channelId];
+	if (playerName && playerName[0])
+		info.name = playerName;
+
+	if (g_pGame && g_pGame->GetGameRules())
+	{
+		CActor* pActor = g_pGame->GetGameRules()->GetActorByChannelId(channelId);
+		if (pActor)
+		{
+			if (pActor->GetEntity() && pActor->GetEntity()->GetName()[0])
+				info.name = pActor->GetEntity()->GetName();
+			info.bIsHost = pActor->IsClient();
+		}
+	}
+
+	if (info.name.empty())
+		info.name.Format("Player #%d", channelId);
+
+	info.bLoaded = true;
+	SyncLobbyToClients();
+}
+
+void CCoopAdminMenu::OnPlayerDisconnected(int channelId)
+{
+	if (!gEnv->bServer)
+		return;
+
+	m_lobbyPlayers.erase(channelId);
+	SyncLobbyToClients();
+}
+
+bool CCoopAdminMenu::IsLobbyWaiting() const
+{
+	if (!gEnv->bMultiplayer)
+		return false;
+
+	if (gEnv->bServer)
+		return m_bLobbyWaiting;
+
+	if (g_pGame && g_pGame->GetSynchedStorage())
+	{
+		bool bWaiting = false;
+		if (g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_LOBBY_WAITING_KEY, bWaiting))
+			return bWaiting;
+	}
+	return false;
+}
+
+void CCoopAdminMenu::RegisterDeferredSequence(ICoopDeferredSequence* pSeq)
+{
+	if (!pSeq)
+		return;
+	if (std::find(m_deferredSequences.begin(), m_deferredSequences.end(), pSeq) == m_deferredSequences.end())
+	{
+		m_deferredSequences.push_back(pSeq);
+		CryLogAlways("[CoopLobby] Held sequence '%s' until squad is ready.", pSeq->GetSequenceName());
+	}
+}
+
+void CCoopAdminMenu::UnregisterDeferredSequence(ICoopDeferredSequence* pSeq)
+{
+	std::vector<ICoopDeferredSequence*>::iterator it = std::find(m_deferredSequences.begin(), m_deferredSequences.end(), pSeq);
+	if (it != m_deferredSequences.end())
+		m_deferredSequences.erase(it);
+}
+
+void CCoopAdminMenu::SyncLobbyToClients()
+{
+	if (!gEnv->bServer || !g_pGame || !g_pGame->GetSynchedStorage())
+		return;
+
+	int loadingCount = 0;
+	int readyCount = 0;
+	string rosterStr;
+
+	// Ensure host actor is represented even if map just loaded
+	if (IActor* pClientActor = gEnv->pGame->GetIGameFramework()->GetClientActor())
+	{
+		int hostChan = pClientActor->GetChannelId();
+		if (hostChan > 0)
+		{
+			SLobbyPlayerInfo& hostInfo = m_lobbyPlayers[hostChan];
+			if (pClientActor->GetEntity() && pClientActor->GetEntity()->GetName()[0])
+				hostInfo.name = pClientActor->GetEntity()->GetName();
+			else if (hostInfo.name.empty())
+				hostInfo.name = "Host";
+			hostInfo.bLoaded = true;
+			hostInfo.bIsHost = true;
+		}
+	}
+
+	int idx = 1;
+	for (std::map<int, SLobbyPlayerInfo>::const_iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it, ++idx)
+	{
+		const SLobbyPlayerInfo& info = it->second;
+		if (info.bLoaded)
+			readyCount++;
+		else
+			loadingCount++;
+
+		string entry;
+		if (info.bIsHost)
+			entry.Format("%d. %-20s [HOST - READY]", idx, info.name.c_str());
+		else if (info.bLoaded)
+			entry.Format("%d. %-20s [CLIENT - MAP LOADED & READY]", idx, info.name.c_str());
+		else
+			entry.Format("%d. %-20s [CONNECTING / LOADING MAP...]", idx, info.name.c_str());
+
+		if (!rosterStr.empty())
+			rosterStr += "\n";
+		rosterStr += entry;
+	}
+
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_WAITING_KEY, m_bLobbyWaiting);
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_ROSTER_KEY, rosterStr);
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_LOADING_KEY, loadingCount);
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_READY_KEY, readyCount);
+}
+
+void CCoopAdminMenu::StartCampaignFromLobby()
+{
+	if (!gEnv->bServer || !m_bLobbyWaiting)
+		return;
+
+	m_bLobbyWaiting = false;
+	SyncLobbyToClients();
+
+	CryLogAlways("[CoopLobby] Starting Co-op Campaign! Releasing %d held sequences...", (int)m_deferredSequences.size());
+
+	// Align all joined clients with the Host / SP start point before starting the cutscene
+	if (gEnv->pScriptSystem)
+	{
+		const char* alignLua = "if g_gameRules and g_gameRules.AlignPlayersAfterCutscene then g_gameRules:AlignPlayersAfterCutscene() end";
+		gEnv->pScriptSystem->ExecuteBuffer(alignLua, strlen(alignLua));
+	}
+
+	// Trigger all deferred FlowGraph PlaySequence nodes at 0.00s now that everyone is loaded
+	std::vector<ICoopDeferredSequence*> toStart = m_deferredSequences;
+	m_deferredSequences.clear();
+	for (size_t i = 0; i < toStart.size(); ++i)
+	{
+		if (toStart[i])
+		{
+			toStart[i]->OnCoopLobbyStart();
+		}
+	}
+
+	SetStatus("Campaign Started! All connected players synchronized.");
 }
 
 void CCoopAdminMenu::Toggle()
@@ -118,6 +333,16 @@ void CCoopAdminMenu::Update(float frameTime)
 		if (m_statusTimer <= 0.0f)
 			m_statusMessage.clear();
 	}
+
+	if (gEnv->bServer && m_bLobbyWaiting)
+	{
+		m_lobbySyncTimer += frameTime;
+		if (m_lobbySyncTimer >= 0.5f)
+		{
+			m_lobbySyncTimer = 0.0f;
+			SyncLobbyToClients();
+		}
+	}
 }
 
 bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
@@ -131,6 +356,35 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 		{
 			Toggle();
 			return true;
+		}
+
+		// Handle Pre-Game Campaign Lobby Start keys on Host when Admin Menu is closed
+		if (!m_bOpen && gEnv->bServer && m_bLobbyWaiting)
+		{
+			if (event.keyId == eKI_F3)
+			{
+				StartCampaignFromLobby();
+				return true;
+			}
+			else if (event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter)
+			{
+				int loadingCount = 0;
+				for (std::map<int, SLobbyPlayerInfo>::const_iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it)
+				{
+					if (!it->second.bLoaded)
+						loadingCount++;
+				}
+
+				if (loadingCount == 0)
+				{
+					StartCampaignFromLobby();
+				}
+				else
+				{
+					SetStatus("Wait for connecting players to finish loading map, or press [F3] to Force Start!");
+				}
+				return true;
+			}
 		}
 
 		if (!m_bOpen)
@@ -381,15 +635,134 @@ void CCoopAdminMenu::ChangeMap(const char* mapName)
 	if (gEnv->pConsole)
 	{
 		string cmd;
-		cmd.Format("map %s s", mapName);
+		cmd.Format("map %s s x", mapName);
 		gEnv->pConsole->ExecuteString(cmd.c_str());
+	}
+}
+
+void CCoopAdminMenu::RenderLobbyOverlay()
+{
+	if (!gEnv->pRenderer || !IsLobbyWaiting())
+		return;
+
+	IRenderer* pR = gEnv->pRenderer;
+	float scrW = (float)pR->GetWidth();
+	float startX = (scrW > 800.0f) ? (scrW * 0.5f - 280.0f) : 60.0f;
+	float curY = 75.0f;
+	float lineHeight = 22.0f;
+
+	float colCyan[4]   = { 0.0f, 0.95f, 1.0f, 1.0f };
+	float colGold[4]   = { 1.0f, 0.85f, 0.1f, 1.0f };
+	float colWhite[4]  = { 0.95f, 0.95f, 0.95f, 0.95f };
+	float colGreen[4]  = { 0.25f, 1.0f, 0.35f, 1.0f };
+	float colYellow[4] = { 1.0f, 0.75f, 0.15f, 1.0f };
+	float colDim[4]    = { 0.65f, 0.75f, 0.85f, 0.9f };
+
+	ILevelSystem* pLS = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetILevelSystem() : NULL;
+	ILevel* pLevel = pLS ? pLS->GetCurrentLevel() : NULL;
+	const char* levelName = (pLevel && pLevel->GetLevelInfo()) ? pLevel->GetLevelInfo()->GetName() : "Unknown";
+
+	pR->Draw2dLabel(startX, curY, 1.75f, colCyan, false, "==========================================================");
+	curY += lineHeight * 1.1f;
+	pR->Draw2dLabel(startX, curY, 1.8f, colGold, false,  "         CRYSIS CO-OP - CAMPAIGN SQUAD LOBBY");
+	curY += lineHeight * 1.1f;
+	pR->Draw2dLabel(startX, curY, 1.75f, colCyan, false, "==========================================================");
+	curY += lineHeight * 1.2f;
+
+	pR->Draw2dLabel(startX, curY, 1.35f, colWhite, false, "Mission: %s   |   Intro Cutscenes & AI: HELD UNTIL SQUAD READY", levelName);
+	curY += lineHeight * 1.1f;
+
+	if (gEnv->bServer)
+	{
+		std::string pubIP = CoopNet::GetPublicIP();
+		std::string lanIP = CoopNet::GetLocalIP();
+		if (!pubIP.empty())
+			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "Server Address: %s:64087 (Internet)   |   %s:64087 (LAN)", pubIP.c_str(), lanIP.c_str());
+		else
+			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "Server Address: %s:64087 (LAN)", lanIP.c_str());
+		curY += lineHeight * 1.3f;
+	}
+	else
+	{
+		curY += lineHeight * 0.4f;
+	}
+
+	string rosterStr;
+	int loadingCount = 0;
+	int readyCount = 0;
+
+	if (g_pGame && g_pGame->GetSynchedStorage())
+	{
+		g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_LOBBY_ROSTER_KEY, rosterStr);
+		g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_LOBBY_LOADING_KEY, loadingCount);
+		g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_LOBBY_READY_KEY, readyCount);
+	}
+
+	pR->Draw2dLabel(startX, curY, 1.4f, colCyan, false, "CONNECTED SQUAD MEMBERS (%d Ready, %d Loading):", readyCount, loadingCount);
+	curY += lineHeight * 1.2f;
+
+	if (!rosterStr.empty())
+	{
+		size_t pos = 0;
+		while (pos < rosterStr.length())
+		{
+			size_t next = rosterStr.find('\n', pos);
+			string line = (next == string::npos) ? rosterStr.substr(pos) : rosterStr.substr(pos, next - pos);
+			bool isLoading = (line.find("LOADING") != string::npos);
+			pR->Draw2dLabel(startX + 15.0f, curY, 1.35f, isLoading ? colYellow : colGreen, false, "%s", line.c_str());
+			curY += lineHeight;
+			if (next == string::npos)
+				break;
+			pos = next + 1;
+		}
+	}
+	else
+	{
+		pR->Draw2dLabel(startX + 15.0f, curY, 1.35f, colGreen, false, "1. Host [READY]");
+		curY += lineHeight;
+	}
+
+	curY += lineHeight * 0.6f;
+	pR->Draw2dLabel(startX, curY, 1.5f, colCyan, false, "----------------------------------------------------------");
+	curY += lineHeight * 1.2f;
+
+	if (gEnv->bServer)
+	{
+		if (loadingCount > 0)
+		{
+			pR->Draw2dLabel(startX, curY, 1.45f, colYellow, false, ">> WAITING FOR %d PLAYER(S) TO FINISH LOADING MAP...", loadingCount);
+			curY += lineHeight * 1.1f;
+			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "   (Wait until status is READY, or press [F3] to Force Start)");
+		}
+		else
+		{
+			pR->Draw2dLabel(startX, curY, 1.55f, colGreen, false, ">> ALL PLAYERS LOADED! PRESS [ENTER] OR [F3] TO START MISSION <<");
+			curY += lineHeight * 1.1f;
+			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "   (Friends can join now before you press [ENTER] to start cutscenes)");
+		}
+	}
+	else
+	{
+		pR->Draw2dLabel(startX, curY, 1.45f, colGreen, false, ">> YOU ARE LOADED & READY! WAITING FOR HOST TO START MISSION... <<");
+	}
+
+	if (!m_statusMessage.empty())
+	{
+		curY += lineHeight * 1.2f;
+		pR->Draw2dLabel(startX, curY, 1.35f, colYellow, false, "STATUS: %s", m_statusMessage.c_str());
 	}
 }
 
 void CCoopAdminMenu::Render()
 {
-	if (!m_bOpen || !gEnv->pRenderer)
+	if (!gEnv->pRenderer)
 		return;
+
+	if (!m_bOpen)
+	{
+		RenderLobbyOverlay();
+		return;
+	}
 
 	IRenderer* pR = gEnv->pRenderer;
 	float scrW = (float)pR->GetWidth();

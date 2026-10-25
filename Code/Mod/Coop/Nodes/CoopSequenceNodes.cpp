@@ -3,6 +3,7 @@
 
 #include "IGameObject.h"
 #include "Coop/Entities/SequenceSynchronizer.h"
+#include "Coop/CoopAdminMenu.h"
 
 #include <ICryAnimation.h>
 #include <IViewSystem.h>
@@ -65,7 +66,7 @@ CSequenceSynchronizer* GetSequenceSynchronizer()
 	return NULL;
 }
 
-class CFlowPlaySequence : public CFlowBaseNode, public IMovieListener
+class CFlowPlaySequence : public CFlowBaseNode, public IMovieListener, public ICoopDeferredSequence
 {
 	enum INPUTS
 	{
@@ -94,6 +95,8 @@ public:
 		m_pSeq = 0;
 		m_actInfo = *pActInfo;
 		m_bPlaying = false;
+		m_bDeferredForLobby = false;
+		m_deferredStartTime = 0.0f;
 	};
 
 	virtual void GetMemoryStatistics(ICrySizer * s)
@@ -103,6 +106,7 @@ public:
 
 	~CFlowPlaySequence()
 	{
+		CCoopAdminMenu::GetInstance().UnregisterDeferredSequence(this);
 		if (m_pSeq)
 		{
 			IMovieSystem *movieSys = gEnv->pMovieSystem;
@@ -110,6 +114,20 @@ public:
 				movieSys->RemoveMovieListener(m_pSeq, this);
 		}
 	};
+
+	virtual void OnCoopLobbyStart()
+	{
+		if (m_bDeferredForLobby)
+		{
+			m_bDeferredForLobby = false;
+			StartSequence(&m_actInfo, m_deferredStartTime, true);
+		}
+	}
+
+	virtual const char* GetSequenceName() const
+	{
+		return m_deferredSeqName.c_str();
+	}
 
 	IFlowNodePtr Clone(SActivationInfo * pActInfo)
 	{
@@ -162,7 +180,18 @@ public:
 			}
 			if (IsPortActive(pActInfo, EIP_Trigger))
 			{
-				StartSequence(pActInfo, GetPortFloat(pActInfo, EIP_StartTime));
+				if (gEnv->bServer && CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+				{
+					m_actInfo = *pActInfo;
+					m_deferredStartTime = GetPortFloat(pActInfo, EIP_StartTime);
+					m_deferredSeqName = GetPortString(pActInfo, EIP_Sequence);
+					m_bDeferredForLobby = true;
+					CCoopAdminMenu::GetInstance().RegisterDeferredSequence(this);
+				}
+				else
+				{
+					StartSequence(pActInfo, GetPortFloat(pActInfo, EIP_StartTime));
+				}
 			}
 			break;
 		}
@@ -195,20 +224,23 @@ protected:
 
 	void StopSequence(SActivationInfo* pActInfo, bool bUnRegisterOnly = false, bool bAbort = false, bool bLeaveTime = false)
 	{
+		if (m_bDeferredForLobby)
+		{
+			m_bDeferredForLobby = false;
+			CCoopAdminMenu::GetInstance().UnregisterDeferredSequence(this);
+		}
+
 		if (!m_pSequenceSynchronizer)
 			m_pSequenceSynchronizer = GetSequenceSynchronizer();
 
-		if (m_pSequenceSynchronizer && gEnv->bServer)
+		// Only broadcast StopSequence across the network if this node actually started and is playing the sequence!
+		if (m_pSeq && m_bPlaying && !bUnRegisterOnly && m_pSequenceSynchronizer && gEnv->bServer)
 		{
 			string sSequence = GetPortString(pActInfo, EIP_Sequence);
 			float fStartTime = GetPortFloat(pActInfo, EIP_StartTime);
 			bool bBreakOnStop = GetPortBool(pActInfo, EIP_BreakOnStop);
 
 			m_pSequenceSynchronizer->StopSeqeunce(sSequence, fStartTime, bBreakOnStop);
-		}
-		else if (!m_pSequenceSynchronizer)
-		{
-			CryLogAlways("[CFlowPlaySequence] Sequence Synchronizer Not Found - playing locally only");
 		}
 
 		IMovieSystem *movieSys = gEnv->pMovieSystem;
@@ -298,6 +330,9 @@ protected:
 	_smart_ptr<IAnimSequence> m_pSeq;
 	SActivationInfo m_actInfo;
 	bool m_bPlaying;
+	bool m_bDeferredForLobby;
+	float m_deferredStartTime;
+	string m_deferredSeqName;
 
 	CSequenceSynchronizer* m_pSequenceSynchronizer;
 };

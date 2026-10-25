@@ -42,6 +42,7 @@
 
 #include <StlUtils.h>
 #include <StringUtils.h>
+#include "Coop/CoopAdminMenu.h"
 
 int CGameRules::s_invulnID = 0;
 int CGameRules::s_barbWireID = 0;
@@ -566,7 +567,8 @@ bool CGameRules::OnClientConnect(int channelId, bool isReset)
 				playerName=VerifyName(playerName);
 		}
 
-    if(!playerName.empty())
+    CCoopAdminMenu::GetInstance().OnPlayerConnecting(channelId, playerName.c_str());
+		if(!playerName.empty())
 			CallScript(m_serverStateScript, "OnClientConnect", channelId, isReset, playerName.c_str());
     else
 			CallScript(m_serverStateScript, "OnClientConnect", channelId, isReset);
@@ -600,6 +602,8 @@ bool CGameRules::OnClientConnect(int channelId, bool isReset)
 //------------------------------------------------------------------------
 void CGameRules::OnClientDisconnect(int channelId, EDisconnectionCause cause, const char *desc, bool keepClient)
 {
+	if (!keepClient)
+		CCoopAdminMenu::GetInstance().OnPlayerDisconnected(channelId);
 	if (m_pShotValidator)
 		m_pShotValidator->Disconnected(channelId);
 
@@ -659,6 +663,7 @@ bool CGameRules::OnClientEnteredGame(int channelId, bool isReset)
 	IScriptTable *pPlayer=pActor->GetEntity()->GetScriptTable();
 	int loadingSaveGame=m_pGameFramework->IsLoadingSaveGame()?1:0;
 	CallScript(m_serverStateScript, "OnClientEnteredGame", channelId, pPlayer, isReset, loadingSaveGame);
+	CCoopAdminMenu::GetInstance().OnPlayerEnteredGame(channelId, pActor->GetEntity() ? pActor->GetEntity()->GetName() : "");
 
 	// don't do this on reset - have already been added to correct team!
 	if(!isReset || GetTeamCount() < 2)
