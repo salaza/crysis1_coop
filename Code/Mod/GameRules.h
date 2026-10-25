@@ -693,6 +693,26 @@ public:
 		}
 	};
 
+	struct SSyncCutsceneParams
+	{
+		bool bStart;
+		string sSequence;
+		float fStartTime;
+		bool bBreakOnStop;
+
+		SSyncCutsceneParams() : bStart(false), fStartTime(0.0f), bBreakOnStop(false) {}
+		SSyncCutsceneParams(bool _bStart, const string& _sSequence, float _fStartTime, bool _bBreakOnStop)
+			: bStart(_bStart), sSequence(_sSequence), fStartTime(_fStartTime), bBreakOnStop(_bBreakOnStop) {}
+
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("bStart", bStart);
+			ser.Value("sSequence", sSequence);
+			ser.Value("fStartTime", fStartTime);
+			ser.Value("bBreakOnStop", bBreakOnStop);
+		}
+	};
+
 	struct SetGameTimeParams
 	{
 		CTimeValue endTime;
@@ -985,6 +1005,7 @@ public:
 	DECLARE_CLIENT_RMI_NOATTACH(ClMapDraw, MapDrawStrokeParams, eNRT_ReliableUnordered);
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestMapClearDrawings, MapClearDrawingsParams, eNRT_ReliableOrdered);
 	DECLARE_CLIENT_RMI_NOATTACH(ClMapClearDrawings, MapClearDrawingsParams, eNRT_ReliableOrdered);
+	DECLARE_CLIENT_RMI_NOATTACH(ClSyncCutscene, SSyncCutsceneParams, eNRT_ReliableOrdered);
 
 	void SendMapDrawStroke(float x0, float y0, float x1, float y1, uint32 color, float width = 2.5f);
 	void SendMapClearDrawings();

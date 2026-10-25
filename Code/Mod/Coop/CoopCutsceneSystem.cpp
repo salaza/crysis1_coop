@@ -42,7 +42,7 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
 {
     if (m_bPlayingCutscene)
     {
-        if (!m_pCameraEntity && gEnv->pMovieSystem)
+        if (gEnv->pMovieSystem)
         {
             EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
             if (camId)
@@ -186,6 +186,16 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
     m_bPlayingCutscene = true;
     m_pActiveSequence = pSeq;
 
+    if (gEnv->pMovieSystem)
+    {
+        EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
+        if (camId)
+        {
+            m_pCameraEntity = gEnv->pEntitySystem->GetEntity(camId);
+            m_fCameraFOV = gEnv->pMovieSystem->GetCameraParams().fFOV;
+        }
+    }
+
     // Search for camera node in sequence if not yet set
     if (!m_pCameraEntity && pSeq)
     {
@@ -195,7 +205,7 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
             IAnimNode* pNode = pSeq->GetNode(i);
             if (pNode)
             {
-                if (pNode->GetType() == ANODE_CAMERA || (pNode->GetName() && (strstr(pNode->GetName(), "cam") || strstr(pNode->GetName(), "Cam") || strstr(pNode->GetName(), "cine"))))
+                if (pNode->GetType() == ANODE_CAMERA || (pNode->GetName() && (strstr(pNode->GetName(), "cam") || strstr(pNode->GetName(), "Cam") || strstr(pNode->GetName(), "Camera"))))
                 {
                     IEntity* pEnt = pNode->GetEntity();
                     if (pEnt)
@@ -205,16 +215,6 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
                     }
                 }
             }
-        }
-    }
-
-    if (!m_pCameraEntity && gEnv->pMovieSystem)
-    {
-        EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
-        if (camId)
-        {
-            m_pCameraEntity = gEnv->pEntitySystem->GetEntity(camId);
-            m_fCameraFOV = gEnv->pMovieSystem->GetCameraParams().fFOV;
         }
     }
 

@@ -16,6 +16,7 @@ History:
 #include "WeaponAttachmentManager.h"
 #include "Actor.h"
 #include "Item.h"
+#include "GameRules.h"
 
 
 #define MAX_WEAPON_ATTACHMENTS 3 
@@ -75,7 +76,8 @@ CWeaponAttachmentManager::~CWeaponAttachmentManager()
 
 bool CWeaponAttachmentManager::Init()
 {
-	if(gEnv->bMultiplayer)
+	bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+	if(gEnv->bMultiplayer && !isCoop)
 	{
 		CreatePlayerBoneAttachments(); //Only create the attachment, some are needed
 		return false;

@@ -1070,7 +1070,7 @@ void CItem::SetHand(int hand)
 			*/
 	}
 
-	if (result)
+	if (result && !IsBusy())
 		PlayAction(m_idleAnimation[eIGS_FirstPerson], 0, true, (eIPAF_Default|eIPAF_NoBlend)&~eIPAF_Owner);
 }
 
@@ -1178,12 +1178,10 @@ void CItem::Select(bool select)
 		if (m_stats.fp)
 		{
 			AttachArms(true, true);
-			SetViewMode(eIVM_FirstPerson);
 		}
 		else
 		{
 			AttachToHand(true);
-			SetViewMode(eIVM_ThirdPerson);
 		}
 
 		AttachToBack(false);
@@ -2320,7 +2318,8 @@ bool CItem::AttachToHand(bool attach, bool checkAttachment)
 //------------------------------------------------------------------------
 bool CItem::AttachToBack(bool attach)
 {
-	if (gEnv->bMultiplayer || !m_params.attach_to_back)
+	bool isCoop = g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop();
+	if ((gEnv->bMultiplayer && !isCoop) || !m_params.attach_to_back)
 		return false;
 
 	IEntity *pOwner = GetOwner();

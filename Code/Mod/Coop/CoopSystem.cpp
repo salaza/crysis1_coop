@@ -333,7 +333,7 @@ static void EnforceCoopMaxGraphicsSettings()
 	SetIntCVar("r_SSAO_blur", 4);
 	SetIntCVar("r_UseEdgeAA", 2);                   // Maximum Foliage & Edge Anti-Aliasing
 	SetIntCVar("r_HDRRendering", 2);                // Full HDR rendering pipeline
-	SetIntCVar("r_PostProcessEffects", 2);
+	SetIntCVar("r_PostProcessEffects", 1);
 	SetIntCVar("r_ColorGrading", 1);                // Experimental CryEngine 2 color grading
 	SetIntCVar("r_DepthOfField", 2);                // Bokeh / cinematic depth of field
 	SetIntCVar("r_MotionBlur", 1);                  // Camera & object motion blur

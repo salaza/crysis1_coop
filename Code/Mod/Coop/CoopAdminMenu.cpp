@@ -137,11 +137,7 @@ void CCoopAdminMenu::OnLoadingStart()
 void CCoopAdminMenu::OnLoadingComplete()
 {
 	m_lobbyTimeSinceLoad = 0.0f;
-	if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
-	{
-		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
-		m_lobbyInitialTOD = pTOD->GetTime();
-	}
+	m_lobbyInitialTOD = -1.0f;
 
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
@@ -310,11 +306,6 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 	if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
 	{
 		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
-		if (m_lobbyInitialTOD >= 0.0f)
-		{
-			pTOD->SetTime(m_lobbyInitialTOD, true);
-			pTOD->Update(true, true);
-		}
 		pTOD->SetPaused(false);
 	}
 
@@ -330,10 +321,12 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 	// Trigger all deferred FlowGraph PlaySequence nodes at 0.00s now that everyone is loaded
 	std::vector<ICoopDeferredSequence*> toStart = m_deferredSequences;
 	m_deferredSequences.clear();
+	std::set<string> startedNames;
 	for (size_t i = 0; i < toStart.size(); ++i)
 	{
 		if (toStart[i])
 		{
+			startedNames.insert(toStart[i]->GetSequenceName());
 			toStart[i]->OnCoopLobbyStart();
 		}
 	}
@@ -347,9 +340,8 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 		{
 			for (IAnimSequence* pSeq = pIt->first(); pSeq; pSeq = pIt->next())
 			{
-				if (gEnv->pMovieSystem->IsPlaying(pSeq))
+				if (startedNames.find(pSeq->GetName()) == startedNames.end() && gEnv->pMovieSystem->IsPlaying(pSeq))
 				{
-					gEnv->pMovieSystem->SetPlayingTime(pSeq, pSeq->GetTimeRange().start);
 					if (pSync)
 						pSync->PlaySequence(pSeq->GetName(), 0.0f, false);
 				}
@@ -436,10 +428,7 @@ void CCoopAdminMenu::Update(float frameTime)
 		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
 		{
 			ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
-			if (m_lobbyInitialTOD < 0.0f)
-				m_lobbyInitialTOD = pTOD->GetTime();
 			pTOD->SetPaused(true);
-			pTOD->SetTime(m_lobbyInitialTOD, false);
 		}
 	}
 	else if (m_bWasLobbyWaiting)
@@ -452,8 +441,6 @@ void CCoopAdminMenu::Update(float frameTime)
 		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
 		{
 			ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
-			if (m_lobbyInitialTOD >= 0.0f)
-				pTOD->SetTime(m_lobbyInitialTOD, true);
 			pTOD->SetPaused(false);
 		}
 	}

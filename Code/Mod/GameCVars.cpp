@@ -301,6 +301,7 @@ void SCVars::InitCVars(IConsole *pConsole)
 	pConsole->Register("g_teamlock", &g_teamlock, 2, 0, "Number of players one team needs to have over the other, for the game to deny joining it. 0 disables.");
 	pConsole->Register("g_useHitSoundFeedback", &g_useHitSoundFeedback, 1, 0, "Switches hit readability feedback sounds on/off.");
 	pConsole->RegisterFloat("g_painSoundGap", 0.5f, 0, "Minimum time gap between player pain sounds.");
+	pConsole->RegisterFloat("g_spawnProtectionTime", 2.0f, 0, "Duration in seconds for spawn invulnerability in Co-op.");
 
 	pConsole->Register("g_debugNetPlayerInput", &g_debugNetPlayerInput, 0, VF_CHEAT, "Show some debug for player input");
 	pConsole->Register("g_debug_fscommand", &g_debug_fscommand, 0, 0, "Print incoming fscommands to console");

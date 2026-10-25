@@ -13,6 +13,8 @@
 #include "StdAfx.h"
 #include "ScriptBind_GameRules.h"
 #include "GameRules.h"
+#include "Coop/CoopCutsceneSystem.h"
+#include <IMovieSystem.h>
 #include "Game.h"
 #include "GameCVars.h"
 #include "Actor.h"
@@ -404,7 +406,7 @@ void CGameRules::ProcessEvent( SEntityEvent& event)
 		m_timeOfDayInitialized = false;
 		g_pGame->GetWeaponSystem()->GetTracerManager().Reset();
 
-		if (gEnv->bServer && gEnv->bMultiplayer && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
+		if (gEnv->bServer && gEnv->bMultiplayer && !IsCoop() && pTOD && pTOD->GetIVal() && g_pGame->GetIGameFramework()->IsImmersiveMPEnabled())
 		{
 			static ICVar* pStart = gEnv->pConsole->GetCVar("sv_timeofdaystart");
 			if (pStart)
@@ -4077,5 +4079,63 @@ bool CGameRules::OnEndCutScene(IAnimSequence* pSeq)
 
 	m_explosionScreenFX = true;
 
+	return true;
+}
+
+IMPLEMENT_RMI(CGameRules, ClSyncCutscene)
+{
+	bool bStart = params.bStart;
+	string sSequence = params.sSequence;
+	float fStartTime = params.fStartTime;
+	bool bLeaveTime = params.bBreakOnStop;
+
+	IMovieSystem *pMovieSystem = gEnv->pMovieSystem;
+	if (!pMovieSystem)
+		return true;
+
+	if (bStart)
+	{
+		IAnimSequence* pSeq = pMovieSystem->FindSequence(sSequence);
+		if (pSeq)
+		{
+			CryLogAlways("[CGameRules::ClSyncCutscene] Starting Sequence: '%s' at %.2fs", sSequence.c_str(), fStartTime);
+			pMovieSystem->PlaySequence(pSeq, true);
+
+			if (fStartTime < pSeq->GetTimeRange().start)
+				fStartTime = pSeq->GetTimeRange().start;
+			else if (fStartTime > pSeq->GetTimeRange().end)
+				fStartTime = pSeq->GetTimeRange().end;
+
+			pMovieSystem->SetPlayingTime(pSeq, fStartTime);
+
+			int flags = pSeq->GetFlags();
+			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			{
+				CCoopCutsceneSystem::GetInstance()->OnBeginCutScene(pSeq, true);
+				if (g_pGame && g_pGame->GetHUD())
+				{
+					g_pGame->GetHUD()->OnBeginCutScene(pSeq, true);
+				}
+			}
+		}
+	}
+	else
+	{
+		IAnimSequence* pSeq = pMovieSystem->FindSequence(sSequence);
+		if (pSeq && pMovieSystem->IsPlaying(pSeq))
+		{
+			CryLogAlways("[CGameRules::ClSyncCutscene] Stopping Sequence: '%s'", sSequence.c_str());
+			pMovieSystem->AbortSequence(pSeq, bLeaveTime);
+			int flags = pSeq->GetFlags();
+			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			{
+				CCoopCutsceneSystem::GetInstance()->OnEndCutScene(pSeq);
+				if (g_pGame && g_pGame->GetHUD())
+				{
+					g_pGame->GetHUD()->OnEndCutScene(pSeq);
+				}
+			}
+		}
+	}
 	return true;
 }

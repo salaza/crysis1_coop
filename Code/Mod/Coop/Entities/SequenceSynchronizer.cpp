@@ -6,6 +6,7 @@
 #include <IMovieSystem.h>
 #include "Coop/CoopCutsceneSystem.h"
 #include "Game.h"
+#include "GameRules.h"
 #include "HUD/HUD.h"
 
 CSequenceSynchronizer* CSequenceSynchronizer::s_pInstance = NULL;
@@ -88,11 +89,25 @@ void CSequenceSynchronizer::PlaySequence(string sSequence, float fStartTime, boo
 	CryLogAlways("[CSequenceSynchronizer::PlaySequence] %s at %.2fs", sSequence.c_str(), fStartTime);
 
 	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(true, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
+
+	if (g_pGame && g_pGame->GetGameRules())
+	{
+		CGameRules::SSyncCutsceneParams grParams(true, sSequence, fStartTime, bBreakOnStop);
+		g_pGame->GetGameRules()->GetGameObject()->InvokeRMI(CGameRules::ClSyncCutscene(), grParams, eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
 }
 
 void CSequenceSynchronizer::StopSeqeunce(string sSequence, float fStartTime, bool bBreakOnStop)
 {
 	if (!m_bInitialized || !gEnv->bServer) return;
+
+	float curTime = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
+	if (m_lastSequence == sSequence && (curTime - m_lastSequenceTime) < 1.5f)
+	{
+		CryLogAlways("[CSequenceSynchronizer::StopSequence] Ignored premature stop for '%s' (started %.2fs ago)",
+			sSequence.c_str(), curTime - m_lastSequenceTime);
+		return;
+	}
 
 	if (m_lastSequence == sSequence)
 		m_lastSequence.clear();
@@ -100,6 +115,12 @@ void CSequenceSynchronizer::StopSeqeunce(string sSequence, float fStartTime, boo
 	CryLogAlways("[CSequenceSynchronizer::StopSequence] %s", sSequence.c_str());
 
 	GetGameObject()->InvokeRMI(ClTrackviewSequence(), STrackviewSeqParams(false, sSequence, fStartTime, bBreakOnStop), eRMI_ToAllClients | eRMI_NoLocalCalls);
+
+	if (g_pGame && g_pGame->GetGameRules())
+	{
+		CGameRules::SSyncCutsceneParams grParams(false, sSequence, fStartTime, bBreakOnStop);
+		g_pGame->GetGameRules()->GetGameObject()->InvokeRMI(CGameRules::ClSyncCutscene(), grParams, eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
 }
 
 IMPLEMENT_RMI(CSequenceSynchronizer, ClTrackviewSequence)
