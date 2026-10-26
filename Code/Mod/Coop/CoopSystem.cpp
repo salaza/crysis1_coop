@@ -7,6 +7,7 @@
 #include <IItemSystem.h>
 #include "CoopSystem.h"
 #include "CoopCutsceneSystem.h"
+#include "SoundMoods.h"
 #include "Entities/SequenceSynchronizer.h"
 
 #include "Coop/DialogSystem/DialogSystem.h"
@@ -788,6 +789,45 @@ void CCoopSystem::OnLoadingComplete(ILevel *pLevel)
 	EnforceCoopMaxGraphicsSettings();
 	EnforceCoopPhysicsSettings();
 	EnforceCoopLuaPhysics();
+
+	// Force CryEngine multiplayer time-cycling OFF so campaign TimeOfDay uses level curves and designer TimeAnimSpeed
+	if (ICVar* pTODEnable = gEnv->pConsole->GetCVar("sv_timeofdayenable"))
+	{
+		pTODEnable->Set(0);
+	}
+
+	if (gEnv->p3DEngine)
+	{
+		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+		if (pTOD)
+		{
+			ITimeOfDay::SAdvancedInfo advInfo;
+			pTOD->GetAdvancedInfo(advInfo);
+			if (advInfo.fStartTime > 0.0f)
+			{
+				CryLogAlways("[Co-op] Initializing TimeOfDay to designer start time %.2f (Start=%.2f, End=%.2f)",
+					advInfo.fStartTime, advInfo.fStartTime, advInfo.fEndTime);
+				pTOD->SetTime(advInfo.fStartTime, true);
+				pTOD->Update(false, true);
+			}
+		}
+	}
+
+	// Ensure sound listener VisArea and moods are cleanly restored on level load
+	if (gEnv->pSoundSystem)
+	{
+		IListener* pListener = gEnv->pSoundSystem->GetListener(LISTENERID_STANDARD);
+		if (pListener)
+		{
+			pListener->SetVisArea(NULL);
+			pListener->SetUnderwater(0.0f);
+		}
+		gEnv->pSoundSystem->Pause(false, true);
+	}
+	if (g_pGame && g_pGame->GetSoundMoods())
+	{
+		g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+	}
 
 	CCoopAdminMenu::GetInstance().OnLoadingComplete();
 }

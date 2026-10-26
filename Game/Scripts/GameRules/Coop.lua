@@ -2314,6 +2314,7 @@ function Coop:EquipPlayer(actor, additionalEquip)
 	ItemSystem.GiveItem("AssaultScope", actor.id, true);
 	ItemSystem.GiveItem("SniperScope", actor.id, true);
 	actor.inventory:SetAmmoCount("tacbullet", 15);
+	actor.inventory:SetAmmoCount("tagbullet", 15);
 end
 
 

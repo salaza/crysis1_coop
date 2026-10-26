@@ -39,7 +39,7 @@ void CCoopGrunt::PostInit( IGameObject * pGameObject )
 
 	pGameObject->SetAIActivation(eGOAIAM_Always);
 
-	if (gEnv->bServer)
+	if (gEnv->bServer && !GetEntity()->IsHidden())
 		GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 1000);
 
 }
@@ -217,7 +217,6 @@ void CCoopGrunt::ProcessEvent(SEntityEvent& event)
 		{
 			if (gEnv->bServer)
 			{
-				GetInventory()->Clear();
 				m_bHidden = true;
 				GetGameObject()->ChangedNetworkState(ASPECT_HIDE);
 			}
@@ -228,9 +227,11 @@ void CCoopGrunt::ProcessEvent(SEntityEvent& event)
 		{
 			if (gEnv->bServer)
 			{
-				GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 1000);
 				m_bHidden = false;
 				GetGameObject()->ChangedNetworkState(ASPECT_HIDE);
+
+				if (!GetInventory() || GetInventory()->GetCount() == 0)
+					GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 500);
 			}
 
 			break;
@@ -240,6 +241,11 @@ void CCoopGrunt::ProcessEvent(SEntityEvent& event)
 			switch(event.nParam[0])
 			{
 			case eTIMER_WEAPONDELAY:
+				if (m_bHidden || GetEntity()->IsHidden())
+					break;
+				if (GetInventory() && GetInventory()->GetCount() > 0)
+					break;
+
 				IScriptTable* pScriptTable = GetEntity()->GetScriptTable();
 				SmartScriptTable props;
 				if(pScriptTable && pScriptTable->GetValue("Properties", props))

@@ -10,7 +10,7 @@
   <Moon Latitude="-45" Longitude="12" Size="0.5" Texture="Textures/Skys/Night/MOON_small_glowing.dds"/>
   <Lighting SunRotation="325" SunHeight="91" Algorithm="3" Lighting="1" Shadows="0" ShadowIntensity="68" ILQuality="1" HemiSamplQuality="10" Longitude="103" DawnTime="355" DawnDuration="10" DuskTime="365" DuskDuration="10" SunVector="-0.23780961,0.33962721,-0.90999997"/>
  </Environment>
- <TimeOfDay Time="8.1700001" TimeStart="5.5" TimeEnd="10.333333" TimeAnimSpeed="0.02">
+ <TimeOfDay Time="5.5" TimeStart="5.5" TimeEnd="10.333333" TimeAnimSpeed="0.02">
   <Variable Name="HDR dynamic power factor" Value="2.362576">
    <Spline Keys="0:0.342857,0.221667:0.399449,0.232218:0.2,0.260417:0.320713,0.274059:0.440098,0.292083:1.5,0.317125:2.28571,0.408034:2.4,0.506198:2.51429,0.683884:2.17143,0.739425:0.457143,0.780335:0.383462,0.791667:0.499,0.880753:0.5,1:0.342857,"/>
   </Variable>

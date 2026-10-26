@@ -275,46 +275,6 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
         }
     }
 
-    // Keep 3D audio listener aligned to the cutscene camera so all dialogue & Foley sounds are crisp and unattenuated
-    if (m_bPlayingCutscene && gEnv->pSoundSystem)
-    {
-        IListener* pListener = gEnv->pSoundSystem->GetListener(LISTENERID_STANDARD);
-        if (pListener)
-        {
-            Vec3 camPos = m_vHostCamCurrentPos;
-            Quat camRot = m_qHostCamCurrentRot;
-            if (m_pCameraEntity)
-            {
-                camPos = m_pCameraEntity->GetWorldPos();
-                camRot = m_pCameraEntity->GetWorldRotation();
-            }
-            else if (gEnv->pGame)
-            {
-                IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
-                IView* pActiveView = pVS ? pVS->GetActiveView() : NULL;
-                const SViewParams* vp = pActiveView ? pActiveView->GetCurrentParams() : NULL;
-                if (vp && vp->position.GetLengthSquared() > 0.01f)
-                {
-                    camPos = vp->position;
-                    camRot = vp->rotation;
-                }
-            }
-
-            if (camPos.GetLengthSquared() > 0.01f)
-            {
-                Matrix34 tm(camRot);
-                tm.SetTranslation(camPos);
-                pListener->SetMatrix(tm);
-
-                if (gEnv->p3DEngine)
-                {
-                    IVisArea* pVisArea = gEnv->p3DEngine->GetVisAreaFromPos(camPos);
-                    pListener->SetVisArea(pVisArea);
-                }
-                pListener->SetUnderwater(0.0f);
-            }
-        }
-    }
 
     m_bPlayingCutsceneLastFrame = m_bPlayingCutscene;
 
@@ -500,6 +460,15 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
     m_bPlayingCutscene = true;
     m_pActiveSequence = pSeq;
 
+    if (gEnv->pSoundSystem)
+    {
+        gEnv->pSoundSystem->Pause(false, true);
+    }
+    if (g_pGame && g_pGame->GetSoundMoods())
+    {
+        g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+    }
+
     if (gEnv->pMovieSystem)
     {
         EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
@@ -613,6 +582,22 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
     m_fCameraFOV = 0.0f;
     IAnimSequence* pEnded = pSeq ? pSeq : m_pActiveSequence;
     m_pActiveSequence = NULL;
+
+    // Reset sound listener VisArea and ensure audio is fully restored after cutscene
+    if (gEnv->pSoundSystem)
+    {
+        IListener* pListener = gEnv->pSoundSystem->GetListener(LISTENERID_STANDARD);
+        if (pListener)
+        {
+            pListener->SetVisArea(NULL);
+            pListener->SetUnderwater(0.0f);
+        }
+        gEnv->pSoundSystem->Pause(false, true);
+    }
+    if (g_pGame && g_pGame->GetSoundMoods())
+    {
+        g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+    }
 
     if (gEnv->pMovieSystem)
     {

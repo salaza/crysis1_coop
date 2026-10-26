@@ -8,6 +8,7 @@
   <SOCOMSilencer type="ItemGivable"/>
   <Reflex type="ItemGivable"/>
   <AlienCloak type="ItemGivable"/>
+  <TacticalAttachment type="ItemGivable"/>
   <LAM type="ItemGivable"/>
   <LAMFlashLight type="ItemGivable"/>
   <LAMRifleFlashLight type="ItemGivable"/>
@@ -42,10 +43,10 @@
   <Ammo name="singularityprojectile" amount="0"/>
   <Ammo name="smokegrenade" amount="0"/>
   <Ammo name="sniperbullet" amount="0"/>
-  <Ammo name="tacbullet" amount="0"/>
+  <Ammo name="tacbullet" amount="15"/>
   <Ammo name="tacgunprojectile" amount="0"/>
   <Ammo name="tacprojectile" amount="0"/>
-  <Ammo name="tagbullet" amount="0"/>
+  <Ammo name="tagbullet" amount="15"/>
   <Ammo name="tank125" amount="0"/>
   <Ammo name="tank30" amount="0"/>
   <Ammo name="tankaa" amount="0"/>

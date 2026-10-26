@@ -68,7 +68,7 @@ def publish_github_release(repo, tag, name, body, zip_path, token):
 
 if __name__ == '__main__':
     src = r'E:\SteamLibrary\steamapps\common\Crysis\Mods\CrysisCoop'
-    tag = 'v1.7.5'
+    tag = 'v1.7.6'
     zip_name = f'CrysisCoop_Release_{tag}.zip'
     package_zip(src, zip_name)
 
@@ -77,18 +77,38 @@ if __name__ == '__main__':
         print("Error: Could not retrieve GitHub token!")
         sys.exit(1)
 
-    release_body = """### Crysis Co-op v1.7.5 Release Notes
+    release_body = """### Crysis Co-op v1.7.6 Release Notes
 
-#### Player Invulnerability & Lobby God Mode Fixes
-- **Resolved Permanent God Mode**: Fixed an issue where the pre-game squad lobby state (`IsLobbyWaiting`) remained permanently active across the entire playthrough, continuously returning `IsGod() == 1`, refilling health & suit energy every frame, and aborting all player damage processing.
-- **Smart Campaign Auto-Start**:
-  - The squad lobby now automatically starts the campaign as soon as the host player moves (`WASD`, speed > 0.35 m/s) after a brief 1.5s hold.
-  - Automatically launches after a 3.5s grace period once all connecting squad members have finished loading the map.
-  - Added a 15-second hard timeout fallback ensuring games never get trapped in lobby wait.
-  - The host can still press `Enter` or `F3` at any time to launch immediately.
-- **Seamless Mission Transitions**: Campaign progression across maps (`island` -> `village` -> `rescue` ...) now retains `m_bCampaignStarted = true`, bypassing the pre-game squad lobby hold so cutscenes play immediately and players continue normal gameplay without re-entering god mode.
-- **Admin Cheat Double-Toggle Fix**: Fixed a synchronization bug on listen servers where activating "Toggle God Mode", "Toggle Unlimited Ammo", or "Toggle AI Ignore Player" in the Admin Menu executed the toggle twice synchronously (client + server), causing state desynchronization. Cheat states are now synchronized across the network via `SynchedStorage` and reset cleanly upon map loading or game disconnect.
-- **Updated Watermark**: Updated HUD watermark and version metadata to v1.7.5."""
+#### Audio Silence & Cutscene Audio Restoration
+- **Fixed Complete Audio Silence in School (`village`) & Rosenthal Lab (`rescue`)**:
+  - Removed manual listener matrix and VisArea overrides during cutscene playback, allowing CryEngine's `CView` and `CrySoundSystem` to naturally calculate listener position, orientation, and room VisArea from the active camera.
+  - Fixed an issue where the standard audio listener retained an interior VisArea lock indefinitely after cutscenes completed or aborted, causing sound occlusion to evaluate all ambient sounds, footsteps, and weapon fire outside that room as 100% occluded (-100 dB silence).
+  - Explicitly cleared listener VisArea (`pListener->SetVisArea(NULL)`) and underwater flags upon cutscene exit and level load.
+  - Automatically unpauses the sound engine (`gEnv->pSoundSystem->Pause(false, true)`) and clears any lingering sound moods (`ClearAllSoundMoods()`) upon cutscene entry, exit, and map loading.
+
+#### Fix Random Weapons Laying on Ground at NPC Spawns
+- **Resolved NPC Weapon Dropping Bug**:
+  - Removed destructive `GetInventory()->Clear()` calls on `ENTITY_EVENT_HIDE` in `CoopGrunt`, `CoopTrooper`, and `CoopScout`. Previously, when level FlowGraphs initially disabled/hid grunts, clearing inventory severed the link between the grunt and its weapons without destroying the models, leaving orphaned guns floating or lying loose on the ground.
+  - Added checks in `PostInit` and `eTIMER_WEAPONDELAY` to prevent spawning equipment packs for hidden or disabled entities until unhidden by mission triggers.
+  - Added duplicate weapon check (`GetInventory()->GetCount() > 0`) preventing unhidden entities from receiving redundant weapons and dropping previous ones.
+
+#### Campaign TimeOfDay (ToD) Speed & Night/Day Progression
+- **Disabled Rapid Multiplayer Time Cycling**:
+  - Automatically forces `sv_timeofdayenable = 0` upon map loading, disabling CryEngine's multiplayer clock that was rushing through a 24-hour cycle every 1–2 hours.
+  - Campaign TimeOfDay now faithfully follows the designer-crafted `TimeAnimSpeed` (0.001 to 0.02) and FlowGraph curves, perfectly preserving singleplayer lighting progression.
+- **Dynamic Level Start Time Initialization**:
+  - Automatically queries and applies each level's designer-intended `fStartTime` on load (e.g. 5:30 AM for `island`, 10:00 AM for `village`, 4:00 PM for `rescue`, 5:00 AM for `harbor`, 9:00 AM for `tank`).
+- **Mission 1 (`island`) Night Start Fixed**:
+  - Corrected `Time="8.1700001"` in `Game/Levels/island/mission_mission0.xml` to `Time="5.5"`. `island` now starts at 05:30 AM (pitch dark with moon and flashlight), ensuring the Aztec corpse discovery sequence occurs in the dark as originally designed.
+
+#### Mission 1 Starting Gear & Tactical Attachment
+- **Restored Tactical Attachment on SCAR**:
+  - Restored `TacticalAttachment` to `Player_Island_Full.xml` equipment pack.
+  - Granted starting ammunition for `tacbullet` (15 sleep darts) and `tagbullet` (15 tracker darts) upon spawning.
+  - Ensured `Coop:EquipPlayer` in `Coop.lua` supplies `tagbullet` and `tacbullet` ammunition upon player revive.
+
+#### Version Metadata
+- Bumped watermark and version metadata to v1.7.6."""
 
     publish_github_release('salaza/crysis1_coop', tag, f'Crysis Co-op {tag}', release_body, zip_name, token)
     print(f"Release {tag} successfully published!")
