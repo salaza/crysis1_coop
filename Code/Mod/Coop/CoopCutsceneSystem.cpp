@@ -8,6 +8,7 @@
 #include "GameRules.h"
 #include "HUD/HUD.h"
 #include <StringUtils.h>
+#include "SoundMoods.h"
  
 CCoopCutsceneSystem CCoopCutsceneSystem::s_instance = CCoopCutsceneSystem();
  
@@ -79,18 +80,37 @@ bool CCoopCutsceneSystem::IsCutsceneSequence(IAnimSequence* pSeq)
     const char* sName = pSeq->GetName();
     if (sName)
     {
-        // Explicitly exclude non-cutscene ambient, idle, or movement sequences
-        if (CryStringUtils::stristr(sName, "parachute") ||
+        // Explicitly exclude non-cutscene ambient, utility, idle, or letterbox sequences
+        if (CryStringUtils::stristr(sName, "black_bars") ||
+            CryStringUtils::stristr(sName, "blackbars") ||
+            CryStringUtils::stristr(sName, "letterbox") ||
+            CryStringUtils::stristr(sName, "cinematic_bars") ||
+            CryStringUtils::stristr(sName, "parachute") ||
             CryStringUtils::stristr(sName, "extro") ||
             CryStringUtils::stristr(sName, "ambient") ||
             CryStringUtils::stristr(sName, "ambience") ||
             CryStringUtils::stristr(sName, "flyby") ||
             CryStringUtils::stristr(sName, "fly_by") ||
-            CryStringUtils::stristr(sName, "idle"))
+            CryStringUtils::stristr(sName, "idle") ||
+            CryStringUtils::stristr(sName, "_post") ||
+            CryStringUtils::stristr(sName, "_pre") ||
+            CryStringUtils::stristr(sName, "dummy") ||
+            CryStringUtils::stristr(sName, "sound") ||
+            CryStringUtils::stristr(sName, "tornado") ||
+            CryStringUtils::stristr(sName, "bars"))
         {
             return false;
         }
     }
+
+    // A cutscene sequence MUST contain a camera track
+    if (!SequenceHasCamera(pSeq))
+        return false;
+
+    // A true cutscene has duration >= 6.0 seconds
+    float duration = pSeq->GetTimeRange().end - pSeq->GetTimeRange().start;
+    if (duration < 6.0f)
+        return false;
 
     int flags = pSeq->GetFlags();
     if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
@@ -99,7 +119,7 @@ bool CCoopCutsceneSystem::IsCutsceneSequence(IAnimSequence* pSeq)
     if (sName)
     {
         if (strnicmp(sName, "cine_", 5) == 0 || strnicmp(sName, "cine.", 5) == 0)
-            return SequenceHasCamera(pSeq);
+            return true;
     }
 
     return false;
@@ -251,6 +271,47 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
                         pView->SetCurrentParams(newParams);
                     }
                 }
+            }
+        }
+    }
+
+    // Keep 3D audio listener aligned to the cutscene camera so all dialogue & Foley sounds are crisp and unattenuated
+    if (m_bPlayingCutscene && gEnv->pSoundSystem)
+    {
+        IListener* pListener = gEnv->pSoundSystem->GetListener(LISTENERID_STANDARD);
+        if (pListener)
+        {
+            Vec3 camPos = m_vHostCamCurrentPos;
+            Quat camRot = m_qHostCamCurrentRot;
+            if (m_pCameraEntity)
+            {
+                camPos = m_pCameraEntity->GetWorldPos();
+                camRot = m_pCameraEntity->GetWorldRotation();
+            }
+            else if (gEnv->pGame)
+            {
+                IViewSystem* pVS = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+                IView* pActiveView = pVS ? pVS->GetActiveView() : NULL;
+                const SViewParams* vp = pActiveView ? pActiveView->GetCurrentParams() : NULL;
+                if (vp && vp->position.GetLengthSquared() > 0.01f)
+                {
+                    camPos = vp->position;
+                    camRot = vp->rotation;
+                }
+            }
+
+            if (camPos.GetLengthSquared() > 0.01f)
+            {
+                Matrix34 tm(camRot);
+                tm.SetTranslation(camPos);
+                pListener->SetMatrix(tm);
+
+                if (gEnv->p3DEngine)
+                {
+                    IVisArea* pVisArea = gEnv->p3DEngine->GetVisAreaFromPos(camPos);
+                    pListener->SetVisArea(pVisArea);
+                }
+                pListener->SetUnderwater(0.0f);
             }
         }
     }
@@ -433,6 +494,9 @@ void CCoopCutsceneSystem::Update(float fFrameTime)
 
 bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 {
+    if (pSeq && !IsCutsceneSequence(pSeq))
+        return true;
+
     m_bPlayingCutscene = true;
     m_pActiveSequence = pSeq;
 
@@ -497,6 +561,14 @@ bool CCoopCutsceneSystem::OnBeginCutScene(IAnimSequence* pSeq, bool bResetFX)
 
 bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
 {
+    if (pSeq && !IsCutsceneSequence(pSeq))
+        return true;
+
+    if (g_pGame && g_pGame->GetSoundMoods())
+    {
+        g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+    }
+
     // If another cutscene sequence is still playing in MovieSystem, do not end cutscene mode yet!
     if (gEnv->pMovieSystem && !gEnv->bEditor)
     {

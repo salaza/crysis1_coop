@@ -12,8 +12,7 @@
 CSequenceSynchronizer* CSequenceSynchronizer::s_pInstance = NULL;
 
 CSequenceSynchronizer::CSequenceSynchronizer() :
-	m_bInitialized(false),
-	m_lastSequenceTime(0.0f)
+	m_bInitialized(false)
 {
 	s_pInstance = this;
 }
@@ -80,11 +79,11 @@ void CSequenceSynchronizer::PlaySequence(string sSequence, float fStartTime, boo
 	if (!m_bInitialized || !gEnv->bServer) return;
 
 	float curTime = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
-	if (m_lastSequence == sSequence && (curTime - m_lastSequenceTime) < 1.0f)
+	std::map<string, float>::iterator it = m_sequenceStartTimes.find(sSequence);
+	if (it != m_sequenceStartTimes.end() && (curTime - it->second) < 1.0f)
 		return;
 
-	m_lastSequence = sSequence;
-	m_lastSequenceTime = curTime;
+	m_sequenceStartTimes[sSequence] = curTime;
 
 	CryLogAlways("[CSequenceSynchronizer::PlaySequence] %s at %.2fs", sSequence.c_str(), fStartTime);
 
@@ -100,15 +99,31 @@ void CSequenceSynchronizer::StopSeqeunce(string sSequence, float fStartTime, boo
 	if (!m_bInitialized || !gEnv->bServer) return;
 
 	float curTime = gEnv->pTimer ? gEnv->pTimer->GetAsyncTime().GetSeconds() : 0.0f;
-	if (m_lastSequence == sSequence && (curTime - m_lastSequenceTime) < 1.5f)
+	std::map<string, float>::iterator it = m_sequenceStartTimes.find(sSequence);
+	if (it != m_sequenceStartTimes.end())
 	{
-		CryLogAlways("[CSequenceSynchronizer::StopSequence] Ignored premature stop for '%s' (started %.2fs ago)",
-			sSequence.c_str(), curTime - m_lastSequenceTime);
-		return;
+		float elapsed = curTime - it->second;
+		if (elapsed < 2.0f)
+		{
+			CryLogAlways("[CSequenceSynchronizer::StopSequence] Ignored premature stop for '%s' (started %.2fs ago)",
+				sSequence.c_str(), elapsed);
+			return;
+		}
 	}
 
-	if (m_lastSequence == sSequence)
-		m_lastSequence.clear();
+	// Server authoritative check: if movie system is still playing this sequence on server, DO NOT stop on clients!
+	if (gEnv->pMovieSystem)
+	{
+		IAnimSequence* pServerSeq = gEnv->pMovieSystem->FindSequence(sSequence.c_str());
+		if (pServerSeq && gEnv->pMovieSystem->IsPlaying(pServerSeq))
+		{
+			CryLogAlways("[CSequenceSynchronizer::StopSequence] Sequence '%s' is still playing on server - abort cancelled",
+				sSequence.c_str());
+			return;
+		}
+	}
+
+	m_sequenceStartTimes.erase(sSequence);
 
 	CryLogAlways("[CSequenceSynchronizer::StopSequence] %s", sSequence.c_str());
 

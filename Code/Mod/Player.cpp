@@ -226,6 +226,10 @@ CPlayer::~CPlayer()
 	if(IsClient())
 	{
 		ResetScreenFX();
+	if (IsClient() && g_pGame && g_pGame->GetSoundMoods())
+	{
+		g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+	}
 
 		InitInterference();
 
@@ -2315,13 +2319,19 @@ void CPlayer::UpdateSwimStats(float frameTime)
 	// Set underwater level for sound listener.
 	if (gEnv->pSoundSystem && isClient)
 	{
+		bool bHeadInWater = (headWaterLevel < 0.0f) && (m_stats.worldWaterLevel > -1000.0f) && (m_stats.headUnderWaterTimer > 0.0f);
 		CCamera& camera = gEnv->pSystem->GetViewCamera();
-		float cameraWaterLevel = (camera.GetPosition().z - surfacePos.z);
+		float cameraWaterLevel = bHeadInWater ? (camera.GetPosition().z - surfacePos.z) : 0.0f;
+		if (cameraWaterLevel > 0.0f)
+			cameraWaterLevel = 0.0f;
 
 		IListener* pListener = gEnv->pSoundSystem->GetListener(LISTENERID_STANDARD);
-		pListener->SetUnderwater(cameraWaterLevel); // TODO: Make sure listener interface expects zero at surface and negative under water.
+		if (pListener)
+		{
+			pListener->SetUnderwater(cameraWaterLevel);
+		}
 
-		PlaySound(ESound_Underwater, (cameraWaterLevel < 0.0f));
+		PlaySound(ESound_Underwater, bHeadInWater);
 	}
 
 	// DEBUG RENDERING
@@ -3397,6 +3407,10 @@ void CPlayer::Kill()
 {
 	if (CNanoSuit *pSuit=GetNanoSuit())
 		pSuit->Death();
+	if (IsClient() && g_pGame && g_pGame->GetSoundMoods())
+	{
+		g_pGame->GetSoundMoods()->ClearAllSoundMoods();
+	}
 
 	// notify any claymores/mines that this player has died
 	//	(they will be removed 30s later)

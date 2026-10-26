@@ -1,0 +1,2061 @@
+<MovieData>
+ <Mission Name="Mission0">
+  <SequenceData>
+   <Sequence Name="black_bars" Flags="2312" StartTime="0" EndTime="5">
+    <Nodes />
+   </Sequence>
+   <Sequence Name="cine_1_outsideSpaceship" Flags="312" StartTime="0" EndTime="78.800003">
+    <Nodes>
+     <Node Id="0" Type="2" Name="Scene">
+      <Track ParamId="6" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" node="cine_1_ShakeCamera"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="14.700002" filename="languages/dialog/ice/vtol_pilot_ice_ab1_99910388.mp2" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="22.900005" filename="languages/dialog/ice/nomad_ice_ab1_e0f1dcf7.mp2" volume="1" pan="127" duration="1.7500001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="25.500004" filename="languages/dialog/ice/vtol_pilot_ice_ab1_50cab992.mp2" volume="1" pan="127" duration="5.9290004" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="34.599995" filename="languages/dialog/ice/helena_ice_ab1_d3ff6076.mp2" volume="1" pan="127" duration="2.4550002" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="39.999992" filename="languages/dialog/ice/helena_ice_ab1_65921a4b.mp2" volume="1" pan="127" duration="0.70500004" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="45.799999" filename="Sounds/interface:suit:suit_strength_activate" volume="1" pan="127" duration="0.88300002" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="49.599998" filename="languages/dialog/ice/vtol_pilot_ice_ab1_e103a13b.mp2" volume="1" pan="127" duration="1.4100001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+      </Track>
+      <Track ParamId="8" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="44" filename="sounds/environment:mine_sfx:earthquake_mine_01b" volume="1" pan="127" duration="18.722" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+      </Track>
+      <Track ParamId="9" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="13.200001" filename="Sounds/interface:suit:breathing_in_mask_oneshot" volume="1" pan="127" duration="14.999001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="51" filename="Sounds/interface:suit:breathing_in_mask_cold_oneshot" volume="1" pan="127" duration="13.102" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+     </Node>
+     <Node Id="1657375212" Type="3" Name="cine_1_outsideSpaceship_Cam" Pos="4100.4717,2836.2349,426.76221" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="426B232162C989EC" FOV="60">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4100.4717,2836.2349,426.76221" tens="0.88200003"/>
+       <Key time="3.5" value="4085.0378,2835.5327,474.93051"/>
+       <Key time="7" value="4047.9189,2835.6978,495.26001" bias="-0.36500001"/>
+       <Key time="12" value="4026.2109,2834.728,500.39999" easeto="0.0099999998"/>
+       <Key time="13" value="4022.1238,2834.8069,487.51999"/>
+       <Key time="13.6" value="4021.8718,2834.8081,488.79001"/>
+       <Key time="14.4" value="4021.2803,2834.8081,488.5"/>
+       <Key time="16" value="4017.2888,2834.8069,488.54999"/>
+       <Key time="37" value="3983.021,2834.802,488.38461"/>
+       <Key time="42.400002" value="3981.7109,2834.8018,488.38461"/>
+       <Key time="42.5" value="3980.3008,2834.8069,488.39999" tens="0.94999999"/>
+       <Key time="43.050003" value="3980.0708,2835.9187,486.94839"/>
+       <Key time="45" value="3951.491,2835.9167,486.57001"/>
+       <Key time="45.5" value="3948.241,2836.1138,487.42999"/>
+       <Key time="46" value="3942.741,2834.8181,486.57999" tens="0.89999998"/>
+       <Key time="46.200001" value="3943.29,2834.8,486.50079"/>
+       <Key time="46.599998" value="3943.29,2834.8,486.50079"/>
+       <Key time="48.200001" value="3942.6211,2834.8027,486.78918"/>
+       <Key time="48.5" value="3942.8799,2834.803,485.79999"/>
+       <Key time="50.099998" value="3942.6208,2834.8027,486.78922" bias="1"/>
+       <Key time="58.900013" value="3942.3569,2834.7998,486.86151" tens="0.0049999999" bias="1"/>
+       <Key time="60.100025" value="3936.8611,2836.4641,478.34531" bias="0.42899999"/>
+       <Key time="60.300003" value="3936.7,2836.6001,478.32999"/>
+       <Key time="65.699997" value="3937.019,2836.5146,478.76282"/>
+       <Key time="66.499985" value="3937.168,2836.5859,479.08701"/>
+       <Key time="67.699997" value="3937.0325,2836.9688,479.68866"/>
+       <Key time="72.299973" value="3937.031,2837.188,481.2413" tens="0.329"/>
+       <Key time="78.800003" value="3933.676,2837.78,480.92471"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="3.5" value="0.66839403,0.23256327,0.23217461,0.66727704"/>
+       <Key time="7" value="0.69170201,0.10524799,0.10747572,0.70634282"/>
+       <Key time="8" value="0.69894415,0.088465154,0.02679041,0.70917785"/>
+       <Key time="9" value="0.7052297,0.04004585,0.040129818,0.70670855"/>
+       <Key time="10" value="0.73197603,0.016844006,0.040676478,0.67990655"/>
+       <Key time="11" value="0.74205178,0.0077375416,0.011221997,0.67020392"/>
+       <Key time="12" value="0.72425669,-0.047426287,-0.046729259,0.6863085"/>
+       <Key time="12.8" value="0.72608584,0.070996523,0.03972628,0.68277425"/>
+       <Key time="13" value="0.7272495,0.07671845,0.046307765,0.68049836"/>
+       <Key time="13.6" value="0.73445982,0.061734326,0.045950301,0.67427456"/>
+       <Key time="14" value="0.73890668,0.048721701,0.042208806,0.67071712"/>
+       <Key time="14.3" value="0.7400797,0.032169946,0.027381593,0.67119104"/>
+       <Key time="14.4" value="0.73975337,0.034433316,0.029569877,0.67134559"/>
+       <Key time="16" value="0.73491651,0.090854704,0.080456883,0.6672104"/>
+       <Key time="18" value="0.85688919,0.1596418,0.053324714,0.48724928"/>
+       <Key time="21" value="0.58528668,0.047279589,0.18013024,0.7891497"/>
+       <Key time="22.700001" value="0.66746074,0.13340734,0.19484234,0.70621175"/>
+       <Key time="23.799999" value="0.72419089,0.11866099,0.10640837,0.670928"/>
+       <Key time="25.199999" value="0.71709222,0.13886848,0.081114523,0.67817014"/>
+       <Key time="26.599998" value="0.7083205,0.12864369,0.10825163,0.68557608"/>
+       <Key time="27.799999" value="0.71216828,0.13648129,0.11254936,0.67935395"/>
+       <Key time="29" value="0.83988303,0.12468133,0.10641218,0.51742393"/>
+       <Key time="30" value="0.74754858,0.087273285,0.037429277,0.6573838"/>
+       <Key time="31" value="0.76367593,0.076146573,0.070619509,0.63719195"/>
+       <Key time="32" value="0.77632606,0.11674955,0.059464984,0.61656404"/>
+       <Key time="33" value="0.72635788,0.095150635,0.095024176,0.67403334"/>
+       <Key time="34" value="0.67120475,0.11047021,0.08754281,0.72774774"/>
+       <Key time="35" value="0.67784572,0.086644232,0.11279646,0.72131473"/>
+       <Key time="36" value="0.68595588,0.11371569,0.090096094,0.71303302"/>
+       <Key time="37" value="0.68313235,0.096706726,0.12307712,0.71332324"/>
+       <Key time="38" value="0.57618201,0.11115547,0.16096826,0.79356652"/>
+       <Key time="38.999996" value="0.52833408,0.13771144,0.19565298,0.81462789"/>
+       <Key time="39.999996" value="0.84344041,0.24952562,0.15124132,0.45107791"/>
+       <Key time="40.400002" value="0.93555284,0.21743491,0.063006364,0.27109623"/>
+       <Key time="40.799995" value="0.79057729,0.10841812,-0.081884995,-0.59709954" tens="0.69999999"/>
+       <Key time="41" value="0.73345971,0.085791595,-0.092631534,-0.66790432"/>
+       <Key time="41.299995" value="0.71850753,0.085887194,-0.1023056,-0.68257153"/>
+       <Key time="42.199997" value="0.7302978,0.090048425,-0.11501314,-0.66732913" tens="0.69999999"/>
+       <Key time="42.400002" value="0.90743858,0.2991938,-0.28574455,0.07340578"/>
+       <Key time="42.5" value="0.77478862,0.1767748,-0.28647032,0.53515232"/>
+       <Key time="43.050003" value="0.73397505,-0.012790609,-0.063451737,0.67608494"/>
+       <Key time="43.200005" value="0.57698131,-0.21187374,0.17091516,0.77005851"/>
+       <Key time="43.349998" value="0.69428033,-0.10934142,0.010562424,0.711272"/>
+       <Key time="43.5" value="0.60664147,0.07442303,0.17999354,0.77074623"/>
+       <Key time="43.699997" value="0.78868639,0.31542385,0.064590342,0.52374583"/>
+       <Key time="43.900002" value="0.78480101,0.057373933,0.24237764,0.5674932"/>
+       <Key time="44.099998" value="0.60773093,-0.092664152,0.4393346,0.65502793"/>
+       <Key time="44.300003" value="0.49722838,-0.29252768,0.38338542,0.72125381"/>
+       <Key time="44.5" value="0.65696806,-0.20121768,0.37911138,0.61982167"/>
+       <Key time="44.700005" value="0.77319437,-0.17662996,0.41957268,0.4415099"/>
+       <Key time="45" value="0.84473878,-0.019588046,0.19936067,0.49627414"/>
+       <Key time="45.25" value="0.69698805,-0.06484776,0.31173164,0.64251524"/>
+       <Key time="45.5" value="0.71717268,0.018559549,-0.055266887,0.69445264"/>
+       <Key time="45.75" value="0.89150393,0.29936129,0.21491939,0.26346382"/>
+       <Key time="46" value="0.78288221,0.33712226,0.083115339,-0.51627117" bias="-0.88"/>
+       <Key time="46.200001" value="0.75137687,0.27608389,0.11704399,-0.58780199"/>
+       <Key time="46.599998" value="0.75137687,0.27608389,0.11704399,-0.58780199"/>
+       <Key time="47.000004" value="0.75821435,0.39516139,0.0045026541,-0.51859242" bias="-0.70300001"/>
+       <Key time="47.599998" value="0.72773731,0.44882065,-0.032914117,-0.51756644" bias="0.55800003"/>
+       <Key time="48.200001" value="0.74145889,0.28875139,-0.10966841,-0.59567958"/>
+       <Key time="48.5" value="0.78082114,0.20642217,-0.24002245,-0.538607"/>
+       <Key time="48.799999" value="0.88877279,0.44560394,-0.094645455,0.050617952"/>
+       <Key time="49.099998" value="0.77318996,0.21182604,0.060532659,0.59467876"/>
+       <Key time="51.400002" value="0.70204502,0.13519093,0.0015517622,0.69918084"/>
+       <Key time="51.900002" value="0.97410607,0.093954995,-0.14674531,-0.14406848"/>
+       <Key time="52.150002" value="0.73487264,0.13200094,-0.10770372,-0.65645862"/>
+       <Key time="52.599995" value="0.11779912,0.21430898,-0.31600532,-0.91669828"/>
+       <Key time="54.150002" value="0.45118073,0.20735727,-0.40301299,-0.76877791" tens="0.5"/>
+       <Key time="54.500004" value="0.30759552,0.20644288,-0.36938095,-0.85224646"/>
+       <Key time="54.725006" value="0.24312118,0.11852609,-0.40468922,-0.87353891"/>
+       <Key time="54.875008" value="0.2245148,0.15410471,-0.38281026,-0.88278031"/>
+       <Key time="55.000004" value="0.23509502,0.14856042,-0.39926621,-0.87363982"/>
+       <Key time="55.799999" value="0.24521612,0.15874974,-0.39427754,-0.87132818" tens="1"/>
+       <Key time="58.049995" value="0.24441057,0.18460707,-0.37987491,-0.87285662" tens="1"/>
+       <Key time="58.900002" value="0.33836666,0.26760077,-0.65933049,-0.6157769"/>
+       <Key time="59.10001" value="0.48714784,-0.2658965,-0.52414507,-0.64595503" bias="0.47999999"/>
+       <Key time="59.250004" value="0.39368257,-0.094586343,-0.46230969,-0.78888357" bias="0.47999999"/>
+       <Key time="59.450016" value="0.79114258,0.096704885,-0.56337821,-0.21759264" tens="0.89999998"/>
+       <Key time="59.800018" value="0.77537721,0.25869304,-0.55059195,-0.16945995"/>
+       <Key time="60.100025" value="0.77905029,0.10462528,-0.6084373,-0.10926223" bias="1"/>
+       <Key time="60.300003" value="0.71803373,0.0020373166,-0.69563204,-0.02278915"/>
+       <Key time="60.650028" value="0.7959587,0.14158678,-0.5711782,-0.14197986"/>
+       <Key time="61.000004" value="0.7890842,0.09316583,-0.59344137,-0.12842751"/>
+       <Key time="61.349995" value="0.77905035,0.10462554,-0.60843724,-0.10926223" tens="0.46700001"/>
+       <Key time="61.699997" value="0.58575279,0.56254256,-0.21632245,-0.54188955" tens="1"/>
+       <Key time="62.049995" value="0.58575284,0.5625425,-0.21632242,-0.54188955"/>
+       <Key time="62.649998" value="0.39096344,0.68198329,-0.11179936,-0.60790402"/>
+       <Key time="63.049995" value="0.39096344,0.68198329,-0.11179936,-0.60790402"/>
+       <Key time="63.449997" value="0.58575284,0.5625425,-0.21632242,-0.54188955"/>
+       <Key time="64.400009" value="0.75281346,0.32674304,-0.45732567,-0.34258458"/>
+       <Key time="65.700012" value="0.82578611,0.095911436,-0.53594786,-0.14709938"/>
+       <Key time="66.5" value="0.91258568,-0.21765083,-0.1644372,-0.30459157"/>
+       <Key time="67.300018" value="0.95206904,-0.28657261,-0.023388155,-0.10437262"/>
+       <Key time="68.399994" value="0.93807966,-0.091393963,-0.12353614,0.31047133"/>
+       <Key time="69.299988" value="0.93831193,-0.11812457,-0.049092386,0.32125869"/>
+       <Key time="70.299957" value="0.20947385,-0.00023488328,0.033064097,0.97725505"/>
+       <Key time="71.09996" value="0.20947385,-0.00023488328,0.033064097,0.97725505"/>
+       <Key time="72.599945" value="0.72857952,-0.11008622,-0.10872559,0.66725683"/>
+       <Key time="78.800003" value="0.6163376,-0.11067456,-0.1377991,0.76739198"/>
+      </Track>
+      <Track ParamId="0" Flags="0">
+       <Key time="0" value="60"/>
+       <Key time="7" value="45" tens="1"/>
+       <Key time="12" value="50"/>
+       <Key time="22.700001" value="60"/>
+       <Key time="23.799999" value="60"/>
+       <Key time="41" value="60" tens="1"/>
+       <Key time="41.299995" value="45" tens="1"/>
+       <Key time="42.200005" value="45" tens="1"/>
+       <Key time="42.400002" value="60" tens="1"/>
+       <Key time="44.700001" value="60"/>
+       <Key time="44.900002" value="50"/>
+       <Key time="48.200001" value="50"/>
+       <Key time="48.400002" value="40"/>
+       <Key time="50.099998" value="60"/>
+       <Key time="54.500004" value="60" tens="1"/>
+       <Key time="54.625004" value="45" tens="1"/>
+       <Key time="54.774998" value="45" tens="1"/>
+       <Key time="54.900005" value="30" tens="0.99299997"/>
+       <Key time="58.837502" value="30" tens="1"/>
+       <Key time="58.950001" value="25" tens="1"/>
+       <Key time="59.0625" value="60" tens="1"/>
+      </Track>
+     </Node>
+     <Node Id="427831841" Type="1" Name="cine_1_dummy_FxTrigger1" Pos="4007.4836,2838.1106,490.40457" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="41CAC3B119803221">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="41" event="Leave"/>
+       <Key time="42.400002" event="Enter"/>
+       <Key time="46" event="Enable"/>
+       <Key time="48.299999" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1819564449" Type="1" Name="cine_1_Vtol_crashEffect_pfx" Pos="0.10888672,-5.362793,0.47875977" Rotate="2.5611375e-009,3.7252903e-009,-5.5879354e-009,1" Scale="1,1,1" EntityGUID="450203A26C7459A1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="49" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1355331545" Type="1" Name="cine_1_RockEffect" Pos="3942.4226,2850.9192,547.8714" Rotate="0.70710683,0.70710677,0,0" Scale="1,1,1" EntityGUID="4CE792D950C8B7D9">
+      <Track ParamId="1" Flags="0">
+       <Key time="33.5" value="3942.4226,2850.9192,547.8714"/>
+       <Key time="39.5" value="3942.4226,2824.0085,544.7655"/>
+       <Key time="42.400002" value="3942.4226,2843.2715,547.63385"/>
+      </Track>
+      <Track ParamId="2" Flags="0"/>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="33.5" event="Restart"/>
+       <Key time="41.100006" event="Restart"/>
+       <Key time="42.400002" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1688855430" Type="1" Name="SoundEventSpot sphere moan " Pos="3955.7156,2835.6838,490.89908" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4513B07464A9E386">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="17" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-1177361671" Type="1" Name="SoundEventSpot sphere expand pre" Pos="3955.7156,2835.6838,490.31699" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="45BC6088B9D2E2F9">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="33.5" event="Play"/>
+       <Key time="78.799965" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="1151835202" Type="1" Name="SoundEventSpot sphere expand 1" Pos="3955.7156,2835.6838,489.64297" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4A51BDF744A79C42">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="40.400002" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="1448131192" Type="1" Name="cine_1_Scout_unlimited1" Pos="4046.6682,2844.3198,502.82053" Rotate="0.70710671,0,0,0.70710683" Scale="1,1,1" EntityGUID="4EF6E9925650BA78">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4046.6682,2844.3198,502.82053"/>
+       <Key time="44.5" value="4046.6682,2844.3198,502.82053"/>
+       <Key time="47" value="3988.9697,2839.98,499.59958"/>
+       <Key time="48.099998" value="3944.49,2841.8999,504.95001"/>
+       <Key time="49" value="3925.884,2831.4658,505.63617"/>
+       <Key time="50.400002" value="3871.6499,2813.5581,505.00061"/>
+       <Key time="52.5" value="3810.3899,2836.8401,504.14029"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.70710671,0,0,0.70710683"/>
+       <Key time="44.5" value="0.70710671,0,0,0.70710683"/>
+       <Key time="47" value="0.69103289,-0.14991185,0.052033566,0.7051897"/>
+       <Key time="48" value="0.73136473,-0.084974475,0.092717089,0.67028999"/>
+       <Key time="49" value="0.73136473,-0.084974475,0.092717089,0.67028999"/>
+       <Key time="50.400002" value="0.69252658,-0.080101304,-0.0031093978,0.71692473"/>
+       <Key time="51" value="0.88701081,0,0,0.46174866"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="44.5" event="Enable"/>
+       <Key time="52.5" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="45.999992" filename="Sounds/alien:scout:anticipation_call_" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+     </Node>
+     <Node Id="231859690" Type="1" Name="cine_1_Scout_unlimited2" Pos="4048.2302,2825.4939,503.58643" Rotate="0.70710671,0,0,0.70710683" Scale="1,1,1" EntityGUID="4B80745A0DD1E5EA">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4048.2302,2825.4939,503.58643"/>
+       <Key time="44.5" value="4048.2302,2825.4939,503.58643"/>
+       <Key time="47" value="3974.3296,2836.6201,508.63773"/>
+       <Key time="48.399994" value="3927.8701,2828.8401,498.78"/>
+       <Key time="51.400002" value="3879.4561,2774.7629,466.04709"/>
+       <Key time="52.5" value="3910.7644,2768.5967,409.95383"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.70710671,0,0,0.70710683"/>
+       <Key time="44.5" value="0.70710671,0,0,0.70710689"/>
+       <Key time="46.200001" value="0.65463597,0.16996747,-0.36855221,0.63775551"/>
+       <Key time="47.599998" value="0.73820537,-0.15981741,-0.16308899,0.63475448"/>
+       <Key time="49" value="0.66150063,-0.15018672,-0.22470194,0.69954979"/>
+       <Key time="51.400002" value="-0.0053872117,-0.0099212751,-0.4396773,0.89808488"/>
+       <Key time="52.400002" value="-0.43191981,-0.34680226,-0.51838505,0.65149856"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="44.5" event="Enable"/>
+       <Key time="52.5" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="47.999992" filename="Sounds/alien:scout:anticipation_respons_e" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+     </Node>
+     <Node Id="1186615679" Type="1" Name="cine_1_Scout_unlimited3" Pos="4010.2231,2808.0212,504.25308" Rotate="1,0,0,3.7748954e-008" Scale="1,1,1" EntityGUID="4C568D4146BA517F">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4010.2231,2808.0212,504.25308"/>
+       <Key time="44.5" value="4010.2231,2808.0212,504.25308"/>
+       <Key time="45" value="4006.9302,2828.3643,504.25308"/>
+       <Key time="46.999992" value="4012.54,2832.53,493.82999"/>
+       <Key time="47.900002" value="3969.6521,2835.8477,498.37"/>
+       <Key time="48.300003" value="3947.74,2834.8601,490.48999"/>
+       <Key time="49" value="3927.7688,2840.4241,496.50891"/>
+       <Key time="50.400002" value="3902.209,2841.54,500.88281"/>
+       <Key time="51.800003" value="3918.1978,2875.5398,437.7305"/>
+       <Key time="52.5" value="3918.1978,2875.5398,424.08774"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="1,0,0,3.7748954e-008"/>
+       <Key time="44.5" value="1,0,0,3.7748954e-008"/>
+       <Key time="46.999992" value="0.74867851,0.044624403,0.0080777518,0.66138029"/>
+       <Key time="47.799999" value="0.64540148,0.10293666,-0.22269183,0.72337359"/>
+       <Key time="48.599998" value="0.64610672,-0.20115565,0.13757139,0.72329569"/>
+       <Key time="49" value="0.62458652,-0.046127163,0.16914929,0.7610206"/>
+       <Key time="49.799999" value="0.75226092,-0.34725684,-0.18439257,0.52869231"/>
+       <Key time="50.799999" value="0.80400664,-0.57399273,0.12637396,-0.090196051"/>
+       <Key time="51.400002" value="0.9709897,-0.2352479,-0.031926781,-0.028602714"/>
+       <Key time="51.800003" value="0.8375591,0.093430273,-0.11001918,0.52693582"/>
+       <Key time="52.5" value="0.83755904,0.093430273,-0.11001918,0.52693588"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="44.5" event="Enable"/>
+       <Key time="52.5" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1623054688" Type="1" Name="cine_1_Scout_unlimited4" Pos="4011.9336,2864.4175,493.60974" Rotate="-8.1460342e-008,0,0,1" Scale="1,1,1" EntityGUID="4D279DAA9F4226A0">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4011.9336,2864.4175,493.60974"/>
+       <Key time="44.5" value="4011.9336,2864.4175,493.60974"/>
+       <Key time="45" value="4008.7239,2847.9736,493.60977"/>
+       <Key time="47" value="3971.0676,2841.2354,488.67548"/>
+       <Key time="47.999985" value="3925.3264,2842.4792,489.35443"/>
+       <Key time="51.000008" value="3916.1499,2805.7168,449.85883"/>
+       <Key time="52.5" value="3924.4001,2794.1477,396.7244"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="-8.1460342e-008,0,0,1"/>
+       <Key time="44.5" value="-8.1460342e-008,0,0,1"/>
+       <Key time="47" value="0.6925534,-0.14272757,0.14272819,0.69255126"/>
+       <Key time="48" value="0.60588616,-0.36455712,-0.011415253,0.70701462"/>
+       <Key time="49.599998" value="0.39505097,-0.58645958,-0.30914301,0.63594854"/>
+       <Key time="51.900002" value="-0.21809717,0.67263192,0.47245845,-0.52610159"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="44.5" event="Enable"/>
+       <Key time="52.5" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1245437581" Type="1" Name="cine_1_ground_light_pfx" Pos="4040.9883,2835.3125,488.44833" Rotate="0.70710683,-4.7064447e-008,-1.5454317e-008,0.70710677" Scale="1,1,1" EntityGUID="43A3A2514A3BDE8D">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-390936571" Type="1" Name="cine_1_ground_heavy_pfx" Pos="3993.9465,2837.27,488.45428" Rotate="0.70710677,-4.706445e-008,-1.5454315e-008,0.70710677" Scale="1,1,1" EntityGUID="49817E3BE8B2C805">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="33" event="Disable"/>
+       <Key time="34" event="Enable"/>
+       <Key time="51" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-425424180" Type="1" Name="cine_1_high_in_air_pfx" Pos="4000.2395,2836.1462,498.62424" Rotate="0.70710683,-4.7064447e-008,-1.5454317e-008,0.70710677" Scale="1,1,1" EntityGUID="4C681BC0E6A48ACC">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="35" event="Disable"/>
+       <Key time="36" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-266597519" Type="1" Name="cine_1_air_pulse_pfx" Pos="4017.2808,2836.3401,499.42596" Rotate="0.70710683,-4.7064447e-008,-1.5454317e-008,0.70710677" Scale="1,1,1" EntityGUID="4A2F4F05F01C0B71">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="40.999992" event="Disable"/>
+       <Key time="42" event="Restart"/>
+       <Key time="42.700005" event="Restart"/>
+       <Key time="42.900002" event="Restart"/>
+       <Key time="43" event="Restart"/>
+       <Key time="43.100006" event="Restart"/>
+       <Key time="43.300003" event="Restart"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-517678226" Type="1" Name="cine_1_Alienship_door" Pos="3958.0002,2835.79,509.19" Rotate="0.70710671,0,0,-0.70710689" Scale="1,1,1" EntityGUID="44B14950E124DB6E">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="3958.0002,2835.79,509.19"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.70710671,-0,0,-0.70710689"/>
+       <Key time="22.400005" value="0.70710671,-0,0,-0.70710689"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="22.500004" event="UnHide"/>
+       <Key time="29.000002" event="Hide"/>
+       <Key time="78.800003" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" anim="hangardoor_close" length="3.3333335"/>
+       <Key time="22.500008" anim="Default" length="5.666667" speed="0.5"/>
+      </Track>
+     </Node>
+     <Node Id="800072315" Type="1" Name="cine_1_Aleinship_door_SES" Pos="3961.5308,2836.4814,491.07553" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="43CF8B592FB0227B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="22.500004" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="1955082227" Type="1" Name="cine_1_fp_arms" Pos="0,0.12,-0.13" Rotate="0.98864651,-0.14867599,-0.016483586,-0.014209571" Scale="1,1,1" EntityGUID="4F76EDC074882FF3">
+      <Track ParamId="1" Flags="0">
+       <Key time="0.5" value="0,0.12,-0.13"/>
+       <Key time="1.5" value="0.021917529,0.1007383,0.039999999"/>
+       <Key time="2.8" value="0.021917529,0.1007383,-0.02"/>
+       <Key time="4.5999999" value="0,0.029999999,0.039999999"/>
+       <Key time="7" value="0,0,0.082746282"/>
+       <Key time="8.3999996" value="-0.001284196,0.039999999,0.083786808"/>
+       <Key time="9.6000004" value="-0.001365043,0.039999999,0.039999999"/>
+       <Key time="11" value="-0.00121934,0.0099999998,0.066070683"/>
+       <Key time="12" value="0,0.07,0.059999999"/>
+       <Key time="12.125" value="0.0045161648,-0.039999999,0.043903202"/>
+       <Key time="12.25" value="0.0085419565,-0.050000001,-0.022870099"/>
+       <Key time="12.375" value="0.01088651,-0.079999998,-0.064959481"/>
+       <Key time="43.599998" value="-0.5,0.12,-0.55000001"/>
+       <Key time="43.799999" value="-0.37,-0.23,-0.039999999"/>
+       <Key time="44.275002" value="-0.43000001,-0.25239679,-0.01121412"/>
+       <Key time="44.474998" value="-0.37,-0.23,-0.039999999"/>
+       <Key time="44.875" value="-0.67000002,0.18000001,-0.33000001"/>
+       <Key time="45.099998" value="-0.37,0.11,-0.40975609"/>
+       <Key time="45.174999" value="-0.31136319,0.039999999,-0.4572314"/>
+       <Key time="45.275002" value="-0.30000001,0,-0.46000001"/>
+       <Key time="45.599998" value="-0.23,-0.050000001,-0.23999999"/>
+       <Key time="45.700001" value="-0.25,0.02,-0.23999999"/>
+       <Key time="45.900002" value="0.079999998,-0.02,-0.25" cont="-1"/>
+       <Key time="45.950001" value="-0.039999999,0,-0.23999999"/>
+       <Key time="46.099998" value="-0.079999998,0.13,-0.28999999"/>
+       <Key time="46.450001" value="-0.057220876,0.098901495,-0.29951912"/>
+       <Key time="46.599998" value="-0.051517379,0.1147471,-0.28"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="1.5" value="0.98864651,-0.14867599,-0.016483586,-0.014209571"/>
+       <Key time="4.5999999" value="0.99286842,-0.11721212,-0.016926425,-0.013679071"/>
+       <Key time="5.8000002" value="0.99357831,-0.10824894,-0.02935987,-0.014912358"/>
+       <Key time="7" value="0.99472076,-0.10194056,-0.00081358827,-0.011750283"/>
+       <Key time="8.3999996" value="0.99434209,-0.10512403,-0.0085833967,-0.012610217"/>
+       <Key time="9.6000004" value="0.99389422,-0.10971894,0.0017123154,-0.011534272"/>
+       <Key time="11" value="0.99289668,-0.115876,-0.022829901,-0.014411873"/>
+       <Key time="12" value="0.99956149,-0.019069409,-0.01923571,-0.01196868"/>
+       <Key time="12.125" value="0.99781466,0.062388215,-0.019101439,-0.010428632"/>
+       <Key time="12.35" value="0.99933547,-0.02596242,-0.019775413,-0.016231574"/>
+       <Key time="43.799999" value="0.70576262,0.39568269,-0.28161171,-0.51578015"/>
+       <Key time="44.275002" value="0.67157114,0.25500754,-0.21625993,-0.66120726"/>
+       <Key time="44.474998" value="0.70576262,0.39568269,-0.28161171,-0.51578015"/>
+       <Key time="44.875" value="0.80949026,0.41092163,-0.14317343,-0.39417046"/>
+       <Key time="45.200001" value="0.9155429,0.32259256,0.015040457,-0.23976865"/>
+       <Key time="45.599998" value="0.94734031,0.006465124,0.094003491,-0.30605203"/>
+       <Key time="45.900002" value="0.99032646,-0.02126907,0.13428906,-0.027703816"/>
+       <Key time="46" value="0.99266243,-0.013214439,0.098469324,0.068923928"/>
+       <Key time="46.099998" value="0.97368652,-0.077668704,-0.20509256,0.061960358"/>
+       <Key time="46.599998" value="0.99007404,0.044180211,-0.12465586,0.047564249"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Hide"/>
+       <Key time="0.5000006" event="UnHide"/>
+       <Key time="12.8" event="Hide"/>
+       <Key time="42" event="Hide"/>
+       <Key time="43.599998" event="UnHide"/>
+       <Key time="46.424999" event="Hide"/>
+       <Key time="78.800003" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0.5" anim="idle_to_zerog_right_01" length="1.5666656"/>
+       <Key time="2.0999994" anim="idle_zerog_right_01" length="3.3333282" loop="1"/>
+       <Key time="12.000003" anim="zerog_to_idle_right_01" length="0.79998779" speed="0.5"/>
+       <Key time="42.999996" anim="island_intro_01" length="8.3000031"/>
+      </Track>
+     </Node>
+     <Node Id="-1292033000" Type="1" Name="cine_1_sphere_inside" Pos="5508.5098,2536.0901,166.60001" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4D59822BB2FD2418">
+      <Track ParamId="1" Flags="0">
+       <Key time="42.400002" value="5508.5098,2536.0901,166.60001"/>
+       <Key time="78.800003" value="4827.21,2536.0901,166.60001"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Hide"/>
+       <Key time="40" event="Hide"/>
+       <Key time="42.400002" event="UnHide"/>
+       <Key time="78.800003" event="UnHide"/>
+      </Track>
+     </Node>
+     <Node Id="1831060961" Type="1" Name="cine_1_sphere_behind_aniObj" Pos="4093.687,2834.76,495.55649" Rotate="0.77764004,0,0.62870973,0" Scale="50.000015,50.000008,49.999996" EntityGUID="416E73B36D23C5E1">
+      <Track ParamId="1" Flags="0">
+       <Key time="40" value="4093.687,2834.76,495.55649" easefrom="1"/>
+       <Key time="42.400002" value="3978.97,2834.76,495.55649"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="40" value="0.77764004,0,0.62870973,0"/>
+       <Key time="42.400002" value="0.85368717,0,0.52078617,0"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Hide"/>
+       <Key time="40" event="UnHide"/>
+       <Key time="42.400005" event="Hide"/>
+       <Key time="78.800003" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="-1104768260" Type="1" Name="cine_1_DOF_dummyTrigger" Pos="4009.0574,2834.76,490.5463" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="451A8A78BE2692FC">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Enable"/>
+       <Key time="14.5" event="Leave"/>
+       <Key time="17.5" event="Disable"/>
+       <Key time="18.299999" event="Enable"/>
+       <Key time="25" event="Leave"/>
+       <Key time="28" event="Enter"/>
+       <Key time="33.5" event="Leave"/>
+       <Key time="34.400002" event="Enter"/>
+       <Key time="36.100002" event="Disable"/>
+       <Key time="41.999992" event="Enable"/>
+       <Key time="43.5" event="Disable"/>
+       <Key time="45" event="Enable"/>
+       <Key time="48" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1178480255" Type="3" Name="cine_1_ShakeCamera" Pos="0.00054931641,-0.00018310547,-0.00048828125" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="45E0A691463E2E7F" FOV="60">
+      <Track ParamId="0" Flags="0">
+       <Key time="0" value="60"/>
+       <Key time="7" value="45" tens="1"/>
+       <Key time="12" value="50"/>
+       <Key time="22.700001" value="60"/>
+       <Key time="23.799999" value="60"/>
+       <Key time="41" value="60" tens="1"/>
+       <Key time="41.299999" value="50" tens="1"/>
+       <Key time="42.200001" value="50" tens="1"/>
+       <Key time="42.400002" value="60" tens="1"/>
+       <Key time="54.500004" value="60" tens="1"/>
+       <Key time="54.625004" value="45" tens="1"/>
+       <Key time="54.774998" value="45" tens="1"/>
+       <Key time="54.900005" value="30" tens="1"/>
+       <Key time="58.837502" value="30" tens="1"/>
+       <Key time="58.950001" value="25" tens="1"/>
+       <Key time="59.0625" value="60" tens="1"/>
+      </Track>
+     </Node>
+     <Node Id="2113388121" Type="1" Name="cine_1_vtolRun_SES" Pos="-0.51196289,-0.20922852,-4.7505493" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4DF638647DF7BE59">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="21.500004" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="231720575" Type="1" Name="cine_1_camShake_dummyTrigger" Pos="4010.9373,2834.9236,490.30063" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="461AF5410DCFC67F">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="11.5" event="Leave"/>
+       <Key time="33" event="Disable"/>
+       <Key time="35" event="Enable"/>
+       <Key time="42.400002" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="1777146149" Type="1" Name="cine_1_snow_sheets" Pos="3531.3772,2746.175,264.97485" Rotate="0.70710659,0.70710701,0,0" Scale="1,1,1" EntityGUID="4F207E1769ED1925">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="42.400002" event="Enable"/>
+       <Key time="78.800003" event="Enable"/>
+      </Track>
+     </Node>
+     <Node Id="337610650" Type="1" Name="cine_1_ground_light_pfx1" Pos="4040.9883,2835.3125,502.44705" Rotate="0.70710683,-4.7064447e-008,-1.5454317e-008,0.70710677" Scale="1,1,1" EntityGUID="4520F20B141F879A">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="622966356" Type="1" Name="cine_1_air_pulse_pfx1" Pos="4006.4297,2836.3401,485.81204" Rotate="0.70710683,-4.7064447e-008,-1.5454317e-008,0.70710677" Scale="1,1,1" EntityGUID="4D84A6AD2521B654">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="41" event="Disable"/>
+       <Key time="42" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="889930597" Type="1" Name="cine_1_mediumSteam_pfx1" Pos="4038.1616,2851.5908,485.40359" Rotate="0.46174866,0.88701081,0,0" Scale="1,1,1" EntityGUID="4E59F353350B4365">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="14" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-865365446" Type="1" Name="cine_1_intenseSteam_pfx1" Pos="3985.1477,2813.5525,490.59406" Rotate="0.99619472,0.087155722,0,0" Scale="1,1,1" EntityGUID="4F571E41CC6B923A">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="11.5" event="Enable"/>
+       <Key time="14" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="8894605" Type="1" Name="cine_1_intenseSteam_pfx2" Pos="3999.1379,2813.2776,490.54501" Rotate="0.99619472,0.087155722,0,0" Scale="1,1,1" EntityGUID="40BF2BAC0087B88D">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="11.5" event="Enable"/>
+       <Key time="14" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1201104912" Type="1" Name="cine_1_intenseSteam_pfx3" Pos="3985.1477,2858.667,490.59406" Rotate="0.087155804,0.99619472,0,0" Scale="1,1,1" EntityGUID="42FD30C8B86897F0">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="11.5" event="Enable"/>
+       <Key time="14" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1899829162" Type="1" Name="cine_1_intenseSteam_pfx4" Pos="3999.1379,2858.3921,490.54501" Rotate="0.087155797,0.99619472,0,0" Scale="1,1,1" EntityGUID="4F5423828EC2E856">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="11.5" event="Enable"/>
+       <Key time="14" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="2098766611" Type="1" Name="cine_1_hudFreeze_dummyTrigger" Pos="4015.9207,2834.7117,494.64661" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4921610D7D18A313">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="11.5" event="Enable"/>
+       <Key time="42.400002" event="Enter"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1691841684" Type="1" Name="cine_1_intenseSteam_pfx5" Pos="4038.021,2817.9775,513.25409" Rotate="0.96592581,-0.25881904,0,0" Scale="1,1,1" EntityGUID="44D6660164D77494">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="40.5" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="730956531" Type="1" Name="cine_1_intenseSteam_pfx6" Pos="4038.021,2831.6133,522.57214" Rotate="0.79335332,-0.60876143,0,0" Scale="1,1,1" EntityGUID="43EDC3DF2B9182F3">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="40.5" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1281703788" Type="1" Name="cine_1_intenseSteam_pfx7" Pos="4019.9795,2858.446,490.64972" Rotate="0.087155804,0.99619472,0,0" Scale="1,1,1" EntityGUID="414065CFB39AC094">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="40.799999" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1354366418" Type="1" Name="cine_1_intenseSteam_pfx8" Pos="4034.9509,2858.5791,490.57623" Rotate="0.087155804,0.99619472,0,0" Scale="1,1,1" EntityGUID="42C156FEAF46022E">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="41" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1348703177" Type="1" Name="cine_1_intenseSteam_pfx9" Pos="4034.8774,2813.5251,490.71652" Rotate="0.99619472,0.087155737,0,0" Scale="1,1,1" EntityGUID="4921338EAF9C6C37">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="41" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1976845385" Type="1" Name="cine_1_intenseSteam_pfx10" Pos="4019.8933,2813.5188,490.74713" Rotate="0.99619472,0.087155789,0,0" Scale="1,1,1" EntityGUID="4EDC085D75D44449">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="40.799999" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1788025906" Type="1" Name="cine_1_doorSteam_pfx1" Pos="3957.3379,2849.1682,489.49802" Rotate="0.34202018,0.93969262,0,0" Scale="1,1,1" EntityGUID="464A8A9E6A931C32">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="21" event="Enable"/>
+       <Key time="25" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="220378577" Type="1" Name="cine_1_doorSteam_pfx2" Pos="3959.5759,2854.5198,514.85339" Rotate="-0.17364825,0.98480773,0,0" Scale="1,1,1" EntityGUID="438A5BC70D22B5D1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="21" event="Enable"/>
+       <Key time="25" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="598893756" Type="1" Name="cine_1_doorSteam_pfx3" Pos="3957.9097,2835.0784,525.49054" Rotate="0.73727733,-0.67559022,0,0" Scale="1,1,1" EntityGUID="4109E74123B264BC">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="21" event="Enable"/>
+       <Key time="25" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1650913484" Type="1" Name="cine_1_doorSteam_pfx4" Pos="3959.5688,2815.509,514.00391" Rotate="0.98480779,-0.17364818,0,0" Scale="1,1,1" EntityGUID="4017EA2B9D990F34">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="21" event="Enable"/>
+       <Key time="25" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1443636122" Type="1" Name="cine_1_doorSteam_pfx5" Pos="3959.1028,2822.7488,490.59662" Rotate="0.93969262,0.34202012,0,0" Scale="1,1,1" EntityGUID="42D1A13E560C239A">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="21" event="Enable"/>
+       <Key time="25" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="607517531" Type="1" Name="cine_1_buildUpSteam_pfx1" Pos="3967.4377,2827.6482,489.86084" Rotate="0.86602545,0.49999991,0,0" Scale="1,1,1" EntityGUID="4E685D842435FB5B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="38" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-903875920" Type="1" Name="cine_1_buildUpSteam_pfx2" Pos="3973.9189,2826.6143,495.10275" Rotate="0.99619472,-0.087155841,0,0" Scale="1,1,1" EntityGUID="4C46472CCA1FF2B0">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="38.5" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1044035738" Type="1" Name="cine_1_buildUpSteam_pfx3" Pos="3971.8777,2843.2292,490.75754" Rotate="0.46174869,0.88701081,0,0" Scale="1,1,1" EntityGUID="4E490F9C3E3AB89A">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="39" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-2054969611" Type="1" Name="cine_1_buildUpSteam_pfx4" Pos="3973.6631,2844.459,495.84579" Rotate="0.17364828,0.98480773,0,0" Scale="1,1,1" EntityGUID="4182DD778583A6F5">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="39.5" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1883303785" Type="1" Name="cine_1_trooperintro_aniObj" Pos="3952.3701,2823.8201,489.26999" Rotate="0.78260815,0,0,0.62251467" Scale="1,1,1" EntityGUID="4BCB8C8F8FBF1097">
+      <Track ParamId="1" Flags="0">
+       <Key time="52.725002" value="3952.3701,2823.8201,489.26999"/>
+       <Key time="53" value="3945.1001,2829.9551,491.63461" tens="1"/>
+       <Key time="58" value="3945.1001,2829.9551,491.63461" tens="1"/>
+       <Key time="58.5" value="3943.71,2830.2009,491.6601"/>
+       <Key time="58.799999" value="3944.5901,2830.1899,491.63461"/>
+       <Key time="59" value="3944.8899,2829.71,491.51999"/>
+       <Key time="59.200001" value="3944.71,2829.5601,491.72"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="58.799999" value="0.78260815,0,0,0.62251467"/>
+       <Key time="59" value="0.7798298,0,0,0.62599158"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Hide"/>
+       <Key time="51.599998" event="Hide"/>
+       <Key time="52.724998" event="UnHide"/>
+       <Key time="59.299995" event="Hide"/>
+       <Key time="78.800003" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="42" anim="trooper_grabbedIdle_01" length="3.333333"/>
+       <Key time="52.725002" anim="trooper_cineIce_intro_01" length="6.8666673"/>
+      </Track>
+      <Track ParamId="21" Flags="0" StartTime="0" EndTime="78.800003"/>
+     </Node>
+     <Node Id="1675830186" Type="1" Name="cine_1_trooperparticle1" Pos="3945.1235,2830.9897,491.76511" Rotate="0.89620078,0.10284743,-0.32619038,-0.28257102" Scale="1,1,1" EntityGUID="4153462163E323AA">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="55.174999" event="Enable"/>
+       <Key time="57.874996" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1517054209" Type="1" Name="cine_1_trooperparticle2" Pos="3944.7,2829.9561,491.37823" Rotate="0.89620078,-0.10284743,-0.32619038,0.28257102" Scale="1,1,1" EntityGUID="45F42AE1A59396FF">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="54.574993" event="Enable"/>
+       <Key time="57.874992" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1418006859" Type="1" Name="cine_1_trooperparticle3" Pos="3945.1316,2829.7476,491.92496" Rotate="0.89620078,-0.10284743,-0.32619038,0.28257102" Scale="1,1,1" EntityGUID="49A1BB8DAB7AEEB5">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="54.874996" event="Enable"/>
+       <Key time="57.874996" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1953264191" Type="1" Name="cine_1_hitgroundparticle" Pos="3936.9402,2838.9868,477.16324" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4AE0D27D8B938DC1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="61.5" event="Disable"/>
+       <Key time="61.900002" event="Enable"/>
+       <Key time="63.799999" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1680168552" Type="1" Name="cine_1_playerhitsound_SES" Pos="3943.313,2834.5908,487.08807" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="40E66AF264255668">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="58.899998" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="505189619" Type="1" Name="cine_1_playerhitground1_SES" Pos="3937.009,2837.0566,478.47205" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="47210FA11E1C94F3">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Stop"/>
+       <Key time="60.124996" event="Play"/>
+       <Key time="78.800003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-1902817209" Type="1" Name="cine_1_Vtol_crashEffect2_pfx" Pos="-0.52636719,-6.0422363,1.2019653" Rotate="2.5611371e-009,3.7252899e-009,-5.5879354e-009,1" Scale="1,1,1" EntityGUID="4301AB548E955047">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="49" event="Enable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1965951137" Type="1" Name="cine_1_vtol_snowHit_pfx" Pos="-0.58813477,-7.7045898,-1.3320313" Rotate="0.59745407,0.17445581,-0.72325855,-0.29918358" Scale="1,1,1" EntityGUID="4842F3D8752E08A1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="43.5" event="Enable"/>
+       <Key time="48" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1101344932" Type="1" Name="cine_1_HUDfx_alien" Pos="3944.699,2832.5576,487.1955" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4B750EFEBE5ACF5C">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Leave"/>
+       <Key time="47.599998" event="Enter"/>
+       <Key time="50.200001" event="Leave"/>
+       <Key time="54" event="Enter"/>
+       <Key time="59.875" event="Leave"/>
+       <Key time="60.125" event="Enter"/>
+       <Key time="61.775002" event="Leave"/>
+       <Key time="78.800003" event="Leave"/>
+      </Track>
+     </Node>
+     <Node Id="-154988597" Type="1" Name="cine_1_binoculars_dummytrigger" Pos="3944.208,2833.9043,487.1955" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="482ABEE8F6C30FCB">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="45.599998" event="Enable"/>
+       <Key time="54.5" event="Enter"/>
+       <Key time="58.950001" event="Leave"/>
+       <Key time="78.800003" event="Leave"/>
+      </Track>
+     </Node>
+     <Node Id="-1513253409" Type="1" Name="cine_1_maximum_str_SES" Pos="3943.313,2834.0874,487.08807" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="47FC0D85A5CD95DF">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="45.700001" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="3521081" Type="1" Name="cine_1_debris_1" Pos="4090.7253,2838.1995,433.05338" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="4F4742370035BA39">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4090.7253,2838.1995,433.05338" tens="0.88200003"/>
+       <Key time="3.5" value="4075.2915,2837.4973,481.22168"/>
+       <Key time="6" value="4047.7996,2835.7942,497.36194" bias="-0.36500001"/>
+       <Key time="11.2" value="4016.4646,2836.6924,506.69113" tens="1" bias="-0.24600001"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="11.2" value="0.54233056,0.4509387,-0.53289312,-0.46750063"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="11.2" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="1409702861" Type="1" Name="cine_1_debris_fall_dummytrigger" Pos="4017.8887,2834.7117,495.36044" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="413F524354065BCD">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="11.2" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="-1324131782" Type="1" Name="cine_1_debris_3" Pos="4090.7383,2833.7173,429.30746" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="49E42521B1135A3A">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4090.7383,2833.7173,429.30746" tens="0.88200003"/>
+       <Key time="3.5" value="4075.3044,2833.0151,477.47577"/>
+       <Key time="6" value="4047.8125,2831.312,493.61603" bias="-0.36500001"/>
+       <Key time="11.2" value="4016.427,2832.21,500.84351" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="11.2" value="0.54233056,0.45093864,-0.53289312,-0.4675006"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="11.2" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="-335100706" Type="1" Name="cine_1_debris_5" Pos="4090.7253,2841.4482,460.58023" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="42A3DB73EC06C4DE">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4090.7253,2841.4482,460.58023"/>
+       <Key time="3.5" value="4075.2915,2840.7461,483.05023"/>
+       <Key time="6" value="4047.7996,2839.043,499.19049" bias="-0.36500001"/>
+       <Key time="11.2" value="4008.5559,2843.2954,503.82932" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="11.2" value="0.54233056,0.45093864,-0.53289312,-0.4675006"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="11.2" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="1745800629" Type="1" Name="cine_1_debris_7" Pos="4090.7253,2832.9993,466.43417" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="47E7BCA4680ECDB5">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4090.7253,2832.9993,466.43417"/>
+       <Key time="3.5" value="4070.6565,2832.2971,498.64536"/>
+       <Key time="6" value="4047.7996,2830.594,503.59134" bias="-0.36500001"/>
+       <Key time="11.2" value="3999.272,2824.9661,508.23016" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="3.5" value="0.17819539,0.2111797,0.6896705,0.66933107"/>
+       <Key time="11.2" value="0.54233056,0.45093864,-0.53289312,-0.4675006"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="11.200001" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="-1904260976" Type="1" Name="cine_1_debris_9" Pos="4090.7253,2839.4143,462.03333" Rotate="0.50678641,0.49360323,0.49313298,0.50630349" Scale="1,1,1" EntityGUID="4569D9668E7F4890">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="4090.7253,2839.4143,462.03333"/>
+       <Key time="3.5" value="4070.6565,2838.7122,494.24451"/>
+       <Key time="6" value="4047.7996,2837.009,499.19049" bias="-0.36500001"/>
+       <Key time="11.2" value="4024.969,2836.2339,500.23901" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.50678641,0.49360323,0.49313298,0.50630349"/>
+       <Key time="3.5" value="0.17819539,0.2111797,0.6896705,0.66933107"/>
+       <Key time="11.2" value="0.54233056,0.45093864,-0.53289312,-0.4675006"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="11.2" event="Hide"/>
+      </Track>
+     </Node>
+     <Node Id="1666708347" Type="1" Name="cine_1_musictrigger1" Pos="3937.7568,2834.738,477.96509" Rotate="0.70710671,0,0,0.70710683" Scale="1,1,1" EntityGUID="47F9CE476357F37B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="955621293" Type="1" Name="cine_1_musictrigger2" Pos="3937.7568,2835.8958,477.96509" Rotate="0.70710671,0,0,0.70710683" Scale="1,1,1" EntityGUID="444682CC38F59FAD">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="54.189999" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="-1743532761" Type="1" Name="cine_1_HUDfx_chroma" Pos="3942.3594,2845.0015,488.99942" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="40FAA52C9813CD27">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="48.299999" event="Enter"/>
+       <Key time="59" event="Enter"/>
+       <Key time="60.349998" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="737669792" Type="1" Name="cine_1_vtol_aniObj" Pos="3372.1001,3004.4871,590.60962" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4CC01BBC2BF7F2A0">
+      <Track ParamId="1" Flags="0">
+       <Key time="25.000002" value="3372.1001,3004.4871,590.60962"/>
+       <Key time="30" value="3638.47,3004.4871,590.60962"/>
+       <Key time="31.999996" value="3805.2927,2865.147,522.62054"/>
+       <Key time="34.499985" value="3853.2422,2816.9995,507.91266"/>
+       <Key time="35.999977" value="3883.6577,2820.6511,516.25421"/>
+       <Key time="38.500004" value="3903.0601,2832.22,513.61371"/>
+       <Key time="40.999996" value="3916.6101,2831.7219,503.67291"/>
+       <Key time="43.599998" value="3918.7524,2833.5793,500.01999"/>
+       <Key time="48.799992" value="3910.8701,2837.4399,496.17001" tens="0.5"/>
+       <Key time="48.850002" value="3918.47,2837.4399,496.89755"/>
+       <Key time="49.025002" value="3916.5344,2837.4399,498.15433"/>
+       <Key time="49.525005" value="3901.8679,2834.1169,493.7919"/>
+       <Key time="51.5" value="3860.25,2802.3999,481.84"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="30" value="1,0,0,0"/>
+       <Key time="30.100002" value="0.42470455,-0.20062017,0.18403251,-0.86342895"/>
+       <Key time="31.999996" value="-0.24025765,0.25086114,-0.13715157,0.92764997"/>
+       <Key time="34.499985" value="0.61250669,-0.28973779,-0.14629842,-0.72075266"/>
+       <Key time="35.999977" value="0.80346364,0.052485436,-0.408416,-0.42998582"/>
+       <Key time="40.999996" value="0.8045879,-0.05681375,-0.083602421,0.58516765"/>
+       <Key time="43.599998" value="0.70427954,-0.14255324,-0.16204253,0.6763218"/>
+       <Key time="45.599998" value="0.67526817,-0.034070648,-0.26750052,0.68650961"/>
+       <Key time="48.799992" value="0.70158637,-0.085198432,0.022050608,0.707129" tens="0.5"/>
+       <Key time="48.850002" value="0.51020944,-0.16957948,-0.10688863,0.83636349"/>
+       <Key time="49.025002" value="0.1665701,-0.14388426,-0.35301191,0.90935928"/>
+       <Key time="49.525005" value="-0.3104257,-0.3011134,-0.23377514,0.87081331"/>
+       <Key time="50.449997" value="0.23537062,0.3874301,0.024141945,-0.89101952"/>
+       <Key time="51.5" value="0.26281887,-0.19345658,-0.18007523,0.92794055"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="UnHide"/>
+       <Key time="20.399998" event="UnHide"/>
+       <Key time="58.400009" event="Hide"/>
+       <Key time="78.800003" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="20.399998" anim="vtol_door_close" length="1.6666667"/>
+       <Key time="24.899998" anim="vtol_wings_tohorizontal" length="1.6666667"/>
+       <Key time="28" anim="Vtol_door_closed" length="0.10000002"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="20.399998" filename="Sounds/vehicles:trackview_vehicles:vtol_constant_run" volume="1" pan="127" duration="-0.001" desc="" InRadius="20" OutRadius="200" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+      </Track>
+     </Node>
+     <Node Id="773668314" Type="1" Name="cine_1_Vtol_contrail_pfx" Pos="-0.071533203,-2.4938965,-1.1005249" Rotate="0.70710677,0,0,0.70710677" Scale="1,1,1" EntityGUID="46251AE32E1D3DDA">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Disable"/>
+       <Key time="20.4" event="Enable"/>
+       <Key time="36" event="Disable"/>
+       <Key time="43.5" event="Disable"/>
+       <Key time="48" event="Enable"/>
+       <Key time="58.400002" event="Disable"/>
+       <Key time="78.800003" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1424550507" Type="1" Name="cine_1_Door_Steam_1" Pos="3960.5835,2835.6563,501.24902" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4FBA0801AB171595">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="20.799999" event="Play"/>
+       <Key time="39.200001" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="578787723" Type="1" Name="cine_1_Door_Steam_2" Pos="3960.5835,2835.6563,502.98804" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4FC00695227F998B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="38.5" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="1360971887" Type="1" Name="cine_1_soundmix" Pos="4046.0779,2814.7842,488.80743" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4180F309511EC86F">
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0.0099999998" filename="Sounds/cutscenes:ice_intro:ice_intro_amb_no_gravity" volume="1" pan="127" duration="11.463" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="11.5" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_01" volume="1" pan="127" duration="2.1600001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="14.4" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_02" volume="1" pan="127" duration="5.7500005" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="20.6" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_03" volume="1" pan="127" duration="10.145" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="36.610001" filename="Sounds/cutscenes:ice_intro:ice_intro_freeze_noises_1" volume="1" pan="127" duration="3.6990001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="46.060001" filename="Sounds/cutscenes:ice_intro:ice_intro_scouts_flyby" volume="1" pan="127" duration="9.8170004" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="58.790001" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_04_trooper_hits_player" volume="1" pan="127" duration="3.9020002" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="63.139999" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_05" volume="1" pan="127" duration="6.9000001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="70.75" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_06" volume="1" pan="127" duration="2.9300001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="74.029999" filename="Sounds/cutscenes:ice_intro:ice_intro_player_foley_07" volume="1" pan="127" duration="4.3500004" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+      <Track ParamId="8" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="5" filename="Sounds/cutscenes:ice_intro:ice_intro_shipmoan_01" volume="1" pan="127" duration="10.650001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+      <Track ParamId="9" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="11.45" filename="Sounds/cutscenes:ice_intro:ice_intro_gravity_turn_on" volume="1" pan="127" duration="5.1780005" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+     </Node>
+     <Node Id="1502520701" Type="1" Name="cine_1_vtol_SES" Pos="3961.5308,2836.4814,496.23035" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="43320181598EA57D">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="28.860001" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="1598732542" Type="1" Name="cine_1_scout_hits_vtol_sphere_expands" Pos="3924.0955,2834.2358,489.45367" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4C17F0CC5F4AB8FE">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="48.799999" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-169002681" Type="1" Name="cine_1_troopersound_appear_SES" Pos="3943.9729,2830.3074,490.93436" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="446F6ADAF5ED3947">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="54" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-1934249773" Type="1" Name="cine_1_troopersound_attack_SES" Pos="3944.0625,2830.4634,490.52383" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="47B89AFC8CB5B0D3">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="57.849998" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="1171603282" Type="1" Name="AmbientVolume Open Ice Field 34" Pos="3383.0215,2895.5569,444.82907" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="49F1340D45D53F52">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Deactivate"/>
+       <Key time="27.200001" event="Activate"/>
+      </Track>
+     </Node>
+     <Node Id="-179487872" Type="1" Name="RandomSoundVolume_Thunder" Pos="3750.3071,2661.4587,367.61679" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4D6E883BF54D3B80">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Deactivate"/>
+       <Key time="27.200001" event="Activate"/>
+      </Track>
+     </Node>
+     <Node Id="288177252" Type="1" Name="RandomSoundVolume_ice_crackling" Pos="3719.0281,2689.0686,367.61679" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="49D17158112D3C64">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Deactivate"/>
+       <Key time="27.200001" event="Activate"/>
+      </Track>
+     </Node>
+     <Node Id="-1564263983" Type="1" Name="RandomSoundVolume_scout_calls" Pos="3674.3582,2694.0815,367.61679" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4EA83B24A2C339D1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="78.800003">
+       <Key time="0" event="Deactivate"/>
+       <Key time="27.200001" event="Activate"/>
+      </Track>
+     </Node>
+    </Nodes>
+   </Sequence>
+   <Sequence Name="frozen_soldiers" Flags="5" StartTime="0" EndTime="1">
+    <Nodes>
+     <Node Id="-848555122" Type="1" Name="Marine_frozen8_anim" Pos="3634.0391,2746.7305,263.06238" Rotate="0.99862957,0,0,-0.052335836" Scale="1,1,1" EntityGUID="456E1399CD6C138E">
+      <Track ParamId="20" Flags="0" StartTime="0" EndTime="1">
+       <Key time="0" node="marine_frozenPose_03"/>
+      </Track>
+     </Node>
+     <Node Id="37788896" Type="1" Name="Marine_frozen7_anim" Pos="3642.0217,2750.4565,263.10986" Rotate="0.60550702,0.26427636,-0.5795657,-0.47709838" Scale="1,1,1" EntityGUID="491570E202409CE0">
+      <Track ParamId="20" Flags="0" StartTime="0" EndTime="1">
+       <Key time="0" node="marine_frozenPose_03"/>
+      </Track>
+     </Node>
+     <Node Id="1058123607" Type="1" Name="Marine_frozen4_anim" Pos="3641.1523,2752.0774,264.38055" Rotate="0.98325491,-0.18123719,-0.019048773,9.8270263e-008" Scale="1,1,1" EntityGUID="47C8DCE13F11AF57">
+      <Track ParamId="20" Flags="0" StartTime="0" EndTime="1">
+       <Key time="0" node="marine_frozenPose_01"/>
+      </Track>
+     </Node>
+     <Node Id="296808959" Type="1" Name="Marine_frozen_anim" Pos="3644.408,2754.5146,263.15887" Rotate="0.85104984,-0.052052449,-0.031897772,-0.52152395" Scale="1,1,1" EntityGUID="4E6E7B7A11B0F1FF">
+      <Track ParamId="20" Flags="0" StartTime="0" EndTime="1">
+       <Key time="0" node="marine_frozenPose_03"/>
+      </Track>
+     </Node>
+     <Node Id="-1430817244" Type="1" Name="Marine_frozen6_anim" Pos="3644.5361,2746.968,263.06238" Rotate="0.91706014,0,0,-0.39874902" Scale="1,1,1" EntityGUID="452FDB52AAB77624">
+      <Track ParamId="20" Flags="0" StartTime="0" EndTime="1">
+       <Key time="0" node="marine_frozenPose_02"/>
+      </Track>
+     </Node>
+    </Nodes>
+   </Sequence>
+   <Sequence Name="Scout_crashing" Flags="0" StartTime="0" EndTime="12">
+    <Nodes>
+     <Node Id="355278449" Type="1" Name="Scout1" Pos="3655,2695,294" Rotate="0.98690444,0.15700409,-0.021752235,0.029939383" Scale="1,1,1" EntityGUID="4E51C778152D1E71">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="3655,2695,294"/>
+       <Key time="1" value="3651,2719,295"/>
+       <Key time="2.5" value="3645,2740,300"/>
+       <Key time="5" value="3628,2766,276"/>
+       <Key time="5.8000002" value="3619,2778,272"/>
+       <Key time="6.6000004" value="3600,2789,270"/>
+       <Key time="7" value="3600,2789,270" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.98690444,0.15700409,-0.021752235,0.029939383"/>
+       <Key time="1" value="0.9801594,0.097033381,0.11851435,0.12580319"/>
+       <Key time="2.5070558" value="0.95454061,-0.13179696,-0.045518294,0.26345721"/>
+       <Key time="5" value="0.90197986,0.082827859,-0.19996414,0.37361234"/>
+       <Key time="5.8000002" value="0.82940453,0.13909528,-0.19861431,0.50328219"/>
+       <Key time="6.6000004" value="0.63060397,0.4016856,0.0028302521,0.66406268"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="12">
+       <Key time="0" event="Enable"/>
+       <Key time="6.7000008" event="Kill"/>
+       <Key time="9.2999954" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1774245907" Type="1" Name="scout_pfx4" Pos="0.0034179688,2.043457,2.0068359" Rotate="0.57922781,0.57922804,0.40557986,0.40557992" Scale="1,1,1" EntityGUID="4782D91569C0D813">
+      <Track ParamId="1" Flags="0"/>
+      <Track ParamId="2" Flags="0"/>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="12">
+       <Key time="1" event="Disable"/>
+       <Key time="1.6999998" event="Restart"/>
+       <Key time="2.1000013" event="Restart"/>
+       <Key time="2.499999" event="Restart"/>
+      </Track>
+     </Node>
+     <Node Id="936225541" Type="1" Name="scout_pfx5" Pos="-0.19360352,3.5878906,0.94885254" Rotate="0.59636778,0.59636778,0.37992826,0.37992826" Scale="1,1,1" EntityGUID="4B251C7937CDAB05">
+      <Track ParamId="1" Flags="0"/>
+      <Track ParamId="2" Flags="0"/>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="12">
+       <Key time="5.2999997" event="Disable"/>
+       <Key time="6" event="Restart"/>
+       <Key time="6.4000015" event="Restart"/>
+       <Key time="6.7999992" event="Restart"/>
+      </Track>
+     </Node>
+    </Nodes>
+   </Sequence>
+   <Sequence Name="cine_3_scoutintro" Flags="376" StartTime="0" EndTime="24.4">
+    <Nodes>
+     <Node Id="0" Type="2" Name="Scene">
+      <Track ParamId="6" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" node="cine_3_cam"/>
+      </Track>
+     </Node>
+     <Node Id="2004862119" Type="3" Name="cine_3_cam" Pos="3599.8601,2791.6299,267.23001" Rotate="0.95666593,0.14191459,0.03677449,0.25159144" Scale="1,1,1" EntityGUID="4B4502F6777FC4A7" FOV="60.00013">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="3599.8601,2791.6299,267.23001" tens="1" bias="-0.0049999999"/>
+       <Key time="1.5" value="3599.7271,2792.3501,267.62"/>
+       <Key time="3.3000002" value="3599.0962,2793.3672,267.86996"/>
+       <Key time="4.3500004" value="3597.5601,2791.99,267.73999" tens="0.60600001"/>
+       <Key time="6.6000004" value="3597.5601,2791.99,267.73999" tens="0.74400002"/>
+       <Key time="10.400001" value="3597.5601,2791.99,267.73999" tens="0.74400002"/>
+       <Key time="12.899999" value="3598.3799,2792.78,268.04001" tens="0.74400002"/>
+       <Key time="13.899999" value="3598.3799,2792.78,268.04001" tens="0.74400002"/>
+       <Key time="14.399996" value="3597.1399,2792.03,267.51001" tens="0.60600001"/>
+       <Key time="20.599998" value="3597.05,2792.03,267.5" tens="0.60600001"/>
+       <Key time="22.199999" value="3598.02,2793.939,268.54999"/>
+       <Key time="24.4" value="3595.2661,2799.1038,269.34464"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.95666593,0.14191459,0.03677449,0.25159144"/>
+       <Key time="1" value="0.95021093,0.14110181,0.014031516,0.27747542"/>
+       <Key time="2.4000001" value="0.95860559,0.12542182,0.04369469,0.25186414"/>
+       <Key time="3.3000002" value="0.96375549,0.1199392,0.025502818,0.23693809" tens="0.354"/>
+       <Key time="3.6500003" value="0.95848089,0.27366427,0.021994283,0.077061564"/>
+       <Key time="4" value="0.95848089,0.27366427,0.021994283,0.077061564"/>
+       <Key time="4.3500004" value="0.98915589,0.14503133,0.0061649857,-0.022331988"/>
+       <Key time="4.8000007" value="0.96776348,0.17921203,-0.021350805,-0.17567304"/>
+       <Key time="6.5999999" value="0.93861181,0.12331962,-0.027147122,-0.32103458"/>
+       <Key time="10.399999" value="0.93861181,0.12331962,-0.027147122,-0.32103458"/>
+       <Key time="11.7" value="0.97555083,0.1445241,0.10969492,-0.12401784"/>
+       <Key time="12.899999" value="0.97149861,0.15173388,0.14874944,0.1050754"/>
+       <Key time="13.899999" value="0.97557861,0.15916945,0.099106483,0.11440866"/>
+       <Key time="14.949997" value="0.95907146,0.029495057,0.018824816,-0.28099379"/>
+       <Key time="15.949997" value="0.93573332,0.081296854,-0.023093337,-0.34243333"/>
+       <Key time="19" value="0.74416584,-0.056795828,0.008488033,-0.66552198"/>
+       <Key time="20" value="0.88649321,0.11973566,-0.019986007,-0.44653517"/>
+       <Key time="21.1" value="0.88649321,0.11973566,-0.019986007,-0.44653517"/>
+       <Key time="21.5" value="0.9758004,0.12006206,0.057487383,-0.17347594"/>
+       <Key time="22.199999" value="0.94616294,0.16441059,0.0069737434,0.2787402"/>
+       <Key time="23" value="0.93670285,0.12717059,0.058020543,0.32101253"/>
+       <Key time="23.9" value="0.94758606,0.10832603,0.031501301,0.2989209"/>
+       <Key time="24.4" value="0.95551848,0.090819255,0.038022052,0.27801198"/>
+      </Track>
+      <Track ParamId="0" Flags="0"/>
+     </Node>
+     <Node Id="-257744993" Type="1" Name="cine_3_scoutscan" Pos="0.032714844,5.3811569,-1.3449526" Rotate="0.96707326,-0.14239869,-0.20020762,0.066398531" Scale="1,1,1" EntityGUID="46C0AA5EF0A31F9F">
+      <Track ParamId="2" Flags="0"/>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Disable"/>
+       <Key time="6" event="Enable"/>
+       <Key time="14.8" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1428705886" Type="1" Name="cine_3_scoutsound_anticip_resp" Pos="3597.6995,2795.5347,269.34607" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="479BABD55528525E">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="3.5" event="Play"/>
+       <Key time="13.7" event="Play"/>
+       <Key time="24.4" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-356456596" Type="1" Name="cine_3_scouteffect" Pos="3595.283,2798.1531,270.21405" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="432B6832EAC0E76C">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="3.4999998" event="Stop"/>
+       <Key time="24.4" event="Stop"/>
+       <Key time="31.900003" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="1714174882" Type="1" Name="cine_3_scoutanim" Pos="3604.2874,2824.2461,293.15079" Rotate="0.27781582,-0.11507503,-0.36497173,0.88111961" Scale="1,1,1" EntityGUID="40748DD1662C3BA2">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="3604.2874,2824.2461,293.15079"/>
+       <Key time="3.5" value="3593.8762,2819.1052,289.58594"/>
+       <Key time="4.500001" value="3590.6646,2805.0942,277.66031"/>
+       <Key time="5.4000001" value="3590.9651,2803.8416,277.31921"/>
+       <Key time="8.9000006" value="3589.5483,2806.6267,277.79807"/>
+       <Key time="9.6999998" value="3589.5928,2806.7373,277.83179" tens="1"/>
+       <Key time="13.400001" value="3584.4299,2813.48,277.8316"/>
+       <Key time="13.8" value="3587.1179,2809.1631,276.26001"/>
+       <Key time="14.2" value="3588.75,2805.27,275.7507"/>
+       <Key time="14.9" value="3589.072,2804.918,276.10001"/>
+       <Key time="20.700001" value="3590.5935,2804.9182,277.78506"/>
+       <Key time="21" value="3590.6379,2805.0288,277.81879" tens="1"/>
+       <Key time="22.299999" value="3566.1079,2788.6797,278.9675"/>
+       <Key time="23.299999" value="3507.8716,2837.1306,324.56155"/>
+       <Key time="24.4" value="3466.2537,2877.759,310.94577"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="3.5" value="0.27781582,-0.11507503,-0.36497173,0.88111961"/>
+       <Key time="4.0000005" value="0.1064521,-0.12967752,0.089866012,-0.98172086"/>
+       <Key time="4.500001" value="0.27676457,-0.056281645,0.16444296,-0.94508845"/>
+       <Key time="4.9000001" value="0.31999174,-0.067607559,0.20004392,-0.92358917"/>
+       <Key time="5.4000001" value="0.30636868,-0.053722732,0.22745068,-0.92277753"/>
+       <Key time="8.9000006" value="0.30636868,-0.053722732,0.22745068,-0.92277753"/>
+       <Key time="9.6999998" value="0.24785767,-0.054547779,0.17621495,-0.95107275"/>
+       <Key time="11.000001" value="0.29809597,0.13824992,-0.11490387,0.93745548"/>
+       <Key time="13.400001" value="0.88185763,-0.0088525824,0.0095067965,0.47133681"/>
+       <Key time="13.8" value="0.31121683,0.1584141,-0.11437337,0.93003643"/>
+       <Key time="14.2" value="0.36697662,-0.12111942,0.075005502,-0.91925645"/>
+       <Key time="14.9" value="0.41469795,-0.053450417,0.10306897,-0.90252173"/>
+       <Key time="20.700001" value="0.30636868,-0.053722732,0.22745068,-0.92277753"/>
+       <Key time="21" value="0.24785767,-0.054547779,0.17621495,-0.95107275"/>
+       <Key time="21.299999" value="0.33994216,0.044342034,-0.17710871,0.92255384"/>
+       <Key time="22.299999" value="0.83252198,0.18446183,-0.00096585613,0.52237928"/>
+       <Key time="23.299999" value="0.92822349,0.058415826,0.039104324,0.36532122"/>
+       <Key time="24.4" value="0.90210646,-0.2371695,-0.057768509,0.35583338"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="UnHide"/>
+       <Key time="24.4" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="2.3000002" anim="fly_toFire_01" length="1.8000001"/>
+       <Key time="5.900001" anim="fly_fromFire_01" length="1.4666667" speed="0.34999999"/>
+       <Key time="12.6" anim="fly_toFire_01" length="1.8000001" speed="2"/>
+       <Key time="18.699999" anim="fly_fromFire_01" length="1.4666667"/>
+      </Track>
+     </Node>
+     <Node Id="-601390095" Type="1" Name="cine_3_alieneffect_dummytrigger" Pos="3599.6492,2789.7083,265.39676" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4ECFFDD5DC2783F1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="1.4000014" event="Enter"/>
+       <Key time="22" event="Leave"/>
+       <Key time="24.4" event="Leave"/>
+      </Track>
+     </Node>
+     <Node Id="1814684885" Type="1" Name="cine_3_shootat_dummytrigger" Pos="3599.6492,2789.7083,266.28955" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="496F1E016C29E4D5">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Enable"/>
+       <Key time="13.499999" event="Enter"/>
+       <Key time="19" event="Leave"/>
+      </Track>
+     </Node>
+     <Node Id="-683080128" Type="1" Name="cine_3_barnescover" Pos="3602.1082,2794.7549,268.35095" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="445A694DD7490640">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Hide"/>
+       <Key time="4.5500002" event="UnHide"/>
+       <Key time="5.2166991" event="Hide"/>
+       <Key time="24.4" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="4.5500002" anim="combat_toWallLean_pistol_right_01" length="0.66666669"/>
+      </Track>
+     </Node>
+     <Node Id="1202215923" Type="1" Name="cine_3_barnescover1" Pos="3601.72,2795.9519,268.35095" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4BEDC9E247A85BF3">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Hide"/>
+       <Key time="4.5500002" event="Hide"/>
+       <Key time="5.2166991" event="UnHide"/>
+       <Key time="24.4" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="5.2166991" anim="combat_wallLeanIdle_pistol_right_01" length="1.6666667"/>
+      </Track>
+     </Node>
+     <Node Id="-1694421951" Type="1" Name="cine_3_shootat_tag" Pos="3598.3645,2795.1042,267.01624" Rotate="0.94638234,0.17422611,0.052016232,0.26702061" Scale="1,1,1" EntityGUID="44EBE3D39B012C41">
+      <Track ParamId="1" Flags="0">
+       <Key time="15.2" value="3598.3645,2795.1042,267.01624"/>
+       <Key time="18" value="3600.0879,2792.1707,266.23413"/>
+      </Track>
+     </Node>
+     <Node Id="-1020646023" Type="1" Name="cine_3_shootat_tag2" Pos="3597.4031,2795.8687,267.01624" Rotate="0.94638234,0.17422611,0.052016232,0.26702061" Scale="1,1,1" EntityGUID="4C6B5B82C32A2D79">
+      <Track ParamId="1" Flags="0">
+       <Key time="15.2" value="3597.4031,2795.8687,267.01624"/>
+       <Key time="18" value="3598.6621,2792.9631,266.26599"/>
+      </Track>
+     </Node>
+     <Node Id="606898855" Type="1" Name="cine_3_scoutfireimpact" Pos="0.97021484,-0.40777588,0.34805298" Rotate="-0.067730084,-0.018120872,0.72072697,0.68966436" Scale="1,1,1" EntityGUID="4CDD793D242C8AA7">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Disable"/>
+       <Key time="15.2" event="Enable"/>
+       <Key time="18" event="Disable"/>
+       <Key time="24.4" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-640504889" Type="1" Name="cine_3_barnes_elect      " Pos="0.062988281,-0.77612305,0.19284058" Rotate="0.70710683,0.70710677,0,0" Scale="1,1,1" EntityGUID="41016564D9D2ABC7">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="0" event="Disable"/>
+       <Key time="4.5500002" event="Enable"/>
+      </Track>
+     </Node>
+     <Node Id="1526031051" Type="1" Name="cine_3_scoutsound_searchbeam_start" Pos="3596.3474,2797.3142,269.78745" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="47D0F35E5AF562CB">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="2.4000001" event="Play"/>
+       <Key time="8" event="Play"/>
+       <Key time="11.2" event="Play"/>
+       <Key time="15" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-715048044" Type="1" Name="cine_3_scoutsound_searchbeam_stop" Pos="3596.9548,2796.49,270.21204" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="43B2F731D5613B94">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="5.4000001" event="Play"/>
+       <Key time="8.8000002" event="Play"/>
+       <Key time="12.8" event="Play"/>
+       <Key time="16.599998" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-107845004" Type="1" Name="cine_3_scoutsound_tentacle" Pos="3596.9548,2796.49,270.53961" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4CA45D0CF9926A74">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="12.799999" event="Play"/>
+       <Key time="18" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-634150047" Type="1" Name="cine_3_scoutsound_pain" Pos="3596.9548,2796.49,270.90302" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="43FE1522DA33A361">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="3.2" event="Play"/>
+       <Key time="10" event="Play"/>
+       <Key time="15.4" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="351355124" Type="1" Name="cine_3_scoutsound_searching" Pos="3596.9548,2796.49,271.35526" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4635EEF814F140F4">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="5.8000002" event="Play"/>
+       <Key time="13.2" event="Play"/>
+       <Key time="18.4" event="Play"/>
+      </Track>
+     </Node>
+     <Node Id="-1037528686" Type="1" Name="cine_3_scoutsound_pain1" Pos="3596.9548,2796.49,271.67358" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="42A6A77AC2289192">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="24.4">
+       <Key time="18" event="Play"/>
+      </Track>
+     </Node>
+    </Nodes>
+   </Sequence>
+   <Sequence Name="warrior_detaching" Flags="0" StartTime="0" EndTime="55">
+    <Nodes>
+     <Node Id="-1432456573" Type="1" Name="Warrior1" Pos="3629.8799,2624.8899,362.12" Rotate="0.81428325,-0.089178525,-0.062443487,0.57016736" Scale="1,1,1" EntityGUID="4929A6E4AA9E7283">
+      <Track ParamId="1" Flags="0">
+       <Key time="0" value="3629.8799,2624.8899,362.12"/>
+       <Key time="4" value="3473.2,2737.6001,354.5"/>
+       <Key time="12" value="3366.0518,2795.1353,349.37"/>
+       <Key time="22" value="3273.2307,2801.9453,341.54001"/>
+       <Key time="32" value="3105.8213,2747.7693,370.10001"/>
+       <Key time="38" value="2728.8196,2600.3203,372.83334"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0" value="0.81428325,-0.089178525,-0.062443487,0.57016736"/>
+       <Key time="4" value="0.83703727,-0.11401399,-0.072224528,0.53023863"/>
+       <Key time="12" value="0.819152,0,0,0.57357651"/>
+       <Key time="22" value="0.68914157,-0.025460353,0.015453355,0.7240144"/>
+       <Key time="32" value="0.58220255,0,0,0.81304383"/>
+       <Key time="38" value="0.50659162,-0.055101551,0.026282065,0.86002219"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="55"/>
+      <Track ParamId="5" Flags="0" StartTime="0" EndTime="55">
+       <Key time="-0.2"/>
+       <Key time="0.1"/>
+      </Track>
+     </Node>
+    </Nodes>
+   </Sequence>
+   <Sequence Name="cine_2_outpost" Flags="312" StartTime="0" EndTime="63">
+    <Nodes>
+     <Node Id="0" Type="2" Name="Scene">
+      <Track ParamId="6" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" node="cine_2_outpost_Cam"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="63">
+       <Key time="11.899999" filename="languages/dialog/ice/nomad_ice_ab2_a98b0272.mp2" volume="1" pan="127" duration="3.2130001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="15.899999" filename="languages/dialog/ice/major_strickland_ice_ab2_9ab6b88d.mp2" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="18.399992" filename="languages/dialog/ice/nomad_ice_ab2_731c5b71.mp2" volume="1" pan="127" duration="2.7680001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="22.099989" filename="languages/dialog/ice/major_strickland_ice_ab2_28181b52.mp2" volume="1" pan="127" duration="3.0560002" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="26.699987" filename="languages/dialog/ice/major_strickland_ice_ab2_c0b9d2d6.mp2" volume="1" pan="127" duration="5.7460003" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="44.200001" filename="languages/dialog/ice/nomad_ice_ab2_d1308b94.mp2" volume="1" pan="127" duration="0.54800004" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="56.199989" filename="languages/dialog/ice/nomad_ice_ab2_0638f705.mp2" volume="1" pan="127" duration="0.70500004" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="61.799984" filename="languages/dialog/ice/nomad_ice_ab2_d55ef05a.mp2" volume="1" pan="127" duration="0.83500004" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+      </Track>
+     </Node>
+     <Node Id="-1651411840" Type="3" Name="cine_2_outpost_Cam" Pos="3663.4788,2758.5093,279.03439" Rotate="0.48855478,-0.089925319,-0.18358542,0.84824765" Scale="1,1,1" EntityGUID="440FE2159D917480" FOV="60">
+      <Track ParamId="1" Flags="0">
+       <Key time="1.9669533e-006" value="3663.4788,2758.5093,279.03439"/>
+       <Key time="1.4" value="3660.9629,2757.4866,277.29453"/>
+       <Key time="2.8" value="3659.1772,2756.7605,276.05942"/>
+       <Key time="6.4000001" value="3656.0381,2755.4839,273.88849" tens="1"/>
+       <Key time="6.9999995" value="3655.895,2755.126,272.99176"/>
+       <Key time="7.2999992" value="3654.8042,2754.1641,272.84372"/>
+       <Key time="8.0749998" value="3654.5093,2753.7537,265.04001"/>
+       <Key time="8.3999996" value="3654.3494,2753.7727,263.68307"/>
+       <Key time="9.1999998" value="3654.2839,2753.6572,265.20862"/>
+       <Key time="10.674999" value="3652.2349,2752.4558,265.53525"/>
+       <Key time="23.399992" value="3642.5518,2749.8257,264.85724" tens="0.40000001"/>
+       <Key time="34.237011" value="3630.53,2747.03,264.44937"/>
+       <Key time="34.400993" value="3630.53,2747.03,263.62875"/>
+       <Key time="37.046013" value="3630.53,2747.03,264.44202"/>
+       <Key time="46.599998" value="3630.53,2747.03,264.44202"/>
+       <Key time="47.200001" value="3630.53,2747.03,264.44202"/>
+       <Key time="47.5" value="3631.1399,2746.5901,264.34"/>
+       <Key time="50.25" value="3630.53,2747.03,264.44202"/>
+       <Key time="50.900002" value="3630.511,2747.0474,264.44614"/>
+       <Key time="52.099998" value="3630.9836,2746.791,264.44604"/>
+       <Key time="52.75" value="3630.9836,2746.791,264.44604"/>
+       <Key time="53.299999" value="3630.53,2747.03,264.44202"/>
+       <Key time="61.799999" value="3630.53,2747.03,264.44202"/>
+       <Key time="63" value="3628.4299,2747.21,264.44199"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="1.9669533e-006" value="0.48855478,-0.089925319,-0.18358542,0.84824765"/>
+       <Key time="1" value="0.49857914,-0.087240204,-0.26117319,0.82194674"/>
+       <Key time="2" value="0.67583984,-0.12275515,-0.12912792,0.71519077"/>
+       <Key time="2.7999997" value="0.76848114,-0.11272063,-0.086071238,0.62395716"/>
+       <Key time="4" value="0.73213106,-0.065643109,-0.087803811,0.67228389"/>
+       <Key time="6.2000003" value="0.34117407,-0.17225181,-0.45967239,0.8016426"/>
+       <Key time="6.9999995" value="0.10536971,-0.0021059897,-0.62039286,0.77717787"/>
+       <Key time="7.3999996" value="-0.03102617,-0.010093678,0.70901811,-0.70443511"/>
+       <Key time="8.0749998" value="0.098536648,0.052862439,-0.61186659,0.78301686"/>
+       <Key time="8.3999996" value="0.098536596,0.052862424,-0.61186659,0.78301686"/>
+       <Key time="9.1999998" value="0.18272036,-0.0098425895,-0.22414248,0.9572233" tens="-1"/>
+       <Key time="11.8" value="0.57023585,-0.051536582,0.0049162265,0.81984824"/>
+       <Key time="13.399999" value="0.61358827,0.036274277,-0.0066652354,0.7887643"/>
+       <Key time="15.399999" value="0.51049829,-0.058065604,-0.02529599,0.85754299"/>
+       <Key time="17.4" value="0.41399029,-0.025886655,-0.091594383,0.90529126" tens="0.32499999"/>
+       <Key time="19.399992" value="0.765001,-0.043136977,0.016992033,0.64235812"/>
+       <Key time="21.5" value="0.90837747,0.01571147,-0.040588748,0.41587988"/>
+       <Key time="23.399992" value="0.97150546,0.024583478,0.021925872,0.23471741"/>
+       <Key time="24.899992" value="0.96234691,0.028210286,-0.045867454,0.26643747"/>
+       <Key time="26.899984" value="0.5774079,-0.020036558,0.050816059,0.81462646"/>
+       <Key time="28.799999" value="0.3754814,0.014367925,-0.065862432,0.92437518"/>
+       <Key time="30.700001" value="0.52951694,0.0012681074,0.075123295,0.84496546"/>
+       <Key time="32" value="0.73580128,0.084707431,0.02586771,0.6713807"/>
+       <Key time="33.725983" value="0.82141382,0.080683634,0.055192076,0.56189257"/>
+       <Key time="34.174999" value="-0.0021045401,0.046837483,-0.11802675,-0.99190301" easeto="0.001"/>
+       <Key time="34.400993" value="0.18400435,0.19947058,-0.32379478,-0.90637231" bias="1"/>
+       <Key time="34.950001" value="0.071293592,-0.0018204749,-0.51129907,-0.85643864"/>
+       <Key time="35.449997" value="0.4993152,0.15253361,0.52206361,0.67443854"/>
+       <Key time="35.984985" value="0.84845275,0.12224285,0.16471854,0.4879061"/>
+       <Key time="37.064991" value="0.88404286,0.075492531,0.048084423,0.45875582"/>
+       <Key time="39.033928" value="0.9166711,0.28735417,0.090844661,0.26246709"/>
+       <Key time="40.789558" value="0.80259478,0.067161523,0.059165612,0.58977157"/>
+       <Key time="44.11776" value="0.91069752,0.036199801,0.024974542,0.41072613"/>
+       <Key time="44.400002" value="0.88701725,0.10626522,0.059941728,0.4453257" tens="-0.033" bias="0.477"/>
+       <Key time="46.599998" value="0.89046037,0.055240892,0.03429937,0.45039141"/>
+       <Key time="47.700001" value="0.85262573,0.2670064,0.14039344,0.4266457" tens="1"/>
+       <Key time="48.150002" value="0.99717385,-0.057865735,0.03156694,-0.036047243" tens="0.62300003"/>
+       <Key time="49.25" value="0.99717385,-0.057865735,0.03156694,-0.036047243" tens="0.62300003"/>
+       <Key time="49.799999" value="0.84224981,-0.010722083,0.029079696,0.53819579"/>
+       <Key time="50.299999" value="0.84224981,-0.010722083,0.029079696,0.53819579"/>
+       <Key time="50.900002" value="0.72115093,0.38902465,0.15313211,0.55240548" tens="0.64099997"/>
+       <Key time="51.5" value="0.72239172,0.4151873,0.21129984,0.51100117"/>
+       <Key time="52.400002" value="0.89019358,-0.0076937014,-0.0083358595,0.45544112"/>
+       <Key time="53.599998" value="0.90642971,0.01707311,0.014394466,0.42176595"/>
+       <Key time="54" value="0.83745128,0.020733496,0.0215399,0.54569376"/>
+       <Key time="54.799999" value="0.85138834,0.0155273,0.01813693,0.5239923"/>
+       <Key time="56.200001" value="0.90936786,0.0090668993,0.0080803968,0.41581562"/>
+       <Key time="60.5" value="0.89702427,0.014567345,0.0081453416,0.44166622"/>
+       <Key time="61.799999" value="0.89702427,0.014567345,0.0081453416,0.44166622"/>
+       <Key time="62.224998" value="0.86706781,-0.016370835,-0.081747383,0.49116474" tens="0.69499999"/>
+       <Key time="62.775002" value="0.85790366,-0.065873042,0.018480504,0.50923532"/>
+       <Key time="63" value="0.81881934,-0.015398335,0.051065933,0.57156795"/>
+      </Track>
+      <Track ParamId="0" Flags="0">
+       <Key time="0" value="60" tens="0.991"/>
+       <Key time="40.789558" value="60" tens="1"/>
+       <Key time="44.11776" value="50" cont="-1"/>
+       <Key time="44.400002" value="40"/>
+       <Key time="53.599998" value="50"/>
+       <Key time="56.200001" value="40"/>
+       <Key time="61.799999" value="40"/>
+       <Key time="63" value="60"/>
+      </Track>
+     </Node>
+     <Node Id="826491857" Type="1" Name="cine_2_barnesLand_pfx" Pos="3629.7253,2748.2134,263.09915" Rotate="0.67783892,0.67783886,-0.20133169,-0.20133166" Scale="1,1,1" EntityGUID="46EC6BA8314343D1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="52.199997" event="Restart"/>
+       <Key time="52.300003" event="Restart"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="63">
+       <Key time="52.199997" filename="Sounds/physics:collisions:vehicle_boat_hit" volume="1" pan="127" duration="1.028" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+     </Node>
+     <Node Id="933341676" Type="1" Name="cine_2_barnesSuit_dummy_Trigger" Pos="3649.6709,2745.4099,271.97339" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4F7B136837A1A9EC">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="42.900005" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="-397342880" Type="1" Name="cine_2_moac_pfx" Pos="3604.8159,2736.4536,274.26303" Rotate="0.90179777,0.21808656,0.053729679,0.36920476" Scale="1,1,1" EntityGUID="47BD625CE8510760">
+      <Track ParamId="1" Flags="0"/>
+      <Track ParamId="2" Flags="0">
+       <Key time="34.099979" value="0.90179777,0.21808656,0.053729679,0.36920476"/>
+       <Key time="34.499981" value="0.86161834,0.30263907,0.074146576,0.40065667"/>
+       <Key time="34.899975" value="0.8475973,0.33993432,0.091552392,0.39704111"/>
+       <Key time="35.399975" value="0.81593645,0.27892399,0.0022715358,0.50640303"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="10.4" event="Disable"/>
+       <Key time="33.399975" event="Disable"/>
+       <Key time="34.099979" event="Restart"/>
+       <Key time="34.299976" event="Disable"/>
+       <Key time="34.499981" event="Restart"/>
+       <Key time="34.699978" event="Disable"/>
+       <Key time="34.899975" event="Restart"/>
+       <Key time="35.399975" event="Disable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1672469987" Type="1" Name="cine_2_moac_ses" Pos="3604.8994,2743.0779,273.71292" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="471B32429C50221D">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="63">
+       <Key time="32.899982" filename="Sounds/weapons:moac_small:spin_up_fp" volume="1" pan="127" duration="1.3030001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+       <Key time="34.099987" filename="Sounds/weapons:heavymachinegun:fire_3rd_loop" volume="1" pan="127" duration="-0.001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+       <Key time="35.699986" filename="" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+      </Track>
+     </Node>
+     <Node Id="-1262835862" Type="1" Name="Scout psy SES" Pos="3618.4685,2735.1875,266.93909" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="487D5943B4BAA76A">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+       <Key time="32.599995" event="Play"/>
+       <Key time="63" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="253012039" Type="1" Name="cine_2_prophet_aniObj" Pos="3628.4299,2744.9399,262.81" Rotate="0.91244179,0,0,0.40920657" Scale="1,1,1" EntityGUID="40506C3C0F14A847">
+      <Track ParamId="1" Flags="0">
+       <Key time="49.700001" value="3628.4299,2744.9399,262.81"/>
+       <Key time="51.700001" value="3630.04,2747.99,263.03" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="49.700001" value="0.91244179,0,0,0.40920657"/>
+       <Key time="52.099998" value="0.86269027,0,0,0.50573266"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Hide"/>
+       <Key time="43.749989" event="Hide"/>
+       <Key time="50.250004" event="UnHide"/>
+       <Key time="63" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="50.250004" anim="cineIce_ab2_BarnesLandAndFight_01" length="15.700001"/>
+      </Track>
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="63">
+       <Key time="50.10001" filename="" volume="1" pan="127" duration="0" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="1"/>
+       <Key time="54.800003" filename="languages/dialog/ice/prophet_ice_ab2_b6bdf671.mp2" volume="1" pan="127" duration="1.7340001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="57.099972" filename="languages/dialog/ice/prophet_ice_ab2_08f2e189.mp2" volume="1" pan="127" duration="2.7260001" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+       <Key time="60.700012" filename="languages/dialog/ice/prophet_ice_ab2_e7a87435.mp2" volume="1" pan="127" duration="0.95000005" desc="" InRadius="10" OutRadius="100" Stream="0" Is3D="0" Loop="0" Voice="1" LipSync="1"/>
+      </Track>
+      <Track ParamId="21" Flags="0" StartTime="0" EndTime="63"/>
+     </Node>
+     <Node Id="-1688778244" Type="1" Name="cine_2_moac_impact_pfx" Pos="0.74000001,6.4699998,0.1031799" Rotate="0.65328151,0.65328145,-0.27059805,-0.27059808" Scale="1,1,1" EntityGUID="4B7342999B5749FC">
+      <Track ParamId="1" Flags="0">
+       <Key time="52.599998" value="0.74000001,6.4699998,0.1031799"/>
+       <Key time="53.400002" value="-3.48,10.02,0.1032104"/>
+       <Key time="56.199989" value="-1.61,5.3299999,0.1031799"/>
+       <Key time="57.299995" value="0.93000001,12.27,0.1032104"/>
+       <Key time="58.499992" value="-2.6500001,7.8000002,0.1031799"/>
+       <Key time="59.399986" value="-0.23999999,9.0299997,0.1031886"/>
+       <Key time="62.400002" value="1.53,5.1599998,0.1032104"/>
+      </Track>
+      <Track ParamId="2" Flags="0"/>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="51.399986" event="Disable"/>
+       <Key time="52.599998" event="Restart"/>
+       <Key time="52.699989" event="Restart"/>
+       <Key time="52.799995" event="Restart"/>
+       <Key time="52.899986" event="Restart"/>
+       <Key time="52.999992" event="Restart"/>
+       <Key time="53.099998" event="Restart"/>
+       <Key time="53.199989" event="Restart"/>
+       <Key time="53.299995" event="Restart"/>
+       <Key time="53.400002" event="Restart"/>
+       <Key time="53.499992" event="Restart"/>
+       <Key time="56.199989" event="Restart"/>
+       <Key time="56.29998" event="Restart"/>
+       <Key time="56.399986" event="Restart"/>
+       <Key time="56.499977" event="Restart"/>
+       <Key time="56.599983" event="Restart"/>
+       <Key time="56.699989" event="Restart"/>
+       <Key time="56.79998" event="Restart"/>
+       <Key time="56.899986" event="Restart"/>
+       <Key time="56.999992" event="Restart"/>
+       <Key time="57.099983" event="Restart"/>
+       <Key time="57.199989" event="Restart"/>
+       <Key time="57.299995" event="Restart"/>
+       <Key time="57.400002" event="Restart"/>
+       <Key time="58.499992" event="Restart"/>
+       <Key time="58.599983" event="Restart"/>
+       <Key time="58.699989" event="Restart"/>
+       <Key time="58.799995" event="Restart"/>
+       <Key time="58.899986" event="Restart"/>
+       <Key time="58.999992" event="Restart"/>
+       <Key time="59.099998" event="Restart"/>
+       <Key time="59.199989" event="Restart"/>
+       <Key time="59.299995" event="Restart"/>
+       <Key time="59.399986" event="Restart"/>
+       <Key time="59.499992" event="Restart"/>
+       <Key time="59.599998" event="Restart"/>
+       <Key time="59.699989" event="Restart"/>
+       <Key time="59.799995" event="Restart"/>
+       <Key time="59.899986" event="Restart"/>
+       <Key time="59.999992" event="Restart"/>
+       <Key time="60.099998" event="Restart"/>
+       <Key time="60.199989" event="Restart"/>
+       <Key time="60.299995" event="Restart"/>
+       <Key time="60.399986" event="Restart"/>
+       <Key time="60.499992" event="Restart"/>
+       <Key time="60.599998" event="Restart"/>
+       <Key time="60.699989" event="Restart"/>
+       <Key time="60.799995" event="Restart"/>
+       <Key time="60.899986" event="Restart"/>
+       <Key time="60.999992" event="Restart"/>
+       <Key time="61.099998" event="Restart"/>
+       <Key time="61.199989" event="Restart"/>
+       <Key time="61.299995" event="Restart"/>
+       <Key time="61.399986" event="Restart"/>
+       <Key time="61.499992" event="Restart"/>
+       <Key time="61.599998" event="Restart"/>
+       <Key time="61.699989" event="Restart"/>
+       <Key time="61.799995" event="Restart"/>
+       <Key time="61.900002" event="Restart"/>
+       <Key time="61.999992" event="Restart"/>
+       <Key time="62.099998" event="Restart"/>
+       <Key time="62.199989" event="Restart"/>
+       <Key time="62.299995" event="Restart"/>
+       <Key time="62.399986" event="Restart"/>
+       <Key time="62.499992" event="Restart"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-327474276" Type="1" Name="cine_2_DOF_dummyTrigger" Pos="3649.2107,2743.3777,263.44717" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4789C080EC7B239C">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="11.4" event="Leave"/>
+       <Key time="15.400002" event="Disable"/>
+       <Key time="17.400002" event="Leave"/>
+       <Key time="20.400002" event="Disable"/>
+       <Key time="26.399994" event="Enable"/>
+       <Key time="33.399982" event="Enter"/>
+       <Key time="37.39999" event="Disable"/>
+       <Key time="38.399982" event="Enable"/>
+       <Key time="40.399982" event="Enter"/>
+       <Key time="46.299999" event="Disable"/>
+       <Key time="52.500004" event="Enable"/>
+       <Key time="53.300007" event="Disable"/>
+       <Key time="55.899998" event="Enable"/>
+       <Key time="57.300014" event="Disable"/>
+       <Key time="58.400005" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-2000350151" Type="1" Name="cine_2_trooperKill_dummyTrigger" Pos="3650.1763,2744.8005,263.26953" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="40AAA95888C51439">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.100002" event="Enter"/>
+       <Key time="45.699982" event="Enable"/>
+       <Key time="63" event="Leave"/>
+      </Track>
+     </Node>
+     <Node Id="-1664555790" Type="1" Name="cine_2_barnes_suitSpark_pfx" Pos="-0.30029297,-0.18725586,0.92990112" Rotate="0.65328151,0.65328145,-0.27059805,-0.27059808" Scale="1,1,1" EntityGUID="42D9AEE39CC8E4F2">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="61.899986" event="Disable"/>
+       <Key time="62.599998" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1907807489" Type="1" Name="cine_2_barnesHit_pfx" Pos="-0.028808594,1.0174561,1.3741455" Rotate="0.65328151,0.65328145,-0.27059805,-0.27059808" Scale="1,1,1" EntityGUID="49EF46B48E492AFF">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="61.899986" event="Disable"/>
+       <Key time="62.599998" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="396199617" Type="1" Name="cine_2_camShake_dummyTrigger" Pos="3650.7412,2746.0095,263.5217" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="42E8B224179D86C1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="45.699982" event="Enter"/>
+       <Key time="55.099998" event="Leave"/>
+       <Key time="59.400009" event="Enable"/>
+       <Key time="63" event="Enable"/>
+      </Track>
+     </Node>
+     <Node Id="18124069" Type="1" Name="cine_2_scout_dummytrigger" Pos="3647.9133,2699.3296,288.35852" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="40B2764E01148D25">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="27.4" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="1803339650" Type="1" Name="cine_2_trooperKill_dummyTrigger2" Pos="3651.136,2746.2795,263.23022" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4CA2D5766B7CC782">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="46.799999" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="-2035264025" Type="1" Name="SoundEventSpot6" Pos="3611.5835,2764.458,267.71799" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4872924186B055E7">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+       <Key time="41.400002" event="Play"/>
+       <Key time="63" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-2072852469" Type="1" Name="SoundEventSpot7" Pos="3609.6606,2762.7456,267.94296" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="42A8985B8472C80B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+       <Key time="43.599998" event="Play"/>
+       <Key time="63" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-73206911" Type="1" Name="SoundEventSpot8" Pos="3610.9683,2763.6467,267.94296" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="42663451FBA2F381">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+       <Key time="44.400002" event="Play"/>
+       <Key time="63" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-711565382" Type="1" Name="cine_2_trooper_part4" Pos="-0.053222656,-0.0012512207,1.571991" Rotate="0.350207,0,0,0.93667233" Scale="1,1,1" EntityGUID="4EEA6E4BD5965FBA">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.200001" event="Disable"/>
+       <Key time="58" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-883298902" Type="1" Name="cine_2_trooper_part3" Pos="3623.6433,2750.8835,268.36282" Rotate="-0.46092516,0.22980879,-0.38246617,0.76710856" Scale="1,1,1" EntityGUID="4A8C619ACB59EDAA">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.200001" event="Disable"/>
+       <Key time="47.599998" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1069360312" Type="1" Name="cine_2_trooper_part2" Pos="3604.2578,2762.9158,265.17163" Rotate="0.99904823,0,0,0.043619305" Scale="1,1,1" EntityGUID="42D96DC63FBD24B8">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.200001" event="Disable"/>
+       <Key time="58" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-978246499" Type="1" Name="cine_2_trooper_part1" Pos="0.0390625,-0.16113281,1.4460449" Rotate="0.3987487,0,0,0.91706026" Scale="1,1,1" EntityGUID="4404FB4FC5B1249D">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.200001" event="Disable"/>
+       <Key time="58" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1429436970" Type="1" Name="cine_2_trooperKill_dummyTrigger3" Pos="3649.5391,2744.2583,263.26953" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="458040E1AACC85D6">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="47.600006" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="1802316979" Type="1" Name="cine_2_killedaliensound_SES" Pos="3623.9448,2751.6899,266.60507" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4DDBE9C76B6D2CB3">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Stop"/>
+       <Key time="51.299999"/>
+       <Key time="63" event="Stop"/>
+      </Track>
+     </Node>
+     <Node Id="-1481889227" Type="1" Name="cine_2_leader_aniObj" Pos="3609.0125,2764.9326,263.2977" Rotate="0.41469318,0,0,-0.90996128" Scale="1,1,1" EntityGUID="413E625AA7AC2A35">
+      <Track ParamId="1" Flags="0">
+       <Key time="43.650002" value="3609.0125,2764.9326,263.2977"/>
+       <Key time="44.5" value="3611.4651,2759.0959,270.0195" bias="-0.36899999"/>
+       <Key time="45.25" value="3614.415,2755.814,266.78799" bias="-0.87900001"/>
+       <Key time="46.749996" value="3614.415,2755.814,266.78799" tens="1"/>
+       <Key time="47.599998" value="3619.7571,2752.9561,264.57999"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="44.799999" value="0.41469318,0,0,-0.90996128"/>
+       <Key time="45.599998" value="0.51331657,7.4887503e-005,4.4792621e-005,-0.8581993"/>
+       <Key time="47.599998" value="0.51331657,7.4887495e-005,4.4792629e-005,-0.85819936"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Hide"/>
+       <Key time="43.700001" event="UnHide"/>
+       <Key time="47.599998" event="Hide"/>
+       <Key time="63" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="43.400002" anim="trooper_jumpStart_FwdHigh_01" length="1"/>
+       <Key time="44.799999" anim="trooper_flyToStayOnRock_01" length="0.80000001"/>
+       <Key time="45.599998" anim="trooper_StayOnRock_01" length="5.1333332"/>
+       <Key time="46.799999" anim="trooper_jump12m_forward_01" length="1.4000001"/>
+       <Key time="47.599998"/>
+      </Track>
+     </Node>
+     <Node Id="1455291345" Type="1" Name="cine_2_doll_trigger" Pos="3625.1831,2749.7786,266.96463" Rotate="0.93041754,0,0,-0.36650127" Scale="1,1,1" EntityGUID="415564A956BDFBD1">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="47.599998" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="-1295133077" Type="1" Name="cine_2_barnesshoot_dummytrigger" Pos="3646.1936,2744.302,263.44717" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4F1A67B9B2CDD66B">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="45.25" event="Enable"/>
+       <Key time="48" event="Disable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="278702205" Type="1" Name="cine_2_shootat_tagpoint" Pos="3610.9041,2750.8279,263.09781" Rotate="-0.40673658,0,0,0.91354549" Scale="1,1,1" EntityGUID="47812743109CA87D">
+      <Track ParamId="1" Flags="0">
+       <Key time="45.599998" value="3610.9041,2750.8279,263.09781"/>
+       <Key time="47.150002" value="3616.606,2757.8496,266.69574"/>
+       <Key time="47.400002" value="3624.9116,2750.1509,267.96979"/>
+       <Key time="47.599998" value="3627.719,2748.6138,266.42233"/>
+      </Track>
+     </Node>
+     <Node Id="-1408905593" Type="1" Name="cine_2_barnesMOAC" Pos="3625.7703,2749.6963,263.90125" Rotate="0.7964524,0.002113655,0.013238673,0.60455263" Scale="1,1,1" EntityGUID="44EAAD70AC05CE87">
+      <Track ParamId="1" Flags="0">
+       <Key time="54" value="3625.7703,2749.6963,263.90125"/>
+       <Key time="54.599998" value="3625.6416,2749.4412,263.91309"/>
+       <Key time="56.200001" value="3625.7139,2749.4421,263.90125"/>
+       <Key time="56.599998" value="3626.5713,2750.8743,263.84955"/>
+       <Key time="57.099998" value="3625.5391,2748.6313,263.80374"/>
+       <Key time="62.5" value="3626.3269,2750.144,263.80374"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="54" value="0.7964524,0.002113655,0.013238673,0.60455263"/>
+       <Key time="54.599998" value="0.78461152,0.002369293,0.013195318,0.61984277"/>
+       <Key time="56.200001" value="0.78035414,0.0024594788,0.013178808,0.62519413"/>
+       <Key time="56.599998" value="0.91557622,-0.0010352513,0.013366328,0.40192091"/>
+       <Key time="57.099998" value="0.69834542,0.0040472392,0.012780839,0.71563536"/>
+       <Key time="62.5" value="0.85072947,0.00083505444,0.01338031,0.52543288"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63"/>
+     </Node>
+     <Node Id="1608503926" Type="1" Name="cine_2_shootat_tagpoint2" Pos="3611.4158,2751.9338,264.6676" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="421816A25FDFD276">
+      <Track ParamId="1" Flags="0">
+       <Key time="56.200001" value="3611.4158,2751.9338,264.6676"/>
+       <Key time="56.599998" value="3617.7598,2758.9773,263.76984"/>
+       <Key time="57.099998" value="3612.019,2747.9058,263.76984"/>
+       <Key time="62.5" value="3598.9485,2763.5183,263.76984"/>
+      </Track>
+     </Node>
+     <Node Id="-373117069" Type="1" Name="cine_2_barnesshoot_dummytrigger1" Pos="3645.2358,2743.6504,263.44717" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="44D04048E9C2AF73">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="53.299995" event="Enable"/>
+       <Key time="54.599998" event="Disable"/>
+       <Key time="55.525002" event="Enable"/>
+       <Key time="57.200001" event="Disable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-1615432254" Type="1" Name="cine_2_ai_Trooper_5" Pos="3611.9961,2747.7556,263.24625" Rotate="0.97992462,0,0,-0.19936821" Scale="1,1,1" EntityGUID="4E1459599FB675C2">
+      <Track ParamId="1" Flags="0">
+       <Key time="53.75" value="3611.9961,2747.7556,263.24625"/>
+       <Key time="54.450001" value="3613.2214,2752.0305,263.24625"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="53.75" value="0.97992462,0,0,-0.19936821"/>
+       <Key time="54.450001" value="0.93041748,0,0,-0.36650148"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="53.650002" event="Enable"/>
+       <Key time="54.450001" event="Kill"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="53.75" anim="trooper_jumpMeleeAttack_02" length="1.2333333"/>
+      </Track>
+     </Node>
+     <Node Id="-1251358157" Type="1" Name="cine_2_ai_Trooper_6" Pos="3622.9453,2761.2959,263.33978" Rotate="0.2334456,0,0,0.97236985" Scale="1,1,1" EntityGUID="4883B196B569CA33">
+      <Track ParamId="1" Flags="0">
+       <Key time="56.024998" value="3622.9453,2761.2959,263.33978"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="56.024998" value="0.2334456,0,0,0.97236985"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="55.974998" event="Enable"/>
+       <Key time="57.049995" event="Kill"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="56.024998" anim="trooper_jump12m_forward_01" length="1.4000001"/>
+      </Track>
+     </Node>
+     <Node Id="-1469083463" Type="1" Name="cine_2_trooper_part5" Pos="-0.07421875,-0.14990234,1.5012207" Rotate="1,0,0,-4.4703484e-008" Scale="1,1,1" EntityGUID="4357C433A86F90B9">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="54.450001" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="535455033" Type="1" Name="cine_2_trooper_part6" Pos="-0.25195313,-0.18408203,1.4076538" Rotate="0.13917316,0,0,0.99026805" Scale="1,1,1" EntityGUID="4AF12B801FEA6539">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="57.049999" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-126697455" Type="1" Name="cine_2_HUDeffect_DT" Pos="3643.4978,2742.5864,263.26178" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4453E8C6F872C011">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="34.700005" event="Enable"/>
+       <Key time="36.299999" event="Disable"/>
+       <Key time="47.299999" event="Enable"/>
+       <Key time="48.599998" event="Disable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1194950680" Type="1" Name="cine_2_nomad_AnimObj" Pos="3655.5801,2756.0801,272.56" Rotate="-0.055309504,-0.4925907,0.19506024,-0.84631366" Scale="1,1,1" EntityGUID="4573FBAB47398018">
+      <Track ParamId="1" Flags="0">
+       <Key time="0.024999499" value="3655.5801,2756.0801,272.56" cont="-1"/>
+       <Key time="6.8249998" value="3655.5801,2756.0801,272.56" cont="-1"/>
+       <Key time="6.9499998" value="3655.6599,2755.71,272.56"/>
+       <Key time="7.0500002" value="3655.6599,2755.45,272.56"/>
+       <Key time="7.1500001" value="3655.2893,2755.0652,272.56"/>
+       <Key time="7.3000002" value="3654.78,2754.6499,272.56"/>
+       <Key time="7.5999999" value="3654.5801,2754.3101,269.67001"/>
+       <Key time="8.0749998" value="3654.3701,2754.47,264.53"/>
+       <Key time="8.1999998" value="3654.2681,2754.3101,263.45999"/>
+       <Key time="8.25" value="3654.249,2754.28,262.92001" tens="1"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="0.024999499" value="-0.055309504,-0.4925907,0.19506024,-0.84631366" cont="-1"/>
+       <Key time="6.8249998" value="-0.055309504,-0.4925907,0.19506024,-0.84631366" cont="-1"/>
+       <Key time="6.9499998" value="0.051972579,-0.49295396,0.0083974674,-0.86846107"/>
+       <Key time="7.1500001" value="-0.11408044,0.48238003,0.10182802,0.86251158"/>
+       <Key time="7.3000002" value="0.061328333,0.12884651,-0.10976193,0.98366141"/>
+       <Key time="8.0749998" value="0.096996225,0.057807244,-0.093094632,0.98923379"/>
+       <Key time="8.25" value="0.085909799,0.042872719,0.10519733,0.98980552"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Hide"/>
+       <Key time="6.8249998" event="UnHide"/>
+       <Key time="63" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="6.8249993" anim="cineIce_ab2_BarnesJumpLoop_01" length="1.6000001" loop="1"/>
+       <Key time="8.0749998" anim="cineIce_ab2_nomadLand_01" length="1.7333335"/>
+      </Track>
+     </Node>
+     <Node Id="1071313534" Type="1" Name="cine_2_arms" Pos="3655.96,2755.8,273.54001" Rotate="0.3505865,-0.15126604,-0.43353319,0.81624556" Scale="1,1,1" EntityGUID="4CD9A36A3FDAF27E">
+      <Track ParamId="1" Flags="0">
+       <Key time="6.4000001" value="3655.96,2755.8,273.54001"/>
+       <Key time="6.8000002" value="3655.75,2755.8201,272.82999"/>
+       <Key time="6.9499998" value="3655.54,2755.78,272.37"/>
+      </Track>
+      <Track ParamId="2" Flags="0">
+       <Key time="6.4000001" value="0.3505865,-0.15126604,-0.43353319,0.81624556"/>
+       <Key time="6.8000002" value="0.2724604,-0.37695211,-0.39953715,0.7899636"/>
+       <Key time="6.9499998" value="0.17743275,-0.4174172,-0.38192582,0.80524105"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Hide"/>
+       <Key time="6.4499998" event="UnHide"/>
+       <Key time="63" event="Hide"/>
+      </Track>
+      <Track ParamId="10" Flags="0" StartTime="0" EndTime="63">
+       <Key time="6.4499998" anim="swim_idle_nw_01" length="3.3333282"/>
+      </Track>
+     </Node>
+     <Node Id="-127221331" Type="1" Name="cine_2_jump_pfx" Pos="3654.2251,2753.6724,262.8779" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="472FE93CF86AC1AD">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Disable"/>
+       <Key time="8.25" event="Enable"/>
+       <Key time="9.1499996" event="Disable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="-2028674326" Type="1" Name="cine_2_strengthmode_DT" Pos="3643.9866,2741.3853,263.26178" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4952550B8714E2EA">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="5.5999999" event="Enable"/>
+       <Key time="63" event="Disable"/>
+      </Track>
+     </Node>
+     <Node Id="1617496332" Type="1" Name="cine_2_musictrigger" Pos="3650.3545,2746.3025,263.23022" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4790C66E6069090C">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="959171906" Type="1" Name="cine_2_musictrigger1" Pos="3649.771,2746.2417,263.23022" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="4CB4A75D392BCD42">
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="36.5" event="Enter"/>
+      </Track>
+     </Node>
+     <Node Id="512099499" Type="1" Name="cine_2_soundmix_1" Pos="3637.3005,2777.2046,270.0563" Rotate="1,0,0,0" Scale="1,1,1" EntityGUID="42BC53501E8604AB">
+      <Track ParamId="7" Flags="0" StartTime="0" EndTime="63">
+       <Key time="0.0099999998" filename="Sounds/cutscenes:ice_outpost:ice_arena_player_foley_01" volume="1" pan="127" duration="5.6650004" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="6.0599999" filename="Sounds/cutscenes:ice_outpost:ice_arena_player_foley_02" volume="1" pan="127" duration="8.7680006" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="15.76" filename="Sounds/cutscenes:ice_outpost:ice_arena_player_foley_03" volume="1" pan="127" duration="7.6120005" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="23.959999" filename="Sounds/cutscenes:ice_outpost:ice_arena_player_foley_04" volume="1" pan="127" duration="9.1070004" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="33.369999" filename="Sounds/cutscenes:ice_outpost:ice_arena_player_foley_05" volume="1" pan="127" duration="1.508" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="52.91" filename="Sounds/cutscenes:ice_outpost:ice_arena_prophet_fires_2" volume="1" pan="127" duration="3.9240003" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+      <Track ParamId="8" Flags="0" StartTime="0" EndTime="63">
+       <Key time="33.16" filename="Sounds/cutscenes:ice_outpost:ice_arena_scout_flyover" volume="1" pan="127" duration="10.402" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="43.689999" filename="Sounds/cutscenes:ice_outpost:ice_arena_troopers_jump" volume="1" pan="127" duration="2.6270001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="46.400002" filename="Sounds/cutscenes:ice_outpost:ice_arena_trooper_attacks" volume="1" pan="127" duration="3.0340002" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="49.52" filename="Sounds/cutscenes:ice_outpost:ice_arena_trooper_noise_02" volume="1" pan="127" duration="0.98200005" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="52.200001" filename="Sounds/cutscenes:ice_outpost:ice_arena_trooper_noise_03" volume="1" pan="127" duration="1.429" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="55.279999" filename="Sounds/cutscenes:ice_outpost:ice_arena_prophet_fires_3" volume="1" pan="127" duration="3.0500002" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+      <Track ParamId="9" Flags="0" StartTime="0" EndTime="63">
+       <Key time="36.119999" filename="Sounds/cutscenes:ice_outpost:ice_arena_scout_drops_troopers" volume="1" pan="127" duration="5.0400004" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="41.869999" filename="Sounds/cutscenes:ice_outpost:ice_arena_trooper_noise_01" volume="1" pan="127" duration="1.0200001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="45.540001" filename="Sounds/cutscenes:ice_outpost:ice_arena_prophet_fires_1" volume="1" pan="127" duration="4.348" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="51.029999" filename="Sounds/cutscenes:ice_outpost:ice_arena_prophet_jumps" volume="1" pan="127" duration="2.9400001" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+       <Key time="58.389999" filename="Sounds/cutscenes:ice_outpost:ice_arena_trooper_noise_04" volume="1" pan="127" duration="3.6480002" desc="" InRadius="0" OutRadius="0" Stream="0" Is3D="0" Loop="0" Voice="0" LipSync="0"/>
+      </Track>
+      <Track ParamId="4" Flags="0" StartTime="0" EndTime="63">
+       <Key time="61.900002" event="Play"/>
+      </Track>
+      <Track ParamId="1" Flags="0"/>
+     </Node>
+    </Nodes>
+   </Sequence>
+  </SequenceData>
+ </Mission>
+</MovieData>

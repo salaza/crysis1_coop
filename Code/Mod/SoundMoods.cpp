@@ -198,3 +198,20 @@ void CSoundMoods::Update()
 }
 
 //-----------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------
+
+void CSoundMoods::ClearAllSoundMoods()
+{
+	if (!m_pSoundMoodManager)
+		return;
+
+	for (TVectorSoundMoods::iterator iter = m_vecSoundMoods.begin(); iter != m_vecSoundMoods.end(); ++iter)
+	{
+		SSoundMood *pSoundMood = &(*iter);
+		if (pSoundMood->bValid)
+		{
+			m_pSoundMoodManager->UpdateSoundMood(pSoundMood->strSoundMood, 0.0f, 0);
+			pSoundMood->bValid = false;
+		}
+	}
+}

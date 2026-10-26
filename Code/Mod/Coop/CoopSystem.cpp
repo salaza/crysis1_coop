@@ -546,6 +546,12 @@ bool CCoopSystem::Initialize()
 	EnforceCoopPhysicsSettings();
 	EnforceCoopLuaPhysics();
 
+	// Optimize sound buffers and MPEG decoders for Co-op (prevents FMOD starvation and random silence)
+	if (ICVar* pDecoders = gEnv->pConsole->GetCVar("s_MPEGDecoders"))
+		pDecoders->Set(64);
+	if (ICVar* pCacheSize = gEnv->pConsole->GetCVar("s_CacheSize"))
+		pCacheSize->Set(128);
+
 	// Crysis Co-op: GameSpy is offline - use direct connections only
 	if (ICVar* pLan = gEnv->pConsole->GetCVar("sv_lanonly"))
 		pLan->Set(1);

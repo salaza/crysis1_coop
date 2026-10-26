@@ -820,6 +820,8 @@ void CGameRules::OnRevive(CActor *pActor, const Vec3 &pos, const Quat &rot, int 
 	if (pActor && pActor->IsPlayer() && IsCoop())
 	{
 		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+		if (pActor->IsClient() && g_pGame && g_pGame->GetSoundMoods())
+			g_pGame->GetSoundMoods()->ClearAllSoundMoods();
 	}
 
 	if(g_pGame->GetHUD())
@@ -857,6 +859,8 @@ void CGameRules::OnReviveInVehicle(CActor *pActor, EntityId vehicleId, int seatI
 	if (pActor && pActor->IsPlayer() && IsCoop())
 	{
 		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+		if (pActor->IsClient() && g_pGame && g_pGame->GetSoundMoods())
+			g_pGame->GetSoundMoods()->ClearAllSoundMoods();
 	}
 
 	SGameObjectEvent evt(eCGE_ActorRevive,eGOEF_ToAll, IGameObjectSystem::InvalidExtensionID, (void*)pActor);
@@ -1005,6 +1009,8 @@ void CGameRules::RevivePlayer(CActor *pActor, const Vec3 &pos, const Ang3 &angle
 			SetPlayerLives(pActor->GetEntityId(), 3);
 		}
 		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+		if (pActor->IsClient() && g_pGame && g_pGame->GetSoundMoods())
+			g_pGame->GetSoundMoods()->ClearAllSoundMoods();
 	}
 	// get out of vehicles before reviving
 	if (IVehicle *pVehicle=pActor->GetLinkedVehicle())
@@ -1066,6 +1072,8 @@ void CGameRules::RevivePlayerInVehicle(CActor *pActor, EntityId vehicleId, int s
 			SetPlayerLives(pActor->GetEntityId(), 3);
 		}
 		pActor->SetSpectatorMode(CActor::eASM_None, 0);
+		if (pActor->IsClient() && g_pGame && g_pGame->GetSoundMoods())
+			g_pGame->GetSoundMoods()->ClearAllSoundMoods();
 	}
 
 	// might get here with an invalid (-ve) seat id if all seats are currently occupied. 
@@ -4581,6 +4589,8 @@ void CGameRules::OnCheckpointReached()
 				{
 					CryLogAlways("[Co-op] Reviving fallen player '%s' at checkpoint", pActor->GetEntity()->GetName());
 					pActor->SetSpectatorMode(CActor::eASM_None, 0);
+		if (pActor->IsClient() && g_pGame && g_pGame->GetSoundMoods())
+			g_pGame->GetSoundMoods()->ClearAllSoundMoods();
 
 					Vec3 spawnPos = refPos;
 					Ang3 spawnAngles = refAngles;

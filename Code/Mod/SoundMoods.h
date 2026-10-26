@@ -46,6 +46,7 @@ public:
 	~	CSoundMoods();
 
 	void AddSoundMood(ESOUNDMOOD eSoundMood,float fPercent=0.0f);
+	void ClearAllSoundMoods();
 	void Serialize(TSerialize ser);
 	void Update();
 

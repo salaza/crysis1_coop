@@ -1,3 +1,4 @@
+#include <map>
 #ifndef _SequenceSynchronizer_H_
 #define _SequenceSynchronizer_H_
 
@@ -66,8 +67,7 @@ public:
 
 protected:
 	bool m_bInitialized;
-	string m_lastSequence;
-	float m_lastSequenceTime;
+	std::map<string, float> m_sequenceStartTimes;
 };
 
 CSequenceSynchronizer* GetSequenceSynchronizer();

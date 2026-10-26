@@ -4,3 +4,7 @@
 /scratch/
 
 /Mods/
+
+__pycache__/
+*.pyc
+CrysisCoop_Release_*.zip

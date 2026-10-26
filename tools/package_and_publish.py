@@ -68,7 +68,7 @@ def publish_github_release(repo, tag, name, body, zip_path, token):
 
 if __name__ == '__main__':
     src = r'E:\SteamLibrary\steamapps\common\Crysis\Mods\CrysisCoop'
-    tag = 'v1.7.3'
+    tag = 'v1.7.4'
     zip_name = f'CrysisCoop_Release_{tag}.zip'
     package_zip(src, zip_name)
 
@@ -77,13 +77,17 @@ if __name__ == '__main__':
         print("Error: Could not retrieve GitHub token!")
         sys.exit(1)
 
-    release_body = """### Crysis Co-op v1.7.3 Release Notes
+    release_body = """### Crysis Co-op v1.7.4 Release Notes
 
-#### Main Menu & Co-op Flow Integration
-- **CO-OP PLAY Main Menu Button**: Replaced the obsolete GameSpy `QUICK GAME` button with a native, streamlined **`CO-OP PLAY`** button directly inside the `02 MULTIPLAYER` menu.
-- **Dedicated Co-op Action**: Clicking `CO-OP PLAY` immediately takes players straight into the Co-op Campaign lobby, scanning LAN and internet co-op servers and providing one-click hosting for the full singleplayer campaign mission rotation.
-- **Visual & Localization Polish**: Integrated custom subtitle hint (`PLAY CO-OP CAMPAIGN`) and high-resolution typography matching Crysis's sci-fi aesthetic.
-- **C++ FSCommand Handling**: Added robust `MP_CoopPlay` and fallback handlers in `MPHub.cpp` ensuring responsive navigation regardless of GameSpy network service status."""
+#### Campaign Cutscene Synchronization & Audio Restoration
+- **Fixed Silent & Missing Cutscene Dialogue Campaign-Wide**: Resolved the root cause where 314 dialogue tracks across all 11 campaign levels (such as Dr. Rosenthal & General Kyong in `rescue`, Psycho & hostage in `village`, Aztec in `island`, Morrison & Helena in `fleet`) failed to play due to legacy `.mp3` path lookups instead of retail `.mp2` files.
+- **Dynamic Cutscene Camera 3D Audio Listener**: Audio listener (`IListener`) now dynamically tracks the cutscene camera's world coordinates and VisArea during cinematics, ensuring all 3D Foley sound effects, room reverberation, and voice lines are rendered with full clarity and zero room attenuation.
+- **Eliminated Premature Cutscene Abortion**: Letterbox sequences (`black_bars`) and utility sequences are strictly filtered from cutscene tracking, and `CSequenceSynchronizer` now features per-sequence lifetime maps with server-authoritative playback checks preventing premature camera switches or client desynchronization.
+
+#### Audio Dropout & Sound Mood Fixes
+- **Underwater Audio Filter Bug Fix**: Fixed an engine issue in `Player.cpp` where listener underwater filters were erroneously triggered on dry land when moving through areas with negative camera Z elevation.
+- **Sound Mood DSP Recovery**: Implemented `ClearAllSoundMoods()` to reset all lingering DSP dampeners (such as Rosenthal dome freeze, concentration, low health, and night vision) upon cutscene finish, player respawn/revive, and level transitions.
+- **FMOD Buffer & Decoder Starvation Prevention**: Increased MPEG audio decoders to 64 and sound cache size to 128 MB to comfortably handle multiple players, AI chatter, ambient radios, and cutscenes simultaneously."""
 
     publish_github_release('salaza/crysis1_coop', tag, f'Crysis Co-op {tag}', release_body, zip_name, token)
     print(f"Release {tag} successfully published!")
