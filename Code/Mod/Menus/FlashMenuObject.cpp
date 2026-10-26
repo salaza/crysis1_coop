@@ -33,6 +33,7 @@ History:
 #include "MPHub.h"
 #include "HUD/HUD.h"
 #include "HUD/HUDRadar.h"
+#include "Coop/CoopAdminMenu.h"
 #include "HUD/HUDTextChat.h"
 #include "OptionsManager.h"
 #include "IAVI_Reader.h"
@@ -2671,6 +2672,7 @@ void CFlashMenuObject::HandleFSCommand(const char *szCommand,const char *szArgs)
 		if (sp != string::npos)
 			lvl = lvl.substr(0, sp);
 
+		CCoopAdminMenu::GetInstance().ResetCampaignState();
 		SGameStartParams params;
 		params.flags = eGSF_Server | eGSF_Client;
 		if (!isServer)

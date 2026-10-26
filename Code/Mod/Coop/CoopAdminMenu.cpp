@@ -23,6 +23,8 @@ static const TSynchedKey COOP_LOBBY_WAITING_KEY = 950;
 static const TSynchedKey COOP_LOBBY_ROSTER_KEY  = 951;
 static const TSynchedKey COOP_LOBBY_LOADING_KEY = 952;
 static const TSynchedKey COOP_LOBBY_READY_KEY   = 953;
+static const TSynchedKey COOP_ADMIN_GODMODE_KEY = 954;
+static const TSynchedKey COOP_ADMIN_UNLIMITEDAMMO_KEY = 955;
 
 struct SMenuItem
 {
@@ -128,6 +130,7 @@ CCoopAdminMenu::CCoopAdminMenu()
 	: m_bOpen(false)
 	, m_currentCategory(0)
 	, m_statusTimer(0.0f)
+	, m_bCampaignStarted(false)
 	, m_bLobbyWaiting(false)
 	, m_bWasLobbyWaiting(false)
 	, m_lobbySyncTimer(0.0f)
@@ -157,11 +160,45 @@ void CCoopAdminMenu::Init()
 
 void CCoopAdminMenu::Shutdown()
 {
+	ResetCampaignState();
+
 	if (gEnv->pConsole)
 	{
 		gEnv->pConsole->RemoveCommand("admin_menu");
 		gEnv->pConsole->RemoveCommand("coop_start");
 		gEnv->pConsole->RemoveCommand("coop_spawn");
+	}
+}
+
+void CCoopAdminMenu::ResetCampaignState()
+{
+	m_bCampaignStarted = false;
+	m_bLobbyWaiting = false;
+	m_bWasLobbyWaiting = false;
+	m_lobbyTimeSinceLoad = 0.0f;
+	m_lobbyInitialTOD = -1.0f;
+	m_bGodMode = false;
+	m_bUnlimitedAmmo = false;
+	m_bAiIgnorePlayer = false;
+	m_lobbyPlayers.clear();
+	m_deferredSequences.clear();
+
+	if (g_pGameCVars)
+	{
+		g_pGameCVars->g_godMode = 0;
+		g_pGameCVars->i_unlimitedammo = 0;
+	}
+	if (gEnv->pConsole)
+	{
+		if (ICVar* pVar = gEnv->pConsole->GetCVar("ai_IgnorePlayer"))
+			pVar->Set(0);
+	}
+
+	if (gEnv->bServer && g_pGame && g_pGame->GetSynchedStorage())
+	{
+		g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_WAITING_KEY, false);
+		g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_GODMODE_KEY, false);
+		g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_UNLIMITEDAMMO_KEY, false);
 	}
 }
 
@@ -192,6 +229,29 @@ void CCoopAdminMenu::OnLoadingStart()
 	m_deferredSequences.clear();
 	m_lobbyTimeSinceLoad = 0.0f;
 	m_lobbyInitialTOD = -1.0f;
+
+	// Reset admin cheats on map transition so cheats never linger unintentionally
+	m_bGodMode = false;
+	m_bUnlimitedAmmo = false;
+	m_bAiIgnorePlayer = false;
+	if (g_pGameCVars)
+	{
+		g_pGameCVars->g_godMode = 0;
+		g_pGameCVars->i_unlimitedammo = 0;
+	}
+	if (gEnv->pConsole)
+	{
+		if (ICVar* pVar = gEnv->pConsole->GetCVar("ai_IgnorePlayer"))
+			pVar->Set(0);
+	}
+
+	// If campaign is already underway (seamless transition between maps), never re-engage lobby waiting
+	if (m_bCampaignStarted)
+	{
+		m_bLobbyWaiting = false;
+		return;
+	}
+
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
 		m_bLobbyWaiting = true;
@@ -210,6 +270,15 @@ void CCoopAdminMenu::OnLoadingComplete()
 {
 	m_lobbyTimeSinceLoad = 0.0f;
 	m_lobbyInitialTOD = -1.0f;
+
+	// If campaign is already underway, do not re-engage lobby waiting
+	if (m_bCampaignStarted)
+	{
+		m_bLobbyWaiting = false;
+		m_bWasLobbyWaiting = false;
+		SyncLobbyToClients();
+		return;
+	}
 
 	if (gEnv->bServer && gEnv->bMultiplayer)
 	{
@@ -291,6 +360,39 @@ bool CCoopAdminMenu::IsLobbyWaiting() const
 	return false;
 }
 
+bool CCoopAdminMenu::IsGodMode() const
+{
+	if (gEnv->bServer)
+		return m_bGodMode;
+
+	if (g_pGame && g_pGame->GetSynchedStorage())
+	{
+		bool bGod = false;
+		if (g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_ADMIN_GODMODE_KEY, bGod))
+			return bGod;
+	}
+	return m_bGodMode;
+}
+
+bool CCoopAdminMenu::IsUnlimitedAmmo() const
+{
+	if (gEnv->bServer)
+		return m_bUnlimitedAmmo;
+
+	if (g_pGame && g_pGame->GetSynchedStorage())
+	{
+		bool bAmmo = false;
+		if (g_pGame->GetSynchedStorage()->GetGlobalValue(COOP_ADMIN_UNLIMITEDAMMO_KEY, bAmmo))
+			return bAmmo;
+	}
+	return m_bUnlimitedAmmo;
+}
+
+bool CCoopAdminMenu::IsAiIgnorePlayer() const
+{
+	return m_bAiIgnorePlayer;
+}
+
 void CCoopAdminMenu::RegisterDeferredSequence(ICoopDeferredSequence* pSeq)
 {
 	if (!pSeq)
@@ -360,6 +462,8 @@ void CCoopAdminMenu::SyncLobbyToClients()
 	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_ROSTER_KEY, rosterStr);
 	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_LOADING_KEY, loadingCount);
 	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_LOBBY_READY_KEY, readyCount);
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_GODMODE_KEY, m_bGodMode);
+	g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_UNLIMITEDAMMO_KEY, m_bUnlimitedAmmo);
 }
 
 void CCoopAdminMenu::StartCampaignFromLobby()
@@ -369,6 +473,7 @@ void CCoopAdminMenu::StartCampaignFromLobby()
 
 	m_bLobbyWaiting = false;
 	m_bWasLobbyWaiting = false;
+	m_bCampaignStarted = true;
 	SyncLobbyToClients();
 
 	if (gEnv->pMusicSystem)
@@ -493,7 +598,47 @@ void CCoopAdminMenu::Update(float frameTime)
 		m_bWasLobbyWaiting = true;
 		m_lobbyTimeSinceLoad += frameTime;
 
-		// Ensure all players have full health and suit energy during lobby wait (God Mode)
+		// 1. Auto-start on Host movement: if host has started moving (>0.35 m/s) after 1.5s, start campaign!
+		if (gEnv->bServer && m_lobbyTimeSinceLoad >= 1.5f)
+		{
+			IActor* pClientActor = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetClientActor() : NULL;
+			if (pClientActor && pClientActor->GetEntity() && pClientActor->GetEntity()->GetPhysics())
+			{
+				pe_status_dynamics dyn;
+				if (pClientActor->GetEntity()->GetPhysics()->GetStatus(&dyn) && dyn.v.GetLengthSquared() > 0.12f)
+				{
+					CryLogAlways("[CoopLobby] Host movement detected (v=%.2f m/s). Starting campaign automatically!", dyn.v.GetLength());
+					StartCampaignFromLobby();
+					return;
+				}
+			}
+		}
+
+		// 2. Auto-start when squad is loaded: after 3.5s grace period, if all connected players are loaded, auto-start!
+		if (gEnv->bServer && m_lobbyTimeSinceLoad >= 3.5f)
+		{
+			int loadingCount = 0;
+			for (std::map<int, SLobbyPlayerInfo>::const_iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it)
+			{
+				if (!it->second.bLoaded)
+					loadingCount++;
+			}
+
+			if (loadingCount == 0)
+			{
+				CryLogAlways("[CoopLobby] All squad members loaded & ready. Auto-starting campaign after 3.5s grace period!");
+				StartCampaignFromLobby();
+				return;
+			}
+			else if (m_lobbyTimeSinceLoad >= 15.0f)
+			{
+				CryLogAlways("[CoopLobby] Hard loading timeout reached (15s). Starting campaign automatically!");
+				StartCampaignFromLobby();
+				return;
+			}
+		}
+
+		// Ensure all players have full health and suit energy during lobby wait (God Mode before mission starts)
 		if (gEnv->pGame)
 		{
 			IGameFramework* pGF = gEnv->pGame->GetIGameFramework();
@@ -549,6 +694,11 @@ void CCoopAdminMenu::Update(float frameTime)
 			SyncLobbyToClients();
 		}
 	}
+
+	if (!gEnv->bServer && g_pGameCVars)
+	{
+		g_pGameCVars->i_unlimitedammo = IsUnlimitedAmmo() ? 1 : 0;
+	}
 }
 
 bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
@@ -571,12 +721,7 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 		// Handle Pre-Game Campaign Lobby Start keys on Host when Admin Menu is closed
 		if (!m_bOpen && gEnv->bServer && m_bLobbyWaiting)
 		{
-			if (event.keyId == eKI_F3)
-			{
-				StartCampaignFromLobby();
-				return true;
-			}
-			else if ((event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter) && m_lobbyTimeSinceLoad >= 2.5f)
+			if (event.keyId == eKI_F3 || event.keyId == eKI_Enter || event.keyId == eKI_NP_Enter)
 			{
 				int loadingCount = 0;
 				for (std::map<int, SLobbyPlayerInfo>::const_iterator it = m_lobbyPlayers.begin(); it != m_lobbyPlayers.end(); ++it)
@@ -585,15 +730,21 @@ bool CCoopAdminMenu::OnInputEvent(const SInputEvent &event)
 						loadingCount++;
 				}
 
-				if (loadingCount == 0)
+				if (event.keyId == eKI_F3 || loadingCount == 0 || m_lobbyTimeSinceLoad >= 2.5f)
 				{
 					StartCampaignFromLobby();
+					return true;
 				}
 				else
 				{
 					SetStatus("Wait for connecting players to finish loading map, or press [F3] to Force Start!");
+					return true;
 				}
-				return true;
+			}
+			else if (m_lobbyTimeSinceLoad >= 1.0f && (event.keyId == eKI_W || event.keyId == eKI_A || event.keyId == eKI_S || event.keyId == eKI_D || event.keyId == eKI_Space))
+			{
+				StartCampaignFromLobby();
+				return false;
 			}
 		}
 
@@ -701,22 +852,20 @@ void CCoopAdminMenu::ExecuteSelected()
 			break;
 		case 2: // Toggle God Mode
 			{
-				m_bGodMode = !m_bGodMode;
 				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
 				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
 					pGR->RequestAdminCheat(2, localId);
-				SetStatus(m_bGodMode ? "God Mode: ENABLED" : "God Mode: DISABLED");
+				else if (gEnv->bServer)
+					ExecuteAdminCheat(2, localId);
 			}
 			break;
 		case 3: // Toggle Unlimited Ammo
 			{
-				m_bUnlimitedAmmo = !m_bUnlimitedAmmo;
-				if (g_pGameCVars)
-					g_pGameCVars->i_unlimitedammo = m_bUnlimitedAmmo ? 1 : 0;
 				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
 				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
 					pGR->RequestAdminCheat(3, localId);
-				SetStatus(m_bUnlimitedAmmo ? "Unlimited Ammo: ENABLED" : "Unlimited Ammo: DISABLED");
+				else if (gEnv->bServer)
+					ExecuteAdminCheat(3, localId);
 			}
 			break;
 		case 4: // Give All Weapons
@@ -737,11 +886,11 @@ void CCoopAdminMenu::ExecuteSelected()
 			break;
 		case 6: // Toggle AI Ignore Player
 			{
-				m_bAiIgnorePlayer = !m_bAiIgnorePlayer;
 				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
 				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
 					pGR->RequestAdminCheat(6, localId);
-				SetStatus(m_bAiIgnorePlayer ? "AI Ignore Players: ENABLED" : "AI Ignore Players: DISABLED");
+				else if (gEnv->bServer)
+					ExecuteAdminCheat(6, localId);
 			}
 			break;
 		case 7: // Kill All Enemies
@@ -831,6 +980,9 @@ void CCoopAdminMenu::ChangeMap(const char* mapName)
 {
 	if (!mapName || !mapName[0])
 		return;
+
+	if (stricmp(mapName, "island") == 0)
+		m_bCampaignStarted = false;
 
 	string status;
 	status.Format("Switching server map to: %s...", mapName);
@@ -935,9 +1087,9 @@ void CCoopAdminMenu::RenderLobbyOverlay()
 		}
 		else
 		{
-			pR->Draw2dLabel(startX, curY, 1.55f, colGreen, false, ">> ALL PLAYERS LOADED! PRESS [ENTER] OR [F3] TO START MISSION <<");
+			pR->Draw2dLabel(startX, curY, 1.55f, colGreen, false, ">> ALL PLAYERS LOADED! Starting automatically or press [ENTER]/[F3] <<");
 			curY += lineHeight * 1.1f;
-			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "   (Friends can join now before you press [ENTER] to start cutscenes)");
+			pR->Draw2dLabel(startX, curY, 1.25f, colDim, false, "   (Move [WASD] or press [ENTER] to launch mission immediately)");
 		}
 	}
 	else
@@ -1053,18 +1205,15 @@ void CCoopAdminMenu::Render()
 			}
 			else if (i == 2) // God mode
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("g_godMode") : NULL;
-				stateSuffix = (pVar && pVar->GetIVal()) ? "  [ENABLED]" : "  [DISABLED]";
+				stateSuffix = IsGodMode() ? "  [ENABLED]" : "  [DISABLED]";
 			}
 			else if (i == 3) // Unlimited ammo
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("i_unlimitedammo") : NULL;
-				stateSuffix = (pVar && pVar->GetIVal()) ? "  [ENABLED]" : "  [DISABLED]";
+				stateSuffix = IsUnlimitedAmmo() ? "  [ENABLED]" : "  [DISABLED]";
 			}
 			else if (i == 6) // AI ignore
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("ai_IgnorePlayer") : NULL;
-				stateSuffix = (pVar && pVar->GetIVal()) ? "  [ENABLED]" : "  [DISABLED]";
+				stateSuffix = IsAiIgnorePlayer() ? "  [ENABLED]" : "  [DISABLED]";
 			}
 		}
 		else if (m_currentCategory == ECAT_TIMEOFDAY)
@@ -1109,7 +1258,7 @@ void CCoopAdminMenu::Render()
 	}
 	else
 	{
-		pR->Draw2dLabel(startX, curY, 1.2f, colDim, false, "Press [ENTER] or [SPACE] to activate selected action.");
+		pR->Draw2dLabel(startX, curY, 1.2f, colDim, false, "Press [ENTER] to activate selected action.");
 	}
 }
 
@@ -1178,6 +1327,9 @@ void CCoopAdminMenu::ExecuteAdminCheat(int cheatId, EntityId targetId)
 			m_bGodMode = !m_bGodMode;
 			if (g_pGameCVars)
 				g_pGameCVars->g_godMode = m_bGodMode ? 1 : 0;
+			if (g_pGame && g_pGame->GetSynchedStorage())
+				g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_GODMODE_KEY, m_bGodMode);
+			SetStatus(m_bGodMode ? "God Mode: ENABLED" : "God Mode: DISABLED");
 			CryLogAlways("[Co-op Admin] Server executed God Mode: %s", m_bGodMode ? "ENABLED" : "DISABLED");
 		}
 		break;
@@ -1186,6 +1338,9 @@ void CCoopAdminMenu::ExecuteAdminCheat(int cheatId, EntityId targetId)
 			m_bUnlimitedAmmo = !m_bUnlimitedAmmo;
 			if (g_pGameCVars)
 				g_pGameCVars->i_unlimitedammo = m_bUnlimitedAmmo ? 1 : 0;
+			if (g_pGame && g_pGame->GetSynchedStorage())
+				g_pGame->GetSynchedStorage()->SetGlobalValue(COOP_ADMIN_UNLIMITEDAMMO_KEY, m_bUnlimitedAmmo);
+			SetStatus(m_bUnlimitedAmmo ? "Unlimited Ammo: ENABLED" : "Unlimited Ammo: DISABLED");
 			CryLogAlways("[Co-op Admin] Server executed Unlimited Ammo: %s", m_bUnlimitedAmmo ? "ENABLED" : "DISABLED");
 		}
 		break;
@@ -1257,6 +1412,7 @@ void CCoopAdminMenu::ExecuteAdminCheat(int cheatId, EntityId targetId)
 			ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("ai_IgnorePlayer") : NULL;
 			if (pVar)
 				pVar->Set(m_bAiIgnorePlayer ? 1 : 0);
+			SetStatus(m_bAiIgnorePlayer ? "AI Ignore Players: ENABLED" : "AI Ignore Players: DISABLED");
 			CryLogAlways("[Co-op Admin] Server toggled AI Ignore Player: %s", m_bAiIgnorePlayer ? "ENABLED" : "DISABLED");
 		}
 		break;

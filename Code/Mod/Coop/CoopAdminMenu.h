@@ -46,9 +46,13 @@ public:
 	void ServerSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles);
 	void ExecuteAdminCheat(int cheatId, EntityId targetId);
 
-	bool IsGodMode() const { return m_bGodMode; }
-	bool IsUnlimitedAmmo() const { return m_bUnlimitedAmmo; }
-	bool IsAiIgnorePlayer() const { return m_bAiIgnorePlayer; }
+	bool IsCampaignStarted() const { return m_bCampaignStarted; }
+	void SetCampaignStarted(bool bStarted) { m_bCampaignStarted = bStarted; }
+	void ResetCampaignState();
+
+	bool IsGodMode() const;
+	bool IsUnlimitedAmmo() const;
+	bool IsAiIgnorePlayer() const;
 
 private:
 	CCoopAdminMenu();
@@ -79,7 +83,8 @@ private:
 	string m_statusMessage;
 	float m_statusTimer;
 
-	// Lobby state
+	// Lobby & Campaign state
+	bool m_bCampaignStarted;
 	bool m_bLobbyWaiting;
 	bool m_bGodMode;
 	bool m_bUnlimitedAmmo;

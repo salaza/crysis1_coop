@@ -597,6 +597,7 @@ void CGameRules::OnDisconnect(EDisconnectionCause cause, const char *desc)
 {
 	m_pClientNetChannel=0;
 	int icause=(int)cause;
+	CCoopAdminMenu::GetInstance().ResetCampaignState();
 	CallScript(m_clientStateScript, "OnDisconnect", icause, desc);
 }
 

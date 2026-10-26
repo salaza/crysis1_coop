@@ -68,7 +68,7 @@ def publish_github_release(repo, tag, name, body, zip_path, token):
 
 if __name__ == '__main__':
     src = r'E:\SteamLibrary\steamapps\common\Crysis\Mods\CrysisCoop'
-    tag = 'v1.7.4'
+    tag = 'v1.7.5'
     zip_name = f'CrysisCoop_Release_{tag}.zip'
     package_zip(src, zip_name)
 
@@ -77,17 +77,18 @@ if __name__ == '__main__':
         print("Error: Could not retrieve GitHub token!")
         sys.exit(1)
 
-    release_body = """### Crysis Co-op v1.7.4 Release Notes
+    release_body = """### Crysis Co-op v1.7.5 Release Notes
 
-#### Campaign Cutscene Synchronization & Audio Restoration
-- **Fixed Silent & Missing Cutscene Dialogue Campaign-Wide**: Resolved the root cause where 314 dialogue tracks across all 11 campaign levels (such as Dr. Rosenthal & General Kyong in `rescue`, Psycho & hostage in `village`, Aztec in `island`, Morrison & Helena in `fleet`) failed to play due to legacy `.mp3` path lookups instead of retail `.mp2` files.
-- **Dynamic Cutscene Camera 3D Audio Listener**: Audio listener (`IListener`) now dynamically tracks the cutscene camera's world coordinates and VisArea during cinematics, ensuring all 3D Foley sound effects, room reverberation, and voice lines are rendered with full clarity and zero room attenuation.
-- **Eliminated Premature Cutscene Abortion**: Letterbox sequences (`black_bars`) and utility sequences are strictly filtered from cutscene tracking, and `CSequenceSynchronizer` now features per-sequence lifetime maps with server-authoritative playback checks preventing premature camera switches or client desynchronization.
-
-#### Audio Dropout & Sound Mood Fixes
-- **Underwater Audio Filter Bug Fix**: Fixed an engine issue in `Player.cpp` where listener underwater filters were erroneously triggered on dry land when moving through areas with negative camera Z elevation.
-- **Sound Mood DSP Recovery**: Implemented `ClearAllSoundMoods()` to reset all lingering DSP dampeners (such as Rosenthal dome freeze, concentration, low health, and night vision) upon cutscene finish, player respawn/revive, and level transitions.
-- **FMOD Buffer & Decoder Starvation Prevention**: Increased MPEG audio decoders to 64 and sound cache size to 128 MB to comfortably handle multiple players, AI chatter, ambient radios, and cutscenes simultaneously."""
+#### Player Invulnerability & Lobby God Mode Fixes
+- **Resolved Permanent God Mode**: Fixed an issue where the pre-game squad lobby state (`IsLobbyWaiting`) remained permanently active across the entire playthrough, continuously returning `IsGod() == 1`, refilling health & suit energy every frame, and aborting all player damage processing.
+- **Smart Campaign Auto-Start**:
+  - The squad lobby now automatically starts the campaign as soon as the host player moves (`WASD`, speed > 0.35 m/s) after a brief 1.5s hold.
+  - Automatically launches after a 3.5s grace period once all connecting squad members have finished loading the map.
+  - Added a 15-second hard timeout fallback ensuring games never get trapped in lobby wait.
+  - The host can still press `Enter` or `F3` at any time to launch immediately.
+- **Seamless Mission Transitions**: Campaign progression across maps (`island` -> `village` -> `rescue` ...) now retains `m_bCampaignStarted = true`, bypassing the pre-game squad lobby hold so cutscenes play immediately and players continue normal gameplay without re-entering god mode.
+- **Admin Cheat Double-Toggle Fix**: Fixed a synchronization bug on listen servers where activating "Toggle God Mode", "Toggle Unlimited Ammo", or "Toggle AI Ignore Player" in the Admin Menu executed the toggle twice synchronously (client + server), causing state desynchronization. Cheat states are now synchronized across the network via `SynchedStorage` and reset cleanly upon map loading or game disconnect.
+- **Updated Watermark**: Updated HUD watermark and version metadata to v1.7.5."""
 
     publish_github_release('salaza/crysis1_coop', tag, f'Crysis Co-op {tag}', release_body, zip_name, token)
     print(f"Release {tag} successfully published!")
