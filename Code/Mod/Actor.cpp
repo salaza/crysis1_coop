@@ -1659,6 +1659,9 @@ void CActor::SetChannelId(uint16 id)
 
 void CActor::SetHealth( int health )
 {
+	if (IsGod() > 0 && health < m_health)
+		return;
+
 	if (health <= 0)
 	{
 		if (IsGod() > 0) // handled in CPlayer

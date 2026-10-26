@@ -1202,6 +1202,9 @@ end
 ----------------------------------------------------------------------------------------------------
 function Coop:ProcessActorDamage(hit)
 	local target=hit.target;
+	if (target and target.actor and target.actor:IsPlayer() and target.actor:IsGod() > 0) then
+		return false;
+	end
 	local health=target.actor:GetHealth();
 	
 	health = math.floor(health - hit.damage*(1-self:GetDamageAbsorption(target, hit)));

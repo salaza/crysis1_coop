@@ -7,6 +7,7 @@
 #include "Game.h"
 #include "GameRules.h"
 #include "HUD/HUD.h"
+#include <StringUtils.h>
  
 CCoopCutsceneSystem CCoopCutsceneSystem::s_instance = CCoopCutsceneSystem();
  
@@ -37,20 +38,68 @@ CCoopCutsceneSystem::~CCoopCutsceneSystem()
  
 }
  
+bool CCoopCutsceneSystem::SequenceHasCamera(IAnimSequence* pSeq)
+{
+    if (!pSeq)
+        return false;
+
+    int nodeCount = pSeq->GetNodeCount();
+    for (int i = 0; i < nodeCount; ++i)
+    {
+        IAnimNode* pNode = pSeq->GetNode(i);
+        if (!pNode)
+            continue;
+
+        if (pNode->GetType() == ANODE_CAMERA)
+            return true;
+
+        if (pNode->GetType() == ANODE_SCENE)
+        {
+            IAnimTrack* pCamTrack = pNode->GetTrack(APARAM_CAMERA);
+            if (pCamTrack && pCamTrack->GetNumKeys() > 0)
+                return true;
+        }
+
+        const char* pNodeName = pNode->GetName();
+        if (pNodeName)
+        {
+            if (CryStringUtils::stristr(pNodeName, "cam") || CryStringUtils::stristr(pNodeName, "camera"))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 bool CCoopCutsceneSystem::IsCutsceneSequence(IAnimSequence* pSeq)
 {
     if (!pSeq)
         return false;
 
+    const char* sName = pSeq->GetName();
+    if (sName)
+    {
+        // Explicitly exclude non-cutscene ambient, idle, or movement sequences
+        if (CryStringUtils::stristr(sName, "parachute") ||
+            CryStringUtils::stristr(sName, "extro") ||
+            CryStringUtils::stristr(sName, "ambient") ||
+            CryStringUtils::stristr(sName, "ambience") ||
+            CryStringUtils::stristr(sName, "flyby") ||
+            CryStringUtils::stristr(sName, "fly_by") ||
+            CryStringUtils::stristr(sName, "idle"))
+        {
+            return false;
+        }
+    }
+
     int flags = pSeq->GetFlags();
     if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
         return true;
 
-    const char* sName = pSeq->GetName();
     if (sName)
     {
         if (strnicmp(sName, "cine_", 5) == 0 || strnicmp(sName, "cine.", 5) == 0)
-            return true;
+            return SequenceHasCamera(pSeq);
     }
 
     return false;
@@ -462,6 +511,24 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
                         pSeq ? pSeq->GetName() : "null", pOtherSeq->GetName());
                     pIt->Release();
                     m_pActiveSequence = pOtherSeq;
+                    m_pCameraEntity = NULL;
+                    m_fCameraFOV = 0.0f;
+                    int nodeCount = pOtherSeq->GetNodeCount();
+                    for (int i = 0; i < nodeCount; ++i)
+                    {
+                        IAnimNode* pNode = pOtherSeq->GetNode(i);
+                        if (pNode && (pNode->GetType() == ANODE_CAMERA || (pNode->GetName() && CryStringUtils::stristr(pNode->GetName(), "cam"))))
+                        {
+                            IEntity* pEnt = pNode->GetEntity();
+                            if (!pEnt && pNode->GetName() && gEnv->pEntitySystem)
+                                pEnt = gEnv->pEntitySystem->FindEntityByName(pNode->GetName());
+                            if (pEnt)
+                            {
+                                m_pCameraEntity = pEnt;
+                                break;
+                            }
+                        }
+                    }
                     return true;
                 }
             }
@@ -474,6 +541,24 @@ bool CCoopCutsceneSystem::OnEndCutScene(IAnimSequence* pSeq)
     m_fCameraFOV = 0.0f;
     IAnimSequence* pEnded = pSeq ? pSeq : m_pActiveSequence;
     m_pActiveSequence = NULL;
+
+    if (gEnv->pMovieSystem)
+    {
+        SCameraParams emptyParams;
+        gEnv->pMovieSystem->SetCameraParams(emptyParams);
+    }
+
+    if (gEnv->bServer && gEnv->bMultiplayer)
+    {
+        m_wasCutsceneActiveOnServer = false;
+        m_camSyncTimer = 0.0f;
+        CGameRules* pGameRules = g_pGame ? g_pGame->GetGameRules() : NULL;
+        if (pGameRules && pGameRules->GetGameObject())
+        {
+            CGameRules::SCutsceneCameraParams camParams(ZERO, IDENTITY, 0.0f, false);
+            pGameRules->GetGameObject()->InvokeRMI(CGameRules::ClCutsceneCameraSync(), camParams, eRMI_ToAllClients | eRMI_NoLocalCalls);
+        }
+    }
 
     if (!gEnv->bEditor && gEnv->pGame)
     {

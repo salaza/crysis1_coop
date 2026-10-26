@@ -4318,8 +4318,7 @@ IMPLEMENT_RMI(CGameRules, ClSyncCutscene)
 
 			pMovieSystem->SetPlayingTime(pSeq, fStartTime);
 
-			int flags = pSeq->GetFlags();
-			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			if (CCoopCutsceneSystem::IsCutsceneSequence(pSeq))
 			{
 				CCoopCutsceneSystem::GetInstance()->OnBeginCutScene(pSeq, true);
 				if (g_pGame && g_pGame->GetHUD())
@@ -4336,8 +4335,7 @@ IMPLEMENT_RMI(CGameRules, ClSyncCutscene)
 		{
 			CryLogAlways("[CGameRules::ClSyncCutscene] Stopping Sequence: '%s'", sSequence.c_str());
 			pMovieSystem->AbortSequence(pSeq, bLeaveTime);
-			int flags = pSeq->GetFlags();
-			if (flags & (IAnimSequence::CUT_SCENE | IAnimSequence::NO_PLAYER | IAnimSequence::IS_16TO9))
+			if (CCoopCutsceneSystem::IsCutsceneSequence(pSeq))
 			{
 				CCoopCutsceneSystem::GetInstance()->OnEndCutScene(pSeq);
 				if (g_pGame && g_pGame->GetHUD())

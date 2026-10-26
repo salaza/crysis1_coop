@@ -32,6 +32,7 @@ public:
     bool IsPlayingCutscene() const { return m_bPlayingCutscene; }
     bool IsCutsceneActiveOrRecent() const { return m_bPlayingCutscene || (m_fCutsceneEndedTimer < 2.5f); }
     static bool IsCutsceneSequence(IAnimSequence* pSeq);
+    static bool SequenceHasCamera(IAnimSequence* pSeq);
     IEntity* GetCameraEntity() const { return m_pCameraEntity; }
     float GetCameraFOV() const { return m_fCameraFOV; }
     void SetCameraEntity(IEntity* pEnt, float fov) { m_pCameraEntity = pEnt; m_fCameraFOV = fov; }

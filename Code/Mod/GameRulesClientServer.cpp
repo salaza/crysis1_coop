@@ -283,6 +283,8 @@ void CGameRules::ProcessServerHit(HitInfo &hitInfo)
 		CActor *pTarget=GetActorByEntityId(hitInfo.targetId);
 		if (pTarget && pTarget->GetSpectatorMode())
 			ok=false;
+		if (pTarget && pTarget->IsPlayer() && CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+			ok=false;
 	}
 
 	if (ok)

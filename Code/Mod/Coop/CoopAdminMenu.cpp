@@ -15,6 +15,7 @@
 #include "GameRules.h"
 #include "SynchedStorage.h"
 #include "Entities/SequenceSynchronizer.h"
+#include "Player.h"
 
 static const TSynchedKey COOP_LOBBY_WAITING_KEY = 950;
 static const TSynchedKey COOP_LOBBY_ROSTER_KEY  = 951;
@@ -486,6 +487,29 @@ void CCoopAdminMenu::Update(float frameTime)
 	{
 		m_bWasLobbyWaiting = true;
 		m_lobbyTimeSinceLoad += frameTime;
+
+		// Ensure all players have full health and suit energy during lobby wait (God Mode)
+		if (gEnv->pGame)
+		{
+			IGameFramework* pGF = gEnv->pGame->GetIGameFramework();
+			if (pGF && pGF->GetIActorSystem())
+			{
+				IActorIteratorPtr pIt = pGF->GetIActorSystem()->CreateActorIterator();
+				while (IActor* pActor = pIt->Next())
+				{
+					if (pActor && pActor->IsPlayer())
+					{
+						if (pActor->GetHealth() < pActor->GetMaxHealth())
+							pActor->SetHealth(pActor->GetMaxHealth());
+
+						CPlayer* pPlayer = static_cast<CPlayer*>(pActor);
+						CNanoSuit* pSuit = pPlayer ? pPlayer->GetNanoSuit() : NULL;
+						if (pSuit && pSuit->GetSuitEnergy() < 100.0f)
+							pSuit->SetSuitEnergy(100.0f);
+					}
+				}
+			}
+		}
 
 		// Pause cutscene music and freeze Time of Day while waiting in the pre-game lobby
 		if (gEnv->pMusicSystem)

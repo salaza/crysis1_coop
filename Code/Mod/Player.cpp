@@ -24,6 +24,7 @@ History:
 #include "Fists.h"
 #include "GameRules.h"
 #include "Coop/CoopCutsceneSystem.h"
+#include "Coop/CoopAdminMenu.h"
 
 #include <IViewSystem.h>
 #include <IItemSystem.h>
@@ -1702,13 +1703,6 @@ void CPlayer::PostUpdateView(SViewParams &viewParams)
 		else if (CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene() && !GetLinkedVehicle())
 		{
 			IEntity* pCam = CCoopCutsceneSystem::GetInstance()->GetCameraEntity();
-			if (!pCam && gEnv->pMovieSystem)
-			{
-				EntityId camId = gEnv->pMovieSystem->GetCameraParams().cameraEntityId;
-				if (camId)
-					pCam = gEnv->pEntitySystem->GetEntity(camId);
-			}
-
 			if (pCam)
 			{
 				viewParams.position = pCam->GetWorldPos();
@@ -3186,6 +3180,9 @@ void CPlayer::ToggleThirdPerson()
 
 int CPlayer::IsGod()
 {
+	if (CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+		return 1;
+
 	if (!m_pGameFramework->CanCheat())
 		return 0;
 
