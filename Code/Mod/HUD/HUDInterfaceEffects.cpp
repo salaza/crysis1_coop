@@ -446,8 +446,14 @@ void CHUD::TrackProjectiles(CPlayer* pPlayerActor)
 
 void CHUD::UpdateProjectileTracker(CGameFlashAnimation &anim, IEntity *pProjectile, uint8 &status, const Vec3 &player)
 {
+	if (!anim.IsLoaded())
+		return;
+
 	if (pProjectile)
 	{
+		if (!anim.IsAvailable("Root.GrenadeDetect"))
+			return;
+
 		Vec3 screen;
 		Vec3 world=pProjectile->GetWorldPos();
 		m_pRenderer->ProjectToScreen(	world.x, world.y,	world.z, &screen.x,	&screen.y, &screen.z);
@@ -509,7 +515,8 @@ void CHUD::UpdateProjectileTracker(CGameFlashAnimation &anim, IEntity *pProjecti
 	}
 	else if (status)
 	{
-		anim.Invoke("hideGrenadeDetector");
+		if (anim.IsAvailable("Root.GrenadeDetect"))
+			anim.Invoke("hideGrenadeDetector");
 		status=0;
 	}
 }

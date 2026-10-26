@@ -3180,7 +3180,7 @@ void CPlayer::ToggleThirdPerson()
 
 int CPlayer::IsGod()
 {
-	if (CCoopAdminMenu::GetInstance().IsLobbyWaiting())
+	if (CCoopAdminMenu::GetInstance().IsLobbyWaiting() || CCoopAdminMenu::GetInstance().IsGodMode())
 		return 1;
 
 	if (!m_pGameFramework->CanCheat())

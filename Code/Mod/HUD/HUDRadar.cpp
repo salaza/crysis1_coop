@@ -654,7 +654,21 @@ void CHUDRadar::UpdateRadarEntities(CActor *pActor, float &fRadius, Matrix34 &pl
 	if(gEnv->bMultiplayer)
 	{
 		m_teamMates.clear();
-		pGameRules->GetTeamPlayers(clientTeam, m_teamMates);
+		if (pGameRules && pGameRules->IsCoop())
+		{
+			IActorIteratorPtr itActors = m_pActorSystem->CreateActorIterator();
+			while (IActor* pOtherActor = itActors->Next())
+			{
+				if (pOtherActor && pOtherActor->IsPlayer() && pOtherActor != pActor)
+				{
+					m_teamMates.push_back(pOtherActor->GetEntityId());
+				}
+			}
+		}
+		else
+		{
+			pGameRules->GetTeamPlayers(clientTeam, m_teamMates);
+		}
 	}
 	//****************************************************************************
 
@@ -1032,7 +1046,7 @@ void CHUDRadar::UpdateCompassStealth(CActor *pActor, float fDeltaTime)
 
 	if(m_fLastStealthValue != fStealthValue)
 	{
-		if(m_flashRadar->IsAvailable("Root.RadarCompassStealth.StealthBar"))
+		if(m_flashRadar->IsAvailable("Root.RadarCompassStealth.StealthBar._totalframes"))
 			m_flashRadar->CheckedInvoke("Root.RadarCompassStealth.StealthBar.gotoAndStop", fStealthValue);
 		m_fLastStealthValue = fStealthValue;
 	}		

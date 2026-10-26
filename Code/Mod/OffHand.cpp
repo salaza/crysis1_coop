@@ -727,8 +727,30 @@ void COffHand::UpdateCrosshairUsabilitySP()
 						if((!isSocom && pCurrentItem) ||
 								(isSocom && pCurrentItem && pCurrentItem->IsDualWield()))
 						{
-							if(pItem->CheckAmmoRestrictions(pPlayer->GetEntityId()))
-								pHUD->GetCrosshair()->SetUsability(true, "@game_take_ammo_from", itemName.c_str());
+							bool hasNewAcc = false;
+							if (CItem* pCItem = static_cast<CItem*>(pItem))
+							{
+								IInventory *pInv = pPlayer->GetInventory();
+								if (pInv)
+								{
+									const CItem::TAccessoryMap* pAccs = pCItem->GetAttachedAccessories();
+									if (pAccs)
+									{
+										for (CItem::TAccessoryMap::const_iterator it = pAccs->begin(); it != pAccs->end(); ++it)
+										{
+											IEntityClass* pAccClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(it->first.c_str());
+											if (pAccClass && pInv->GetItemByClass(pAccClass) == 0)
+											{
+												hasNewAcc = true;
+												break;
+											}
+										}
+									}
+								}
+							}
+
+							if(hasNewAcc || pItem->CheckAmmoRestrictions(pPlayer->GetEntityId()))
+								pHUD->GetCrosshair()->SetUsability(true, hasNewAcc ? "@take_attachment" : "@game_take_ammo_from", itemName.c_str());
 							else
 								pHUD->GetCrosshair()->SetUsability(2, "@weapon_ammo_full", itemName.c_str());
 						}
@@ -2447,7 +2469,29 @@ void COffHand::StartPickUpItem()
 	}
 	else if(IItem* pItem =m_pItemSystem->GetItem(m_preHeldEntityId))
 	{
-		if(!pItem->CheckAmmoRestrictions(pPlayer->GetEntityId()))
+		bool hasNewAcc = false;
+		if (CItem* pCItem = static_cast<CItem*>(pItem))
+		{
+			IInventory *pInv = pPlayer->GetInventory();
+			if (pInv)
+			{
+				const CItem::TAccessoryMap* pAccs = pCItem->GetAttachedAccessories();
+				if (pAccs)
+				{
+					for (CItem::TAccessoryMap::const_iterator it = pAccs->begin(); it != pAccs->end(); ++it)
+					{
+						IEntityClass* pAccClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(it->first.c_str());
+						if (pAccClass && pInv->GetItemByClass(pAccClass) == 0)
+						{
+							hasNewAcc = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if(!hasNewAcc && !pItem->CheckAmmoRestrictions(pPlayer->GetEntityId()))
 		{
 			CryFixedStringT<128> itemName = pItem->GetEntity()->GetClass()->GetName();
 			if(!stricmp(itemName.c_str(), "CustomAmmoPickup"))

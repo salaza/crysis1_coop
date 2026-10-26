@@ -1483,8 +1483,41 @@ void CItem::PickUp(EntityId pickerId, bool sound, bool select, bool keepHistory)
 		}
 		else if(!CheckAmmoRestrictions(pickerId))
 		{
-			g_pGame->GetGameRules()->SendTextMessage(eTextMessageCenter, "@ammo_maxed_out", eRMI_ToClientChannel, pActor->GetChannelId(), (string("@")+GetEntity()->GetClass()->GetName()).c_str());
-			return;
+			bool hasNewAccessory = false;
+			if (pActor->IsPlayer())
+			{
+				IInventory *pInv = GetActorInventory(pActor);
+				if (pInv)
+				{
+					for (TAccessoryMap::iterator it = m_accessories.begin(); it != m_accessories.end(); ++it)
+					{
+						IEntityClass* pAccClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(it->first.c_str());
+						if (pAccClass && pInv->GetItemByClass(pAccClass) == 0)
+						{
+							hasNewAccessory = true;
+							break;
+						}
+					}
+					if (!hasNewAccessory)
+					{
+						for (TInitialSetup::iterator it = m_initialSetup.begin(); it != m_initialSetup.end(); ++it)
+						{
+							IEntityClass* pAccClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(it->c_str());
+							if (pAccClass && pInv->GetItemByClass(pAccClass) == 0)
+							{
+								hasNewAccessory = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (!hasNewAccessory)
+			{
+				g_pGame->GetGameRules()->SendTextMessage(eTextMessageCenter, "@ammo_maxed_out", eRMI_ToClientChannel, pActor->GetChannelId(), (string("@")+GetEntity()->GetClass()->GetName()).c_str());
+				return;
+			}
 		}
 	}
 	

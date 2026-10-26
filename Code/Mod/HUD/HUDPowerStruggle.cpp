@@ -269,7 +269,7 @@ void CHUDPowerStruggle::Update(float fDeltaTime)
 			if(icap != m_lastBuildingTime)
 			{
 				m_currentHexIconState = E_HEX_ICON_CAPTURING;
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 				g_pHexIcon->Invoke("setHexProgress", icap);
 				m_lastBuildingTime = icap;
 			}
@@ -277,7 +277,7 @@ void CHUDPowerStruggle::Update(float fDeltaTime)
 		else if(m_currentHexIconState == E_HEX_ICON_CAPTURING)
 		{
 			m_currentHexIconState = E_HEX_ICON_NONE;
-			g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+			if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 		}
 
 		bool constructing = false;
@@ -294,7 +294,7 @@ void CHUDPowerStruggle::Update(float fDeltaTime)
 					if(m_currentHexIconState != E_HEX_ICON_CAPTURING) //capturing overwrites building by design
 					{
 						m_currentHexIconState = E_HEX_ICON_BUILDING;
-						g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+						if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 						g_pHexIcon->Invoke("setHexProgress", conTime);
 						m_lastConstructionTime = conTime;
 					}
@@ -310,17 +310,17 @@ void CHUDPowerStruggle::Update(float fDeltaTime)
 			if(m_currentHexIconState == E_HEX_ICON_BUILDING)
 			{
 				m_currentHexIconState = E_HEX_ICON_BUY;
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 			}
 			if(!m_bInBuyZone && !(m_bInServiceZone && g_pHUD->GetVehicleInterface()->IsAbleToBuy()) && m_currentHexIconState == E_HEX_ICON_BUY)
 			{
 				m_currentHexIconState = E_HEX_ICON_NONE;
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 			}
 			else if(!m_capturing && m_currentHexIconState != E_HEX_ICON_BUY && (m_bInBuyZone || (m_bInServiceZone && g_pHUD->GetVehicleInterface()->IsAbleToBuy())))
 			{
 				m_currentHexIconState = E_HEX_ICON_BUY;
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 			}
 
 		}
@@ -744,7 +744,7 @@ void CHUDPowerStruggle::ShowCaptureProgress(bool show)
 		if(m_currentHexIconState != E_HEX_ICON_CAPTURING)
 		{
 			m_currentHexIconState = E_HEX_ICON_CAPTURING;
-			g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+			if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 		}
 	}
 	else if(m_currentHexIconState == E_HEX_ICON_CAPTURING)
@@ -752,12 +752,12 @@ void CHUDPowerStruggle::ShowCaptureProgress(bool show)
 		if(m_bInBuyZone)
 		{
 			m_currentHexIconState = E_HEX_ICON_BUY;
-			g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+			if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 		}
 		else if(m_currentHexIconState != E_HEX_ICON_BUILDING)
 		{
 			m_currentHexIconState = E_HEX_ICON_NONE;
-			g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+			if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 		}
 	}
 
@@ -770,7 +770,7 @@ void CHUDPowerStruggle::SetCaptureProgress(float progress)
 	if(m_currentHexIconState != E_HEX_ICON_CAPTURING)
 	{
 		m_currentHexIconState = E_HEX_ICON_CAPTURING;
-		g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+		if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 	}
 
 	m_captureProgress=progress;
@@ -1707,14 +1707,14 @@ void CHUDPowerStruggle::UpdateBuyZone(bool trespassing, EntityId zone)
 				if(m_currentHexIconState != E_HEX_ICON_BUY && m_currentHexIconState != E_HEX_ICON_BUILDING)
 				{
 					m_currentHexIconState = E_HEX_ICON_BUY;
-					g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+					if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 				}
 			}
 			else if(m_currentHexIconState != E_HEX_ICON_BUILDING && m_currentHexIconState != E_HEX_ICON_CAPTURING && m_currentHexIconState != E_HEX_ICON_NONE)
 			{
 				m_currentHexIconState = E_HEX_ICON_NONE;
 
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 			}
 		}
 	}
@@ -1809,13 +1809,13 @@ void CHUDPowerStruggle::UpdateServiceZone(bool trespassing, EntityId zone)
 				if(m_currentHexIconState != E_HEX_ICON_BUY && m_currentHexIconState != E_HEX_ICON_BUILDING)
 				{
 					m_currentHexIconState = E_HEX_ICON_BUY;
-					g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+					if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 				}
 			}
 			else if(m_currentHexIconState != E_HEX_ICON_BUILDING && m_currentHexIconState != E_HEX_ICON_CAPTURING && m_currentHexIconState != E_HEX_ICON_NONE)
 			{
 				m_currentHexIconState = E_HEX_ICON_NONE;
-				g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
+				if(g_pHexIcon && g_pHexIcon->IsAvailable("setHexIcon")) g_pHexIcon->Invoke("setHexIcon", m_currentHexIconState);
 			}
 		}
 	}

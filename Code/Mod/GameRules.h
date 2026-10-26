@@ -1121,6 +1121,21 @@ public:
 	DECLARE_SERVER_RMI_NOATTACH(SvRequestSpawn, SSpawnRequestParams, eNRT_ReliableOrdered);
 	void RequestSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles);
 
+	struct SAdminCheatParams
+	{
+		int cheatId;
+		EntityId targetId;
+		SAdminCheatParams() : cheatId(0), targetId(0) {}
+		SAdminCheatParams(int c, EntityId t) : cheatId(c), targetId(t) {}
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("cheatId", cheatId, 'i32');
+			ser.Value("targetId", targetId, 'eid');
+		}
+	};
+	DECLARE_SERVER_RMI_NOATTACH(SvRequestAdminCheat, SAdminCheatParams, eNRT_ReliableOrdered);
+	void RequestAdminCheat(int cheatId, EntityId targetId);
+
 	void UpdateCoopSharks(float frameTime);
 
 	// Coop: 3 Lives System & Session Management
@@ -1354,6 +1369,9 @@ protected:
 	CShotValidator			*m_pShotValidator;
 	std::map<EntityId, int> m_playerLives;
 	CTimeValue          m_lastCheckpointTime;
+	Vec3                m_lastCheckpointPos;
+	Ang3                m_lastCheckpointAngles;
+	bool                m_hasCheckpoint;
 	float               m_allDeadRestartTimer;
 	int                 m_lastAnnouncedSec;
 	float               m_allDeadCheckTimer;

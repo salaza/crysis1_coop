@@ -3848,9 +3848,9 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 		string watermark;
 		if (lives > 0)
-			watermark.Format("Crysis Co-op v1.7.1 | Lives: %d", lives);
+			watermark.Format("Crysis Co-op v1.7.2 | Lives: %d", lives);
 		else
-			watermark = "Crysis Co-op v1.7.1 | Spectating";
+			watermark = "Crysis Co-op v1.7.2 | Spectating";
 		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "%s", watermark.c_str());
 	}
 }
@@ -4496,7 +4496,7 @@ void CHUD::ActorRevive(IActor* pActor)
 			m_bNightVisionActive=false;
 		}
 
-		if(m_pHUDPowerStruggle)
+		if(m_pHUDPowerStruggle && m_animHexIcons.IsAvailable("setHexIcon"))
 		{
 			m_animHexIcons.Invoke("setHexIcon", m_pHUDPowerStruggle->GetCurrentIconState());
 		}

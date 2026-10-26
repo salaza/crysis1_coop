@@ -16,6 +16,8 @@
 #include "SynchedStorage.h"
 #include "Entities/SequenceSynchronizer.h"
 #include "Player.h"
+#include "Actor.h"
+#include "GameCVars.h"
 
 static const TSynchedKey COOP_LOBBY_WAITING_KEY = 950;
 static const TSynchedKey COOP_LOBBY_ROSTER_KEY  = 951;
@@ -131,6 +133,9 @@ CCoopAdminMenu::CCoopAdminMenu()
 	, m_lobbySyncTimer(0.0f)
 	, m_lobbyTimeSinceLoad(0.0f)
 	, m_lobbyInitialTOD(-1.0f)
+	, m_bGodMode(false)
+	, m_bUnlimitedAmmo(false)
+	, m_bAiIgnorePlayer(false)
 {
 	for (int i = 0; i < ECAT_COUNT; ++i)
 		m_selectedItem[i] = 0;
@@ -696,55 +701,54 @@ void CCoopAdminMenu::ExecuteSelected()
 			break;
 		case 2: // Toggle God Mode
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("g_godMode") : NULL;
-				if (pVar)
-				{
-					int newVal = (pVar->GetIVal() == 0) ? 1 : 0;
-					pVar->Set(newVal);
-					SetStatus(newVal ? "God Mode: ENABLED" : "God Mode: DISABLED");
-				}
+				m_bGodMode = !m_bGodMode;
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(2, localId);
+				SetStatus(m_bGodMode ? "God Mode: ENABLED" : "God Mode: DISABLED");
 			}
 			break;
 		case 3: // Toggle Unlimited Ammo
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("i_unlimitedammo") : NULL;
-				if (pVar)
-				{
-					int newVal = (pVar->GetIVal() == 0) ? 1 : 0;
-					pVar->Set(newVal);
-					SetStatus(newVal ? "Unlimited Ammo: ENABLED" : "Unlimited Ammo: DISABLED");
-				}
+				m_bUnlimitedAmmo = !m_bUnlimitedAmmo;
+				if (g_pGameCVars)
+					g_pGameCVars->i_unlimitedammo = m_bUnlimitedAmmo ? 1 : 0;
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(3, localId);
+				SetStatus(m_bUnlimitedAmmo ? "Unlimited Ammo: ENABLED" : "Unlimited Ammo: DISABLED");
 			}
 			break;
 		case 4: // Give All Weapons
 			{
-				if (gEnv->pConsole)
-					gEnv->pConsole->ExecuteString("i_giveallitems");
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(4, localId);
 				SetStatus("All Weapons & Items Given!");
 			}
 			break;
 		case 5: // Give Max Ammo
 			{
-				if (gEnv->pConsole)
-					gEnv->pConsole->ExecuteString("i_giveammo 1");
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(5, localId);
 				SetStatus("Ammunition Refilled to Maximum!");
 			}
 			break;
 		case 6: // Toggle AI Ignore Player
 			{
-				ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("ai_IgnorePlayer") : NULL;
-				if (pVar)
-				{
-					int newVal = (pVar->GetIVal() == 0) ? 1 : 0;
-					pVar->Set(newVal);
-					SetStatus(newVal ? "AI Ignore Players: ENABLED" : "AI Ignore Players: DISABLED");
-				}
+				m_bAiIgnorePlayer = !m_bAiIgnorePlayer;
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(6, localId);
+				SetStatus(m_bAiIgnorePlayer ? "AI Ignore Players: ENABLED" : "AI Ignore Players: DISABLED");
 			}
 			break;
 		case 7: // Kill All Enemies
 			{
-				if (gEnv->pConsole)
-					gEnv->pConsole->ExecuteString("ai_killall");
+				EntityId localId = (gEnv->pGame && gEnv->pGame->GetIGameFramework()) ? gEnv->pGame->GetIGameFramework()->GetClientActorId() : 0;
+				if (CGameRules* pGR = g_pGame ? g_pGame->GetGameRules() : NULL)
+					pGR->RequestAdminCheat(7, localId);
 				SetStatus("All Active Enemy AI Killed!");
 			}
 			break;
@@ -1156,6 +1160,126 @@ void CCoopAdminMenu::SpawnSandboxItem(int category, int index)
 	else
 	{
 		ServerSpawnItem(category, index, spawnPos, angles);
+	}
+}
+
+void CCoopAdminMenu::ExecuteAdminCheat(int cheatId, EntityId targetId)
+{
+	if (!gEnv->bServer)
+		return;
+
+	IActorSystem* pActorSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetIActorSystem() : NULL;
+	IActor* pTargetActor = pActorSystem ? pActorSystem->GetActor(targetId) : NULL;
+
+	switch (cheatId)
+	{
+	case 2: // Toggle God Mode
+		{
+			m_bGodMode = !m_bGodMode;
+			if (g_pGameCVars)
+				g_pGameCVars->g_godMode = m_bGodMode ? 1 : 0;
+			CryLogAlways("[Co-op Admin] Server executed God Mode: %s", m_bGodMode ? "ENABLED" : "DISABLED");
+		}
+		break;
+	case 3: // Toggle Unlimited Ammo
+		{
+			m_bUnlimitedAmmo = !m_bUnlimitedAmmo;
+			if (g_pGameCVars)
+				g_pGameCVars->i_unlimitedammo = m_bUnlimitedAmmo ? 1 : 0;
+			CryLogAlways("[Co-op Admin] Server executed Unlimited Ammo: %s", m_bUnlimitedAmmo ? "ENABLED" : "DISABLED");
+		}
+		break;
+	case 4: // Give All Weapons & Items
+		{
+			if (pTargetActor)
+			{
+				IItemSystem* pItemSystem = gEnv->pGame ? gEnv->pGame->GetIGameFramework()->GetIItemSystem() : NULL;
+				if (pItemSystem)
+				{
+					static const char* s_giveWeapons[] = {
+						"SOCOM", "FY71", "SCAR", "SMG", "Shotgun", "DSG1", "GaussRifle",
+						"LAW", "Minigun", "TACGun", "AlienMount",
+						"Silencer", "SOCOMSilencer", "Reflex", "AssaultScope", "SniperScope",
+						"LAM", "LAMFlashLight", "LAMRifleFlashLight", "GrenadeLauncher", "TacticalAttachment",
+						"FragGrenade", "SmokeGrenade", "FlashbangGrenade", "EMPGrenade"
+					};
+					for (int i = 0; i < (int)(sizeof(s_giveWeapons)/sizeof(s_giveWeapons[0])); ++i)
+					{
+						pItemSystem->GiveItem(pTargetActor, s_giveWeapons[i], false, false, true);
+					}
+				}
+
+				IInventory* pInv = pTargetActor->GetInventory();
+				if (pInv)
+				{
+					static const char* s_ammoClasses[] = {
+						"bullet", "fy71bullet", "tacbullet", "scargrenade",
+						"explosivegrenade", "smokegrenade", "flashbang", "empgrenade",
+						"shotgunshell", "sniperbullet", "gaussbullet", "rocket", "tagbullet"
+					};
+					for (int i = 0; i < (int)(sizeof(s_ammoClasses)/sizeof(s_ammoClasses[0])); ++i)
+					{
+						IEntityClass* pAmmoClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(s_ammoClasses[i]);
+						if (pAmmoClass)
+							pInv->SetAmmoCount(pAmmoClass, 999);
+					}
+				}
+				CryLogAlways("[Co-op Admin] Server gave all weapons & items to '%s'", pTargetActor->GetEntity()->GetName());
+			}
+		}
+		break;
+	case 5: // Give Max Ammo
+		{
+			if (pTargetActor)
+			{
+				IInventory* pInv = pTargetActor->GetInventory();
+				if (pInv)
+				{
+					static const char* s_ammoClasses[] = {
+						"bullet", "fy71bullet", "tacbullet", "scargrenade",
+						"explosivegrenade", "smokegrenade", "flashbang", "empgrenade",
+						"shotgunshell", "sniperbullet", "gaussbullet", "rocket", "tagbullet"
+					};
+					for (int i = 0; i < (int)(sizeof(s_ammoClasses)/sizeof(s_ammoClasses[0])); ++i)
+					{
+						IEntityClass* pAmmoClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(s_ammoClasses[i]);
+						if (pAmmoClass)
+							pInv->SetAmmoCount(pAmmoClass, 999);
+					}
+				}
+				CryLogAlways("[Co-op Admin] Server refilled ammo to maximum for '%s'", pTargetActor->GetEntity()->GetName());
+			}
+		}
+		break;
+	case 6: // Toggle AI Ignore Player
+		{
+			m_bAiIgnorePlayer = !m_bAiIgnorePlayer;
+			ICVar* pVar = gEnv->pConsole ? gEnv->pConsole->GetCVar("ai_IgnorePlayer") : NULL;
+			if (pVar)
+				pVar->Set(m_bAiIgnorePlayer ? 1 : 0);
+			CryLogAlways("[Co-op Admin] Server toggled AI Ignore Player: %s", m_bAiIgnorePlayer ? "ENABLED" : "DISABLED");
+		}
+		break;
+	case 7: // Kill All Enemies
+		{
+			if (pActorSystem)
+			{
+				int killedCount = 0;
+				IActorIteratorPtr it = pActorSystem->CreateActorIterator();
+				while (IActor* pA = it->Next())
+				{
+					if (pA && !pA->IsPlayer() && pA->GetHealth() > 0)
+					{
+						CActor* pCA = static_cast<CActor*>(pA);
+						pCA->SetHealth(0);
+						pCA->Kill();
+						killedCount++;
+					}
+				}
+				CryLogAlways("[Co-op Admin] Server killed %d enemy AI entities", killedCount);
+			}
+		}
+		break;
 	}
 }
 

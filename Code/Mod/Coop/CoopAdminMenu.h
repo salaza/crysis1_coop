@@ -44,6 +44,11 @@ public:
 
 	void SpawnSandboxItem(int category, int index);
 	void ServerSpawnItem(int category, int index, const Vec3& pos, const Ang3& angles);
+	void ExecuteAdminCheat(int cheatId, EntityId targetId);
+
+	bool IsGodMode() const { return m_bGodMode; }
+	bool IsUnlimitedAmmo() const { return m_bUnlimitedAmmo; }
+	bool IsAiIgnorePlayer() const { return m_bAiIgnorePlayer; }
 
 private:
 	CCoopAdminMenu();
@@ -76,6 +81,9 @@ private:
 
 	// Lobby state
 	bool m_bLobbyWaiting;
+	bool m_bGodMode;
+	bool m_bUnlimitedAmmo;
+	bool m_bAiIgnorePlayer;
 	bool m_bWasLobbyWaiting;
 	float m_lobbySyncTimer;
 	float m_lobbyTimeSinceLoad;

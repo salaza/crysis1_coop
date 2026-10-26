@@ -983,22 +983,37 @@ function Coop:RevivePlayer(channelId, player, keepEquip)
 			end
 		end
 
-		-- 2. Fallback: singleplayer start position
+		-- 2. Fallback: last captured checkpoint position if available, else SP start
 		if (not result) then
-			self:CaptureSinglePlayerStart();
-			if (self.spStartPos) then
-				local spos = g_Vectors.temp_v1;
-				local sangles = g_Vectors.temp_v2;
-				CopyVector(spos, self.spStartPos);
-				if (self.spStartAngles) then
-					CopyVector(sangles, self.spStartAngles);
+			if (self.lastCheckpointPos) then
+				local cpos = g_Vectors.temp_v1;
+				local cangles = g_Vectors.temp_v2;
+				CopyVector(cpos, self.lastCheckpointPos);
+				if (self.lastCheckpointAngles) then
+					CopyVector(cangles, self.lastCheckpointAngles);
 				else
-					sangles.x = 0; sangles.y = 0; sangles.z = 0;
+					cangles.x = 0; cangles.y = 0; cangles.z = 0;
 				end
-				spos.z = spos.z + 0.15;
-				self.game:RevivePlayer(player.id, spos, sangles, teamId, not keepEquip);
+				cpos.z = cpos.z + 0.15;
+				self.game:RevivePlayer(player.id, cpos, cangles, teamId, not keepEquip);
 				result = true;
-				System.LogAlways(string.format("[Coop] Spawning player '%s' at captured SP start position (%.1f, %.1f, %.1f)", player:GetName(), spos.x, spos.y, spos.z));
+				System.LogAlways(string.format("[Coop] Spawning player '%s' at last captured checkpoint (%.1f, %.1f, %.1f)", player:GetName(), cpos.x, cpos.y, cpos.z));
+			else
+				self:CaptureSinglePlayerStart();
+				if (self.spStartPos) then
+					local spos = g_Vectors.temp_v1;
+					local sangles = g_Vectors.temp_v2;
+					CopyVector(spos, self.spStartPos);
+					if (self.spStartAngles) then
+						CopyVector(sangles, self.spStartAngles);
+					else
+						sangles.x = 0; sangles.y = 0; sangles.z = 0;
+					end
+					spos.z = spos.z + 0.15;
+					self.game:RevivePlayer(player.id, spos, sangles, teamId, not keepEquip);
+					result = true;
+					System.LogAlways(string.format("[Coop] Spawning player '%s' at captured SP start position (%.1f, %.1f, %.1f)", player:GetName(), spos.x, spos.y, spos.z));
+				end
 			end
 		end
 
@@ -1809,6 +1824,12 @@ end
 
 
 ----------------------------------------------------------------------------------------------------
+function Coop:SetLastCheckpointPos(pos, angles)
+	self.lastCheckpointPos = { x = pos.x, y = pos.y, z = pos.z };
+	self.lastCheckpointAngles = { x = angles.x, y = angles.y, z = angles.z };
+	System.LogAlways(string.format("[Coop] Recorded last checkpoint position at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z));
+end
+
 function Coop:OnCheckpointReached()
 	System.LogAlways("[Coop] Checkpoint reached! Refilling player lives and reviving fallen players.");
 	local players = self.game:GetPlayers();
@@ -2288,6 +2309,11 @@ function Coop:EquipPlayer(actor, additionalEquip)
 	ItemSystem.GiveItem("LAM", actor.id, true);
 	ItemSystem.GiveItem("LAMFlashLight", actor.id, true);
 	ItemSystem.GiveItem("LAMRifleFlashLight", actor.id, true);
+	ItemSystem.GiveItem("TacticalAttachment", actor.id, true);
+	ItemSystem.GiveItem("GrenadeLauncher", actor.id, true);
+	ItemSystem.GiveItem("AssaultScope", actor.id, true);
+	ItemSystem.GiveItem("SniperScope", actor.id, true);
+	actor.inventory:SetAmmoCount("tacbullet", 15);
 end
 
 

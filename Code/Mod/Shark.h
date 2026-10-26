@@ -315,6 +315,7 @@ public:
 		s->Add(*this);
 		//GetAlienMemoryStatistics(s); 
 	}
+	EntityId GetTarget() const { return m_targetId; }
 
 	//virtual void SetAnimTentacleParams(pe_params_rope& rope, float animBlend);
 

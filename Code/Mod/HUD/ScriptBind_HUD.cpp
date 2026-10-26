@@ -224,10 +224,11 @@ int CScriptBind_HUD::SetUsability(IFunctionHandler *pH, int objId, const char *m
 		}
 		else
 		{
-			if(gEnv->bMultiplayer && !gotMessage)
+			bool isCoop = (g_pGame->GetGameRules() && g_pGame->GetGameRules()->IsCoop());
+			if (gEnv->bMultiplayer && !isCoop && !gotMessage)
 				usable = 0; 
-			else if(!gotMessage)
-				textLabel = "@pick_object";
+			else if (!gotMessage)
+				textLabel = "@use";
 		}
 	}
 	else

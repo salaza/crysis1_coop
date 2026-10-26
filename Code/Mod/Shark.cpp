@@ -605,6 +605,14 @@ void CShark::UpdateStatus(float frameTime, const IEntity* pTarget)
 	float dotMouth=-1;
 	// get head orientation
 
+	float myTerrainZ = gEnv->p3DEngine->GetTerrainElevation(myPos.x, myPos.y);
+	if (myPos.z > waterLevel + 0.5f || myTerrainZ >= waterLevel - 1.0f)
+	{
+		GetEntity()->Hide(true);
+		m_state = S_Sleeping;
+		return;
+	}
+
 	if (m_state != S_Spawning && !targetDirN.IsZero())
 		distHeadTarget = GetDistHeadTarget(targetPos,targetDirN, dotMouth);
 

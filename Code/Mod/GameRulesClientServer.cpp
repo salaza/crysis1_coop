@@ -1644,3 +1644,23 @@ void CGameRules::RequestSpawnItem(int category, int index, const Vec3& pos, cons
 		GetGameObject()->InvokeRMI(SvRequestSpawn(), params, eRMI_ToServer);
 	}
 }
+
+//------------------------------------------------------------------------
+IMPLEMENT_RMI(CGameRules, SvRequestAdminCheat)
+{
+	CCoopAdminMenu::GetInstance().ExecuteAdminCheat(params.cheatId, params.targetId);
+	return true;
+}
+
+void CGameRules::RequestAdminCheat(int cheatId, EntityId targetId)
+{
+	if (gEnv->bServer)
+	{
+		CCoopAdminMenu::GetInstance().ExecuteAdminCheat(cheatId, targetId);
+	}
+	else
+	{
+		SAdminCheatParams params(cheatId, targetId);
+		GetGameObject()->InvokeRMI(SvRequestAdminCheat(), params, eRMI_ToServer);
+	}
+}
