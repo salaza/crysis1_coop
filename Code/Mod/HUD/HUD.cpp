@@ -3848,9 +3848,9 @@ void CHUD::OnPostUpdate(float frameTime)
 		}
 		string watermark;
 		if (lives > 0)
-			watermark.Format("Crysis Co-op v1.7.2 | Lives: %d", lives);
+			watermark.Format("Crysis Co-op v1.7.3 | Lives: %d", lives);
 		else
-			watermark = "Crysis Co-op v1.7.2 | Spectating";
+			watermark = "Crysis Co-op v1.7.3 | Spectating";
 		gEnv->pRenderer->Draw2dLabel(15.0f, screenHeight - 20.0f, 1.2f, color, false, "%s", watermark.c_str());
 	}
 }

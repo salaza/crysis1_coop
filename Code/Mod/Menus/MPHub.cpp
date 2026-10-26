@@ -91,6 +91,7 @@ gUiCommands[] = {
 	{eGUC_registerCountry,"MPAccount_COUNTRY"},
   {eGUC_registerEnd,"MPAccount_END"},
   {eGUC_quickGame,"MP_QuickGame"},
+  {eGUC_coopPlay,"MP_CoopPlay"},
   {eGUC_createServerStart,"StartServer"},
 	{eGUC_createServerUpdateLevels,"CreateServer_GameMode"},
 	{eGUC_createServerOpened,"CreateGameOpened"},
@@ -382,6 +383,7 @@ bool CMPHub::HandleFSCommand(const char* pCmd, const char* pArgs)
 			m_menu = std::make_unique<CMultiPlayerMenu>(true, m_currentScreen, this);
 		}
     break;
+  case eGUC_coopPlay:
   case eGUC_quickGame:
     OnQuickGame();
     break;
@@ -656,7 +658,15 @@ void CMPHub::OnQuickGame()
 {
   INetworkService *serv = gEnv->pNetwork->GetService("GameSpy");
   if(!serv || serv->GetState()!= eNSS_Ok)
+  {
+    // Co-op: enter Co-op lobby
+    if(m_currentScreen)
+    {
+      m_menu = std::make_unique<CMultiPlayerMenu>(true, m_currentScreen, this);
+      m_currentScreen->Invoke1("gotoAndPlay", "networkgame");
+    }
     return;
+  }
 
 	if(IsIngame())
 	{

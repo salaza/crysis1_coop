@@ -120,6 +120,7 @@ enum EGsUiCommand
 	eGUC_registerCountry,
   eGUC_registerEnd,
   eGUC_quickGame,
+  eGUC_coopPlay,
   eGUC_createServerStart,
   eGUC_createServerUpdateLevels,
 	eGUC_createServerOpened,
