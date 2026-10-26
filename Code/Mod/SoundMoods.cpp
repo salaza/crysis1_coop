@@ -14,6 +14,10 @@ History:
 *************************************************************************/
 #include "StdAfx.h"
 #include "SoundMoods.h"
+#include "Game.h"
+#include "Player.h"
+#include "NanoSuit.h"
+#include "Binocular.h"
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -188,11 +192,45 @@ void CSoundMoods::Update()
 	for(TVectorSoundMoods::iterator iter=m_vecSoundMoods.begin(); iter!=m_vecSoundMoods.end(); ++iter)
 	{
 		SSoundMood *pSoundMood = &(*iter);
-		if(pSoundMood->bValid && fTime >= pSoundMood->uiFadeOutTime && !pSoundMood->bUnlimited)
+		if(pSoundMood->bValid)
 		{
-			// Sound mood will be automatically unregistered after fade out
-			m_pSoundMoodManager->UpdateSoundMood(pSoundMood->strSoundMood,0.0f,pSoundMood->uiFadeOut);
-			pSoundMood->bValid = false;
+			if(!pSoundMood->bUnlimited && fTime >= pSoundMood->uiFadeOutTime)
+			{
+				// Sound mood will be automatically unregistered after fade out
+				m_pSoundMoodManager->UpdateSoundMood(pSoundMood->strSoundMood,0.0f,pSoundMood->uiFadeOut);
+				pSoundMood->bValid = false;
+			}
+			else if(pSoundMood->bUnlimited)
+			{
+				// Co-op safeguard: verify the local client still requires this unlimited mood
+				IActor* pClientActor = g_pGame ? g_pGame->GetIGameFramework()->GetClientActor() : NULL;
+				CPlayer* pClientPlayer = pClientActor ? static_cast<CPlayer*>(pClientActor) : NULL;
+				bool bKeep = true;
+				if (pClientPlayer)
+				{
+					if (pSoundMood->strSoundMood == "concentration")
+					{
+						if (!pClientPlayer->IsInConcentration())
+							bKeep = false;
+					}
+					else if (pSoundMood->strSoundMood == "cloak")
+					{
+						CNanoSuit* pSuit = pClientPlayer->GetNanoSuit();
+						if (!pSuit || pSuit->GetMode() != NANOMODE_CLOAK)
+							bKeep = false;
+					}
+					else if (pSoundMood->strSoundMood == "frozen")
+					{
+						if (!pClientPlayer->IsFrozen())
+							bKeep = false;
+					}
+				}
+				if (!bKeep)
+				{
+					m_pSoundMoodManager->UpdateSoundMood(pSoundMood->strSoundMood, 0.0f, 500);
+					pSoundMood->bValid = false;
+				}
+			}
 		}
 	}
 }

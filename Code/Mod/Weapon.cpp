@@ -1949,6 +1949,11 @@ void CWeapon::SetCurrentFireMode(int idx)
 		return;
 
 	GetGameObject()->SetAspectProfile(ASPECT_FIREMODE, idx);
+
+	if (gEnv->bServer && gEnv->bMultiplayer)
+	{
+		GetGameObject()->InvokeRMI(ClSetFireMode(), ClSetFireModeParams(idx), eRMI_ToAllClients | eRMI_NoLocalCalls);
+	}
 }
 
 //------------------------------------------------------------------------

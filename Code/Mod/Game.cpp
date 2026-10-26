@@ -415,6 +415,21 @@ int CGame::Update(bool haveFocus, unsigned int updateFlags)
 
 	CCoopCutsceneSystem::GetInstance()->Update(frameTime);
 
+	// Co-op Sound Watchdog: Ensure master sound system is never left paused during gameplay
+	if (gEnv->pSoundSystem && !m_pFramework->IsGamePaused() && !CCoopCutsceneSystem::GetInstance()->IsPlayingCutscene())
+	{
+		static float s_soundWatchdogTimer = 0.0f;
+		s_soundWatchdogTimer += frameTime;
+		if (s_soundWatchdogTimer >= 1.0f)
+		{
+			s_soundWatchdogTimer = 0.0f;
+			if (gEnv->pSoundSystem->IsPaused())
+			{
+				gEnv->pSoundSystem->Pause(false, true);
+			}
+		}
+	}
+
 	m_pFramework->PostUpdate( true, updateFlags );
 
 	if(m_inDevMode != gEnv->pSystem->IsDevMode())

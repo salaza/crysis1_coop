@@ -68,7 +68,7 @@ def publish_github_release(repo, tag, name, body, zip_path, token):
 
 if __name__ == '__main__':
     src = r'E:\SteamLibrary\steamapps\common\Crysis\Mods\CrysisCoop'
-    tag = 'v1.7.6'
+    tag = 'v1.7.7'
     zip_name = f'CrysisCoop_Release_{tag}.zip'
     package_zip(src, zip_name)
 
@@ -77,38 +77,53 @@ if __name__ == '__main__':
         print("Error: Could not retrieve GitHub token!")
         sys.exit(1)
 
-    release_body = """### Crysis Co-op v1.7.6 Release Notes
+    release_body = """### Crysis Co-op v1.7.7 Release Notes
 
-#### Audio Silence & Cutscene Audio Restoration
-- **Fixed Complete Audio Silence in School (`village`) & Rosenthal Lab (`rescue`)**:
-  - Removed manual listener matrix and VisArea overrides during cutscene playback, allowing CryEngine's `CView` and `CrySoundSystem` to naturally calculate listener position, orientation, and room VisArea from the active camera.
-  - Fixed an issue where the standard audio listener retained an interior VisArea lock indefinitely after cutscenes completed or aborted, causing sound occlusion to evaluate all ambient sounds, footsteps, and weapon fire outside that room as 100% occluded (-100 dB silence).
-  - Explicitly cleared listener VisArea (`pListener->SetVisArea(NULL)`) and underwater flags upon cutscene exit and level load.
-  - Automatically unpauses the sound engine (`gEnv->pSoundSystem->Pause(false, true)`) and clears any lingering sound moods (`ClearAllSoundMoods()`) upon cutscene entry, exit, and map loading.
+#### Tactical Attachment Regenerating Ammunition (Faithful to Singleplayer)
+- **Automatic Regenerative Darts**:
+  - Implemented server-authoritative regenerative dart timer in `CPlayer::Update` for `tacbullet` (tranquilizer darts) and `tagbullet` (tag darts). When possessing the `TacticalAttachment`, darts automatically regenerate back up to capacity (5 darts, 1 dart every 10 seconds).
+  - Suppressed intrusive on-screen ammo pickup messages during passive dart regeneration in `ClSetAmmo` and `ClAddAmmo`.
 
-#### Fix Random Weapons Laying on Ground at NPC Spawns
-- **Resolved NPC Weapon Dropping Bug**:
-  - Removed destructive `GetInventory()->Clear()` calls on `ENTITY_EVENT_HIDE` in `CoopGrunt`, `CoopTrooper`, and `CoopScout`. Previously, when level FlowGraphs initially disabled/hid grunts, clearing inventory severed the link between the grunt and its weapons without destroying the models, leaving orphaned guns floating or lying loose on the ground.
-  - Added checks in `PostInit` and `eTIMER_WEAPONDELAY` to prevent spawning equipment packs for hidden or disabled entities until unhidden by mission triggers.
-  - Added duplicate weapon check (`GetInventory()->GetCount() > 0`) preventing unhidden entities from receiving redundant weapons and dropping previous ones.
+#### Vehicle Gunner Camera & Control Desynchronization
+- **Fixed Gunner Camera Jerk & Oblivion Distortion in Humvee/LTV**:
+  - Fixed camera matrix math in `CPlayer::UpdateView` when sitting in vehicle seats. The camera matrix now references the vehicle's dynamic physical world orientation rather than decoupling from the actor, and includes singularity and zero-magnitude safeguards to prevent matrix corruption and `NaN`/`INF` camera flips.
+  - In `CVehicleClient::OnAction`, intercepted driver inputs (`v_rotateyaw`, `v_rotatepitch`, `attack1`, etc.) so that when a co-op partner occupies the roof gunner turret, the driver's mouse steering and view never fight or override the gunner's aim.
+  - Overrode `US_ltv.xml`, `Asian_ltv.xml`, `Asian_truck.xml`, `Asian_patrolboat.xml`, and `US_smallboat.xml` removing singleplayer `remotelyUseActionsFromSeat="gunner"`, granting the turret passenger exclusive, smooth 360-degree aiming and firing.
 
-#### Campaign TimeOfDay (ToD) Speed & Night/Day Progression
-- **Disabled Rapid Multiplayer Time Cycling**:
-  - Automatically forces `sv_timeofdayenable = 0` upon map loading, disabling CryEngine's multiplayer clock that was rushing through a 24-hour cycle every 1–2 hours.
-  - Campaign TimeOfDay now faithfully follows the designer-crafted `TimeAnimSpeed` (0.001 to 0.02) and FlowGraph curves, perfectly preserving singleplayer lighting progression.
-- **Dynamic Level Start Time Initialization**:
-  - Automatically queries and applies each level's designer-intended `fStartTime` on load (e.g. 5:30 AM for `island`, 10:00 AM for `village`, 4:00 PM for `rescue`, 5:00 AM for `harbor`, 9:00 AM for `tank`).
-- **Mission 1 (`island`) Night Start Fixed**:
-  - Corrected `Time="8.1700001"` in `Game/Levels/island/mission_mission0.xml` to `Time="5.5"`. `island` now starts at 05:30 AM (pitch dark with moon and flashlight), ensuring the Aztec corpse discovery sequence occurs in the dark as originally designed.
+#### TimeOfDay (ToD) Full Client Network Synchronization
+- **Fixed Host Night vs Client Day Desync**:
+  - Resolved an engine-level limitation where CryEngine's `CTimeOfDay::NetSerialize` silently ignored time updates when `sv_timeofdayenable = 0`.
+  - Added explicit, unquantized `CoopCurTimeOfDay` serialization in `CGameRules::NetSerialize` across `eEA_GameServerDynamic`, guaranteeing client clocks mirror the server continuously.
+  - Added reliable `ClSyncTimeOfDay` RMI broadcast upon client connection, revive, and level transitions to force instant Time of Day synchronization.
 
-#### Mission 1 Starting Gear & Tactical Attachment
-- **Restored Tactical Attachment on SCAR**:
-  - Restored `TacticalAttachment` to `Player_Island_Full.xml` equipment pack.
-  - Granted starting ammunition for `tacbullet` (15 sleep darts) and `tagbullet` (15 tracker darts) upon spawning.
-  - Ensured `Coop:EquipPlayer` in `Coop.lua` supplies `tagbullet` and `tacbullet` ammunition upon player revive.
+#### Grenade Pickups & HUD Synchronization
+- **Fixed Missing Grenades on Client HUD**:
+  - Fixed an issue where picking up grenades on the server never refreshed the client's off-hand fire mode or HUD icons.
+  - In `CWeapon::SetCurrentFireMode`, added reliable `ClSetFireMode` RMI broadcast across network.
+  - In `CActor::ClSetAmmo` and `ClAddAmmo`, when grenade ammunition is received and off-hand is out of ammo, client immediately switches fire mode to the newly acquired grenade type and updates the HUD.
+
+#### Random Audio Silence on Host Resolved
+- **Fixed Sound Engine Muting / Fading Out**:
+  - Singleplayer sound moods (`low_health`, `concentration`, `cloak`, `freeze`, `explosion`) were executing on the server whenever ANY remote client or AI took damage or zoomed, permanently deafening the host's sound system.
+  - Restricted all sound mood triggers strictly to `IsClient()` (local client only).
+  - Added an automatic watchdog in `CSoundMoods::Update()` that detects and cleans up any orphaned or stale unlimited sound moods.
+  - Added an audio watchdog in `CGame::Update` ensuring master sound is never left paused.
+
+#### NPC Weapon Models on Clients Fixed
+- **Fixed Clients Only Seeing Pistols on AI Soldiers**:
+  - Removed `gEnv->bServer` restriction on `PostInit` and `ENTITY_EVENT_UNHIDE` in `CoopGrunt`, `CoopTrooper`, and `CoopScout`, ensuring clients properly receive and parse equipment packs.
+  - Added active weapon network serialization in `NetSerialize` across `ASPECT_ALIVE`, ensuring clients immediately equip and display the exact FY71, Shotgun, Hurricane, or Gauss rifle held by the server AI.
+
+#### Beach Crabs Loud Noise Reduction
+- **Silenced Constant Crab Screeching**:
+  - Overrode `Crabs.lua` to remove continuous `crab_idle` sound playback across beach areas, eliminating deafening sound spam for other players.
+
+#### Co-op Triggers & Softlock Prevention
+- **AreaTrigger & ProximityTrigger Upgraded for Co-op**:
+  - Overrode `ProximityTrigger.lua` and `AreaTrigger.lua` to recognize any human co-op player for `bOnlyMyPlayer` and `bOnlyLocalPlayer` checks, allowing any team member to trigger mission gates and objectives.
 
 #### Version Metadata
-- Bumped watermark and version metadata to v1.7.6."""
+- Bumped watermark and version metadata to v1.7.7."""
 
     publish_github_release('salaza/crysis1_coop', tag, f'Crysis Co-op {tag}', release_body, zip_name, token)
     print(f"Release {tag} successfully published!")

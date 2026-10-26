@@ -1583,6 +1583,21 @@ IMPLEMENT_RMI(CGameRules, ClMusicSync)
 	return true;
 }
 
+IMPLEMENT_RMI(CGameRules, ClSyncTimeOfDay)
+{
+	if (gEnv->p3DEngine)
+	{
+		ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+		if (pTOD)
+		{
+			pTOD->SetTime(params.time, true);
+			pTOD->Update(false, true);
+			m_timeOfDayInitialized = true;
+		}
+	}
+	return true;
+}
+
 void CGameRules::BroadcastMusicEvent(int eventType, const char* name, const char* secondary, bool force, bool keepMood, int delay, int fadeType)
 {
 	SMusicSyncParams params(eventType, name ? name : "", secondary ? secondary : "", force, keepMood, delay, fadeType);

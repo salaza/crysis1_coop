@@ -39,7 +39,7 @@ void CCoopGrunt::PostInit( IGameObject * pGameObject )
 
 	pGameObject->SetAIActivation(eGOAIAM_Always);
 
-	if (gEnv->bServer && !GetEntity()->IsHidden())
+	if (!GetEntity()->IsHidden())
 		GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 1000);
 
 }
@@ -225,14 +225,14 @@ void CCoopGrunt::ProcessEvent(SEntityEvent& event)
 		}
 	case ENTITY_EVENT_UNHIDE:
 		{
+			m_bHidden = false;
 			if (gEnv->bServer)
 			{
-				m_bHidden = false;
 				GetGameObject()->ChangedNetworkState(ASPECT_HIDE);
-
-				if (!GetInventory() || GetInventory()->GetCount() == 0)
-					GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 500);
 			}
+
+			if (!GetInventory() || GetInventory()->GetCount() == 0)
+				GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 500);
 
 			break;
 		}
@@ -299,6 +299,36 @@ bool CCoopGrunt::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 prof
 			//Action & Signal animations
 			ser.Value("sAction", m_sAction);
 			ser.Value("sSignal", m_sSignal);
+
+			// Active weapon synchronization to ensure clients never fall back to pistols
+			string sCurrentWeapon = "";
+			if (!bReading)
+			{
+				CItem* pItem = static_cast<CItem*>(GetCurrentItem());
+				if (pItem && pItem->GetEntity() && pItem->GetEntity()->GetClass())
+					sCurrentWeapon = pItem->GetEntity()->GetClass()->GetName();
+			}
+			ser.Value("sCurrentWeapon", sCurrentWeapon);
+			if (bReading && !sCurrentWeapon.empty() && !m_bHidden && !GetEntity()->IsHidden())
+			{
+				CItem* pCur = static_cast<CItem*>(GetCurrentItem());
+				if (!pCur || !pCur->GetEntity() || strcmp(pCur->GetEntity()->GetClass()->GetName(), sCurrentWeapon.c_str()) != 0)
+				{
+					IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(sCurrentWeapon.c_str());
+					if (pClass && GetInventory())
+					{
+						EntityId itemId = GetInventory()->GetItemByClass(pClass);
+						if (itemId)
+						{
+							SelectItem(itemId, false);
+						}
+						else
+						{
+							gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GiveItem(this, sCurrentWeapon.c_str(), false, true, false);
+						}
+					}
+				}
+			}
 			break;
 		}
 		case ASPECT_HIDE:

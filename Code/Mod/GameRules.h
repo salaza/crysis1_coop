@@ -1096,6 +1096,18 @@ public:
 		}
 	};
 	DECLARE_CLIENT_RMI_NOATTACH(ClMusicSync, SMusicSyncParams, eNRT_ReliableOrdered);
+
+	struct STimeOfDayParams
+	{
+		float time;
+		STimeOfDayParams() : time(0.0f) {}
+		STimeOfDayParams(float t) : time(t) {}
+		void SerializeWith(TSerialize ser)
+		{
+			ser.Value("time", time);
+		}
+	};
+	DECLARE_CLIENT_RMI_NOATTACH(ClSyncTimeOfDay, STimeOfDayParams, eNRT_ReliableOrdered);
 	void BroadcastMusicEvent(int eventType, const char* name, const char* secondary = "", bool force = true, bool keepMood = false, int delay = 0, int fadeType = 2);
 
 	// Coop: Sandbox item spawn request

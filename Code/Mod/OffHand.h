@@ -73,6 +73,14 @@ enum EOffHandSounds
 	eOHSound_LastSound				= 3
 };
 
+enum EOffHandFireModes
+{
+	EOFFHAND_FIREMODE_EXPLOSIVE = 0,
+	EOFFHAND_FIREMODE_SMOKE = 1,
+	EOFFHAND_FIREMODE_FLASHBANG = 2,
+	EOFFHAND_FIREMODE_EMP = 3,
+};
+
 
 class COffHand : public CWeapon
 {

@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "CoopScout.h"
+#include "Item.h"
 #include "Coop\CoopSystem.h"
 
 #include "CompatibilityAlienMovementController.h"
@@ -28,7 +29,7 @@ void CCoopScout::PostInit( IGameObject * pGameObject )
 
 	pGameObject->SetAIActivation(eGOAIAM_Always);
 
-	if (gEnv->bServer && !GetEntity()->IsHidden())
+	if (!GetEntity()->IsHidden())
 		GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 1000);
 }
 
@@ -116,14 +117,14 @@ void CCoopScout::ProcessEvent(SEntityEvent& event)
 		}
 		case ENTITY_EVENT_UNHIDE:
 		{
+			m_bHidden = false;
 			if (gEnv->bServer)
 			{
-				m_bHidden = false;
 				GetGameObject()->ChangedNetworkState(ASPECT_HIDE);
-
-				if (!GetInventory() || GetInventory()->GetCount() == 0)
-					GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 500);
 			}
+
+			if (!GetInventory() || GetInventory()->GetCount() == 0)
+				GetEntity()->SetTimer(eTIMER_WEAPONDELAY, 500);
 
 			break;
 		}
@@ -166,6 +167,36 @@ bool CCoopScout::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 prof
 		{
 			ser.Value("vLookTarget", m_vLookTarget, 'wrld');
 			ser.Value("vAimTarget", m_vAimTarget, 'wrld');
+
+			// Active weapon synchronization
+			string sCurrentWeapon = "";
+			if (!bReading)
+			{
+				IItem* pItem = GetCurrentItem();
+				if (pItem && pItem->GetEntity() && pItem->GetEntity()->GetClass())
+					sCurrentWeapon = pItem->GetEntity()->GetClass()->GetName();
+			}
+			ser.Value("sCurrentWeapon", sCurrentWeapon);
+			if (bReading && !sCurrentWeapon.empty() && !m_bHidden && !GetEntity()->IsHidden())
+			{
+				IItem* pCur = GetCurrentItem();
+				if (!pCur || !pCur->GetEntity() || strcmp(pCur->GetEntity()->GetClass()->GetName(), sCurrentWeapon.c_str()) != 0)
+				{
+					IEntityClass* pClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass(sCurrentWeapon.c_str());
+					if (pClass && GetInventory())
+					{
+						EntityId itemId = GetInventory()->GetItemByClass(pClass);
+						if (itemId)
+						{
+							SelectItem(itemId, false);
+						}
+						else
+						{
+							gEnv->pGame->GetIGameFramework()->GetIItemSystem()->GiveItem(this, sCurrentWeapon.c_str(), false, true, false);
+						}
+					}
+				}
+			}
 			break;
 		}
 		case ASPECT_HIDE:

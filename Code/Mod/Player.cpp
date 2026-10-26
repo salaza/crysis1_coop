@@ -199,6 +199,7 @@ CPlayer::CPlayer()
 
 	m_bConcentration = false;
 	m_fConcentrationTimer = -1.0f;
+	m_tacBulletRegenTimer = 0.0f;
 
 	m_viewQuatFinal.SetIdentity();
 	m_baseQuat.SetIdentity();
@@ -761,6 +762,75 @@ void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 		}
 	}
 
+	// Tactical attachment ammo regeneration (faithful to singleplayer)
+	if (gEnv->bServer && IsPlayer() && GetHealth() > 0)
+	{
+		IInventory* pInventory = GetInventory();
+		if (pInventory)
+		{
+			bool bHasTacAttachment = false;
+			static IEntityClass* pTacAttachClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("TacticalAttachment");
+			if (pTacAttachClass && pInventory->GetCountOfClass(pTacAttachClass->GetName()) > 0)
+			{
+				bHasTacAttachment = true;
+			}
+			else
+			{
+				int itemCount = pInventory->GetCount();
+				for (int i = 0; i < itemCount; ++i)
+				{
+					EntityId itemId = pInventory->GetItem(i);
+					CItem* pItem = static_cast<CItem*>(m_pItemSystem->GetItem(itemId));
+					if (pItem && pItem->GetAccessory(CONST_TEMPITEM_STRING("TacticalAttachment")))
+					{
+						bHasTacAttachment = true;
+						break;
+					}
+				}
+			}
+
+			if (bHasTacAttachment)
+			{
+				static IEntityClass* pTacBulletClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("tacbullet");
+				static IEntityClass* pTagBulletClass = gEnv->pEntitySystem->GetClassRegistry()->FindClass("tagbullet");
+				int currentTac = pTacBulletClass ? pInventory->GetAmmoCount(pTacBulletClass) : 5;
+				int maxTac = pTacBulletClass ? pInventory->GetAmmoCapacity(pTacBulletClass) : 5;
+				if (maxTac <= 0) maxTac = 5;
+				int targetTac = min(maxTac, 5);
+
+				int currentTag = pTagBulletClass ? pInventory->GetAmmoCount(pTagBulletClass) : 5;
+				int maxTag = pTagBulletClass ? pInventory->GetAmmoCapacity(pTagBulletClass) : 5;
+				if (maxTag <= 0) maxTag = 5;
+				int targetTag = min(maxTag, 5);
+
+				if (currentTac < targetTac || currentTag < targetTag)
+				{
+					m_tacBulletRegenTimer += ctx.fFrameTime;
+					if (m_tacBulletRegenTimer >= 10.0f)
+					{
+						m_tacBulletRegenTimer = 0.0f;
+						if (currentTac < targetTac && pTacBulletClass)
+						{
+							int newTac = currentTac + 1;
+							pInventory->SetAmmoCount(pTacBulletClass, newTac);
+							GetGameObject()->InvokeRMI(CActor::ClSetAmmo(), CActor::AmmoParams("tacbullet", newTac), eRMI_ToRemoteClients);
+						}
+						if (currentTag < targetTag && pTagBulletClass)
+						{
+							int newTag = currentTag + 1;
+							pInventory->SetAmmoCount(pTagBulletClass, newTag);
+							GetGameObject()->InvokeRMI(CActor::ClSetAmmo(), CActor::AmmoParams("tagbullet", newTag), eRMI_ToRemoteClients);
+						}
+					}
+				}
+				else
+				{
+					m_tacBulletRegenTimer = 0.0f;
+				}
+			}
+		}
+	}
+
 	if (IPhysicalEntity *pPE = pEnt->GetPhysics())
 	{
 		if (pPE->GetType() == PE_LIVING)
@@ -1067,7 +1137,10 @@ void CPlayer::UpdateSounds(float fFrameTime)
 			}
 			else
 			{
-				SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LEAVE_CONCENTRATION));
+				if (IsClient())
+				{
+					SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LEAVE_CONCENTRATION));
+				}
 				m_fConcentrationTimer = -1.0f;
 			}
 			m_bConcentration = bConcentration;
@@ -1077,7 +1150,10 @@ void CPlayer::UpdateSounds(float fFrameTime)
 			m_fConcentrationTimer += fFrameTime;
 			if(m_fConcentrationTimer >= 2.0f)
 			{
-				SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_ENTER_CONCENTRATION));
+				if (IsClient())
+				{
+					SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_ENTER_CONCENTRATION));
+				}
 				m_fConcentrationTimer = -1.0f;
 			}
 		}
@@ -1680,8 +1756,19 @@ void CPlayer::UpdateView(SViewParams &viewParams)
 
 	//store the view matrix, without vertical component tough, since its going to be used by the VectorToLocal function.
 	Vec3 forward(viewParams.rotation.GetColumn1());
-	Vec3 up(m_baseQuat.GetColumn2());
-	Vec3 right(-(up % forward));
+	IVehicle* pLinkedVehicle = GetLinkedVehicle();
+	Vec3 up = (pLinkedVehicle && pLinkedVehicle->GetEntity()) ? pLinkedVehicle->GetEntity()->GetWorldRotation().GetColumn2() : m_baseQuat.GetColumn2();
+	Vec3 right = -(up % forward);
+	if (right.GetLengthSquared() < 0.001f)
+	{
+		right = viewParams.rotation.GetColumn0();
+		up = forward % right;
+	}
+	else
+	{
+		right.Normalize();
+		up = forward % right;
+	}
 
 	m_clientViewMatrix.SetFromVectors(right,up%right,up,viewParams.position);
 	m_clientViewMatrix.OrthonormalizeFast();
@@ -3720,11 +3807,18 @@ void CPlayer::SetHealth(int health )
 			{
 				fPercent = (MAX(fHealth,0.0f) - fMinThreshold) * 100.0f / (fMaxThreshold - fMinThreshold);
 			}
-			SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LOWHEALTH,fPercent));
+			if (IsClient())
+			{
+				SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LOWHEALTH,fPercent));
+			}
 			m_fLowHealthSoundMood = fHealth;
 		}
 		else if(fHealth > fMaxThreshold && m_fLowHealthSoundMood > 0.0f)
 		{
+			if (IsClient())
+			{
+				SAFE_SOUNDMOODS_FUNC(RemoveSoundMood("low_health", 0.0f, 1000));
+			}
 			m_fLowHealthSoundMood = 0.0f;
 		}
 	}

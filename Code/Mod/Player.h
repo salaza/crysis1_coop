@@ -387,6 +387,7 @@ public:
 
 	virtual void SetViewInVehicle(Quat viewRotation);
 	virtual Vec3 GetVehicleViewDir() const { return m_vehicleViewDir; }
+	bool IsInConcentration() const { return m_bConcentration; }
 
 	virtual void SupressViewBlending() { m_viewBlending = false; };
 
@@ -730,6 +731,7 @@ private:
 	float m_fLowHealthSoundMood;
 	float m_fConcentrationTimer;
 	bool m_bConcentration;
+	float m_tacBulletRegenTimer;
 
 	typedef std::list<IPlayerEventListener *> TPlayerEventListeners;
 	TPlayerEventListeners m_playerEventListeners;

@@ -3788,11 +3788,36 @@ IMPLEMENT_RMI(CActor, ClSetAmmo)
 			pInventory->SetAmmoCount(pClass, params.count);
 			if(IsClient() && g_pGame->GetHUD() && params.count - current > 0)
 			{
-				/*char buffer[5];
-				itoa(params.count - current, buffer, 10);
-				g_pGame->GetHUD()->DisplayFlashMessage("@grab_ammo", 3, Col_Wheat, true, (string("@")+pClass->GetName()).c_str(), buffer);*/
-				if(g_pGame->GetHUD())
-					g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), params.count - current);
+				if (params.ammo != "tacbullet" && params.ammo != "tagbullet")
+				{
+					if(g_pGame->GetHUD())
+						g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), params.count - current);
+				}
+			}
+		}
+
+		bool bIsGrenade = (!strcmp(params.ammo.c_str(), "explosivegrenade") ||
+		                   !strcmp(params.ammo.c_str(), "smokegrenade") ||
+		                   !strcmp(params.ammo.c_str(), "flashbang") ||
+		                   !strcmp(params.ammo.c_str(), "empgrenade"));
+
+		if (bIsGrenade && IsClient())
+		{
+			COffHand* pOffHand = static_cast<COffHand*>(GetWeaponByClass(CItem::sOffHandClass));
+			if (pOffHand)
+			{
+				IFireMode* pFM = pOffHand->GetFireMode(pOffHand->GetCurrentFireMode());
+				if (!pFM || pFM->OutOfAmmo())
+				{
+					if (!strcmp(params.ammo.c_str(), "explosivegrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_EXPLOSIVE);
+					else if (!strcmp(params.ammo.c_str(), "smokegrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_SMOKE);
+					else if (!strcmp(params.ammo.c_str(), "flashbang"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_FLASHBANG);
+					else if (!strcmp(params.ammo.c_str(), "empgrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_EMP);
+				}
 			}
 		}
 	}
@@ -3820,11 +3845,11 @@ IMPLEMENT_RMI(CActor, ClAddAmmo)
 			pInventory->SetAmmoCount(pClass,capacity);
 			if(capacity != current && IsClient() && g_pGame->GetHUD() && capacity - current > 0)
 			{
-				/*char buffer[5];
-				itoa(capacity - current, buffer, 10);
-				g_pGame->GetHUD()->DisplayFlashMessage("@grab_ammo", 3, Col_Wheat, true, (string("@")+pClass->GetName()).c_str(), buffer);*/
-				if(g_pGame->GetHUD())
-					g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), capacity - current);
+				if (params.ammo != "tacbullet" && params.ammo != "tagbullet")
+				{
+					if(g_pGame->GetHUD())
+						g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), capacity - current);
+				}
 			}
 		}
 		else
@@ -3832,11 +3857,36 @@ IMPLEMENT_RMI(CActor, ClAddAmmo)
 			pInventory->SetAmmoCount(pClass, pInventory->GetAmmoCount(pClass)+params.count);
 			if(IsClient() && g_pGame->GetHUD() && params.count - current > 0)
 			{
-				/*char buffer[5];
-				itoa(params.count - current, buffer, 10);
-				g_pGame->GetHUD()->DisplayFlashMessage("@grab_ammo", 3, Col_Wheat, true, (string("@")+pClass->GetName()).c_str(), buffer);*/
-				if(g_pGame->GetHUD())
-					g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), params.count - current);
+				if (params.ammo != "tacbullet" && params.ammo != "tagbullet")
+				{
+					if(g_pGame->GetHUD())
+						g_pGame->GetHUD()->DisplayAmmoPickup(pClass->GetName(), params.count - current);
+				}
+			}
+		}
+
+		bool bIsGrenade = (!strcmp(params.ammo.c_str(), "explosivegrenade") ||
+		                   !strcmp(params.ammo.c_str(), "smokegrenade") ||
+		                   !strcmp(params.ammo.c_str(), "flashbang") ||
+		                   !strcmp(params.ammo.c_str(), "empgrenade"));
+
+		if (bIsGrenade && IsClient())
+		{
+			COffHand* pOffHand = static_cast<COffHand*>(GetWeaponByClass(CItem::sOffHandClass));
+			if (pOffHand)
+			{
+				IFireMode* pFM = pOffHand->GetFireMode(pOffHand->GetCurrentFireMode());
+				if (!pFM || pFM->OutOfAmmo())
+				{
+					if (!strcmp(params.ammo.c_str(), "explosivegrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_EXPLOSIVE);
+					else if (!strcmp(params.ammo.c_str(), "smokegrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_SMOKE);
+					else if (!strcmp(params.ammo.c_str(), "flashbang"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_FLASHBANG);
+					else if (!strcmp(params.ammo.c_str(), "empgrenade"))
+						pOffHand->RequestFireMode(EOFFHAND_FIREMODE_EMP);
+				}
 			}
 		}
 	}

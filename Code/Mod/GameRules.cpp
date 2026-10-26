@@ -4256,6 +4256,22 @@ bool CGameRules::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 prof
 	{
 	case eEA_GameServerDynamic:
 		{
+			float curTime = (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay()) ? gEnv->p3DEngine->GetTimeOfDay()->GetTime() : 0.0f;
+			ser.Value("CoopCurTimeOfDay", curTime);
+			if (ser.IsReading() && gEnv->p3DEngine)
+			{
+				ITimeOfDay* pTOD = gEnv->p3DEngine->GetTimeOfDay();
+				if (pTOD)
+				{
+					if (!m_timeOfDayInitialized || fabs(pTOD->GetTime() - curTime) > 0.02f)
+					{
+						pTOD->SetTime(curTime, true);
+						pTOD->Update(false, true);
+						m_timeOfDayInitialized = true;
+					}
+				}
+			}
+
 			uint32 flags = 0;
 			if (ser.IsReading())
 			{
@@ -4266,11 +4282,13 @@ bool CGameRules::NetSerialize( TSerialize ser, EEntityAspects aspect, uint8 prof
 					m_timeOfDayInitialized = true;
 				}
 			}
-			gEnv->p3DEngine->GetTimeOfDay()->NetSerialize( ser, 0.0f, flags );
+			if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+				gEnv->p3DEngine->GetTimeOfDay()->NetSerialize( ser, 0.0f, flags );
 		}
 		break;
 	case eEA_GameServerStatic:
-		gEnv->p3DEngine->GetTimeOfDay()->NetSerialize( ser, 0.0f, ITimeOfDay::NETSER_STATICPROPS );
+		if (gEnv->p3DEngine && gEnv->p3DEngine->GetTimeOfDay())
+			gEnv->p3DEngine->GetTimeOfDay()->NetSerialize( ser, 0.0f, ITimeOfDay::NETSER_STATICPROPS );
 		break;
 	}
 	return true;

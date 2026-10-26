@@ -888,13 +888,16 @@ void CNanoSuit::SetCloak(bool on, bool force)
 				}
 			}
 
-			if(on)
+			if(m_pOwner && m_pOwner->IsClient())
 			{
-				SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_ENTER_CLOAK));
-			}
-			else
-			{
-				SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LEAVE_CLOAK));
+				if(on)
+				{
+					SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_ENTER_CLOAK));
+				}
+				else
+				{
+					SAFE_SOUNDMOODS_FUNC(AddSoundMood(SOUNDMOOD_LEAVE_CLOAK));
+				}
 			}
 
 			ENanoCloakMode cloakMode = m_cloak.GetType();

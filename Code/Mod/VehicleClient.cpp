@@ -107,6 +107,32 @@ void CVehicleClient::OnAction(IVehicle* pVehicle, EntityId actorId, const Action
 	if (ite == m_actionNameIds.end())
     return;
 
+	// In co-op, if a passenger is occupying the gunner seat, the driver must not remotely rotate or fire the gunner's turret
+	IVehicleSeat* pPassengerSeat = pVehicle->GetSeatForPassenger(actorId);
+	if (pPassengerSeat && pPassengerSeat->IsDriver())
+	{
+		int seatCount = pVehicle->GetSeatCount();
+		for (int sIdx = 0; sIdx < seatCount; ++sIdx)
+		{
+			IVehicleSeat* pOtherSeat = pVehicle->GetSeatById(sIdx);
+			if (pOtherSeat && pOtherSeat->IsGunner())
+			{
+				EntityId gunnerPass = pOtherSeat->GetPassenger();
+				if (gunnerPass && gunnerPass != actorId)
+				{
+					// Gunner seat is occupied by another player! Do not forward turret rotation or weapon firing from driver
+					if (ite->second == eVAI_RotateYaw || ite->second == eVAI_RotatePitch ||
+					    ite->second == eVAI_XIRotateYaw || ite->second == eVAI_XIRotatePitch ||
+					    ite->second == eVAI_Attack1 || ite->second == eVAI_Attack2)
+					{
+						return;
+					}
+				}
+				break;
+			}
+		}
+	}
+
 	switch (ite->second)
   {
   case (eVAI_XIMoveX):	

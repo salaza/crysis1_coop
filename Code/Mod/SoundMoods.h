@@ -46,14 +46,13 @@ public:
 	~	CSoundMoods();
 
 	void AddSoundMood(ESOUNDMOOD eSoundMood,float fPercent=0.0f);
+	void AddSoundMood(const char *szSoundMood,uint32 uiFadeIn,float fDuration,uint32 fFadeOut,float fFade);
+	void RemoveSoundMood(const char *szSoundMood,float fFade,uint32 uiFadeOut);
 	void ClearAllSoundMoods();
 	void Serialize(TSerialize ser);
 	void Update();
 
 private:
-
-	void AddSoundMood(const char *szSoundMood,uint32 uiFadeIn,float fDuration,uint32 fFadeOut,float fFade);
-	void RemoveSoundMood(const char *szSoundMood,float fFade,uint32 uiFadeOut);
 
 	ISoundMoodManager *m_pSoundMoodManager;
 
